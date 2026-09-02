@@ -86,10 +86,29 @@ python C:\Tools\markerlite\markerlite_gui.py
 ## A single .exe (no Python needed)
 
 Double-click **`build_exe.bat`**. It installs PyInstaller, builds, and leaves
-the binary at `dist\markerlite.exe`. Takes a couple of minutes, once.
+a folder at `dist\markerlite\` with `markerlite.exe` inside. Takes a couple
+of minutes, once.
 
-The result needs no Python on any machine you copy it to. It is large (~150MB,
-mostly scikit-learn and PyMuPDF) and takes a few seconds to start.
+The result needs no Python on any machine you copy it to. Copy the **whole
+folder** — the DLLs beside the exe are part of the program. It is large (~150MB,
+mostly scikit-learn and PyMuPDF). A folder build is used rather than a single
+self-extracting file because it starts in about a second and draws fewer
+antivirus false positives.
+
+### "Windows protected your PC"
+
+The first time you run the exe, Windows SmartScreen shows a blue dialog saying
+it *prevented an unrecognized app from starting*. This is not a detection of
+anything wrong — it appears for every executable that has not been signed with
+a paid code-signing certificate, from any publisher Windows has not seen
+before.
+
+To run it: click **More info**, then **Run anyway**. Windows asks once per
+file and then remembers.
+
+If you would rather not click through that, the alternative is the Python
+route above: nothing is unsigned there, because you are running the source
+with your own Python.
 
 **The .exe does not include Tesseract.** Digital PDFs — nearly everything from a
 publisher — work fine without it. Scanned PDFs need Tesseract installed

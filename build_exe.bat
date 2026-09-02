@@ -10,7 +10,7 @@ if errorlevel 1 goto :fail
 
 echo.
 echo Building (this takes a couple of minutes)...
-python -m PyInstaller --noconfirm --onefile --windowed ^
+python -m PyInstaller --noconfirm --onedir --windowed ^
   --name markerlite ^
   --collect-all tkinterdnd2 ^
   --collect-submodules sklearn ^
@@ -20,7 +20,8 @@ python -m PyInstaller --noconfirm --onefile --windowed ^
 if errorlevel 1 goto :fail
 
 echo.
-echo Done. The app is at:  %~dp0dist\markerlite.exe
+echo Done. The app is the folder:  %~dp0dist\markerlite\
+echo Run markerlite.exe inside it. Keep the folder together - the DLLs beside it are needed.
 echo.
 echo NOTE: scanned PDFs still need Tesseract installed separately and on PATH.
 echo Digital PDFs - which is nearly everything from a publisher - work without it.

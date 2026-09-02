@@ -26,7 +26,7 @@ jobs:
 
       - name: Build
         run: |
-          pyinstaller --noconfirm --onefile --windowed `
+          pyinstaller --noconfirm --onedir --windowed `
             --name markerlite `
             --collect-all tkinterdnd2 `
             --collect-submodules sklearn `
@@ -37,8 +37,18 @@ jobs:
       - name: Smoke test the converter
         run: python -c "import markerlite; print('import ok')"
 
+      - name: Check the build launches
+        # --windowed builds print nothing, so just confirm the exe and its
+        # bundled runtime are present and the entry point resolves.
+        run: |
+          if (!(Test-Path dist\markerlite\markerlite.exe)) { throw "exe missing" }
+          Get-ChildItem dist\markerlite | Measure-Object | Select-Object -Expand Count
+
       - uses: actions/upload-artifact@v5
         with:
           name: markerlite-windows
-          path: dist/markerlite.exe
+          # A folder build: markerlite.exe plus its DLLs beside it. Less prone
+          # to antivirus false positives than a self-extracting single file,
+          # and it starts in about a second instead of several.
+          path: dist/markerlite/
           if-no-files-found: error
