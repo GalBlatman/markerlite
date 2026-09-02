@@ -33,7 +33,8 @@ Options:
 | Flag | Effect |
 | --- | --- |
 | `-o DIR` | output directory (default `md_out`) |
-| `--images` | extract embedded figures to `DIR/<stem>_images/` and link them |
+| `--images` | extract figures (rasters and vector drawings) to `DIR/<stem>_images/` and link them |
+| `--page-markers` | emit `<!-- page N -->` at each page boundary |
 | `--flag-math` | crop each equation region to `DIR/<stem>_math/` and write a manifest |
 | `--apply-math JSON` | splice transcribed LaTeX from a filled-in manifest back into the `.md` |
 
