@@ -32,12 +32,14 @@ if sys.platform == "win32":
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
+DND_ERROR = ""
 try:
     from tkinterdnd2 import DND_FILES, TkinterDnD
 
     HAVE_DND = True
-except Exception:
+except Exception as _exc:  # pragma: no cover
     HAVE_DND = False
+    DND_ERROR = f"{type(_exc).__name__}: {_exc}"
 
 APP = "markerlite"
 PAD = 10
@@ -130,11 +132,12 @@ class App:
             bg=CARD, fg=INK, font=("Segoe UI Semibold", 13),
         )
         self.drop_label.pack()
-        tk.Label(
+        hint = tk.Label(
             inner,
             text="or click to browse — use Add folder for a whole directory",
             bg=CARD, fg=MUTED, font=("Segoe UI", 9),
-        ).pack(pady=(3, 0))
+        )
+        hint.pack(pady=(3, 0))
 
         for w in (drop, inner, self.drop_label):
             w.bind("<Button-1>", lambda _e: self.browse())
@@ -143,8 +146,13 @@ class App:
             w.bind("<Leave>", lambda _e: drop.configure(highlightbackground=LINE))
 
         if HAVE_DND:
-            drop.drop_target_register(DND_FILES)
-            drop.dnd_bind("<<Drop>>", self.on_drop)
+            # tkdnd delivers a drop to the widget under the cursor and does not
+            # propagate to parents. The zone is mostly covered by the inner
+            # frame and its two labels, so register all of them - registering
+            # only the outer frame meant a drop on the text went nowhere.
+            for w in (drop, inner, self.drop_label, hint):
+                w.drop_target_register(DND_FILES)
+                w.dnd_bind("<<Drop>>", self.on_drop)
 
         # ---- middle: file list + preview -------------------------------
         mid = ttk.Frame(root)
@@ -252,6 +260,10 @@ class App:
         statusbar.pack(fill="x", padx=PAD, pady=(0, PAD))
         self.status = ttk.Label(statusbar, text="No files yet", style="Muted.TLabel")
         self.status.pack(side="left")
+        if not HAVE_DND:
+            self.status.configure(
+                text="Drag-and-drop unavailable (" + (DND_ERROR or "tkinterdnd2 missing")
+                + ") — use the drop zone click or Add folder")
 
     # ---------------------------------------------------------------- files
     def _sync_out(self):

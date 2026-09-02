@@ -977,6 +977,33 @@ def _title_case(words: List[str]) -> bool:
 TEXTISH = ("Text", "SectionHeader", "ListItem", "Caption", "Equation")
 
 
+def proc_line_numbers(pages: List[Page], margin_frac=0.14, min_count=8) -> None:
+    """marker/processors/line_numbers.py - manuscript line numbers in the margin.
+
+    Review-copy PDFs number every line down the left edge. Each number is its
+    own tiny block, so without this they render as a column of one-digit
+    paragraphs. A run of many bare integers, all hugging the same margin and
+    mostly increasing, is the signature.
+    """
+    for page in pages:
+        cands = []
+        for blk in page.blocks:
+            t = blk.text.strip()
+            if not t.isdigit() or len(t) > 4 or blk.ignore_for_output:
+                continue
+            in_left = blk.x_end <= margin_frac * page.width
+            in_right = blk.x_start >= (1 - margin_frac) * page.width
+            if in_left or in_right:
+                cands.append((int(t), blk))
+        if len(cands) < min_count:
+            continue
+        vals = [v for v, _ in sorted(cands, key=lambda c: c[1].y_start)]
+        increasing = sum(1 for a, b in zip(vals, vals[1:]) if b > a)
+        if increasing >= 0.8 * (len(vals) - 1):
+            for _v, blk in cands:
+                blk.ignore_for_output = True
+
+
 def proc_ignore_common(pages: List[Page]) -> None:
     """marker/processors/ignoretext.py - repeated first/last blocks are furniture."""
     firsts, lasts = [], []
@@ -1072,10 +1099,12 @@ def proc_marginalia(pages: List[Page], header_zone=0.08, footer_zone=0.13,
             t = blk.text.strip()
             if not t or len(t) > max_chars:
                 continue
-            is_header = (
-                y1 <= header_zone and y1 <= body_top
-                and (first_body is None or idx < first_body)
-            )
+            # Position only for headers. The reading-order guard is for the
+            # foot of a column; a running head is often DRAWN LAST in the
+            # content stream (manuscript templates do this), which put it after
+            # every body block in order and let it through as a heading.
+            # Repetition evidence, checked below, is what protects content here.
+            is_header = y1 <= header_zone and y1 <= body_top
             is_footer = (
                 y0 >= 1 - footer_zone and y0 >= body_bottom
                 and (last_body is None or idx > last_body)
@@ -1314,6 +1343,59 @@ def _bucket_headings(line_heights: List[float], level_count: int, merge_threshol
         seen.add(key)
         deduped.append((lo, hi))
     return deduped
+
+
+def proc_reflow(pages: List[Page], max_gap_lines=2.4, ragged_tol=0.15,
+                indent_frac=0.015) -> None:
+    """Rejoin lines that the extractor split into one block each.
+
+    Double-spaced manuscripts put enough space between lines that PyMuPDF
+    returns every line as its own block, and every block then rendered as its
+    own paragraph. Two consecutive Text blocks are the same paragraph when they
+    sit close enough vertically (double spacing allowed), the first runs to
+    the column's right edge (ragged-right tolerated), and the second does not
+    open with a first-line indent - the indent is how the document itself
+    marks a paragraph boundary.
+    """
+    for page in pages:
+        texts = [b for b in page.blocks if b.btype == "Text" and not b.ignore_for_output
+                 and b.lines]
+        if len(texts) < 2:
+            continue
+        left = min(b.x_start for b in texts)
+        right = max(b.x_end for b in texts)
+        width = max(right - left, 1.0)
+        lh = median([b.line_height() for b in texts if b.line_height() > 0] or [12.0])
+
+        merged: List[Block] = []
+        grown: set = set()  # blocks assembled here from single lines
+        for blk in page.blocks:
+            prev = merged[-1] if merged else None
+            if (
+                prev is not None
+                and blk.btype == "Text" and prev.btype == "Text"
+                and not blk.ignore_for_output and not prev.ignore_for_output
+                and blk.lines and prev.lines
+            ):
+                # Only ever join a SINGLE line onto a run of single lines. A
+                # block PyMuPDF already built with several lines means its own
+                # paragraph grouping worked, and block-style paragraphs (no
+                # indent, spacing only) must not be welded together.
+                prev_single = len(prev.lines) == 1 or id(prev) in grown
+                if len(blk.lines) == 1 and prev_single:
+                    gap = blk.y_start - prev.y_end
+                    last = prev.lines[-1]
+                    full_width = last.x_end >= right - ragged_tol * width
+                    indented = blk.lines[0].x_start > left + indent_frac * page.width
+                    size_ok = abs(blk.max_size() - prev.max_size()) < 1.0
+                    if (-2 < gap < max_gap_lines * lh and full_width and not indented
+                            and size_ok):
+                        prev.lines.extend(blk.lines)
+                        prev.bbox = _bbox_of([ln.bbox for ln in prev.lines])
+                        grown.add(id(prev))
+                        continue
+            merged.append(blk)
+        page.blocks = merged
 
 
 def proc_continuation(pages: List[Page], column_gap_ratio=0.02) -> None:
@@ -1983,6 +2065,8 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
     classify(pages, body)
     propose_tables_from_text(pages)
 
+    proc_line_numbers(pages)
+    proc_reflow(pages)
     proc_ignore_common(pages)
     # Footnotes are relabeled before marginalia so the footer-zone rule can't
     # swallow them (marker excludes Footnote from marginalia for the same reason).
