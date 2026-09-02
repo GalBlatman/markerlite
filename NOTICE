@@ -1,0 +1,9 @@
+markerlite
+Copyright 2026 Gal Blatman
+
+Licensed under the Apache License, Version 2.0.
+
+This product includes table_recon.py, vendored from Marker
+(https://github.com/datalab-to/marker), Copyright Datalab,
+licensed under the Apache License, Version 2.0. Its license text is in
+LICENSE-marker-Apache-2.0.

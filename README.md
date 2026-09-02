@@ -6,6 +6,11 @@ don't, plus weight-free substitutes for the parts that do.
 
 It runs offline, on CPU, with no model downloads.
 
+**Windows:** download `markerlite-windows.zip` from the
+[latest release](https://github.com/GalBlatman/markerlite/releases/latest),
+unzip, run `markerlite.exe`. Drag PDFs in, get Markdown out. Everything else —
+source install, command line, what it gets right and wrong — is below.
+
 ## What it is genuinely good at
 
 - **Reading order on multi-column pages.** This is the main reason it exists.
@@ -164,10 +169,12 @@ print(summarize(info["stats"]))
 
 Both are fixed in markerlite.
 
-## Licensing
+## License
 
-`table_recon.py` is vendored from Marker (Apache-2.0); see
-`LICENSE-marker-Apache-2.0`. Everything else is original.
+Apache-2.0 — see `LICENSE`. `table_recon.py` is vendored from
+[Marker](https://github.com/datalab-to/marker), also Apache-2.0; its license
+text is kept in `LICENSE-marker-Apache-2.0` and the attribution in `NOTICE`.
+One license covers the whole repository.
 
 ## Performance
 
