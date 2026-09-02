@@ -76,4 +76,4 @@ the better choice outright.
 
 - `markerlite.py` — the converter
 - `table_recon.py` — vendored from Marker (Apache-2.0), table grid reconstruction
-- `LICENSE-marker-Apache-2.0` — Marker's license, covering the vendored file
+- `third_party/marker/LICENSE` — Marker's license, covering the vendored file

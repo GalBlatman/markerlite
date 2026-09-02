@@ -177,7 +177,7 @@ Both are fixed in markerlite.
 
 Apache-2.0 — see `LICENSE`. `table_recon.py` is vendored from
 [Marker](https://github.com/datalab-to/marker), also Apache-2.0; its license
-text is kept in `LICENSE-marker-Apache-2.0` and the attribution in `NOTICE`.
+text is kept in `third_party/marker/LICENSE` and the attribution in `NOTICE`.
 One license covers the whole repository.
 
 ## Performance
