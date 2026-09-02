@@ -1,0 +1,44 @@
+# Builds markerlite.exe on a Windows runner and attaches it to the run.
+# Push this repo to GitHub, open Actions, run the workflow, download the
+# artifact. No local Windows build needed - useful for handing a binary to
+# blog readers who will not install Python.
+name: build-windows-exe
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller pymupdf scikit-learn rapidfuzz regex numpy tkinterdnd2
+
+      - name: Build
+        run: |
+          pyinstaller --noconfirm --onefile --windowed `
+            --name markerlite `
+            --collect-all tkinterdnd2 `
+            --collect-submodules sklearn `
+            --add-data "markerlite.py;." `
+            --add-data "table_recon.py;." `
+            markerlite_gui.py
+
+      - name: Smoke test the converter
+        run: python -c "import markerlite; print('import ok')"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: markerlite-windows
+          path: dist/markerlite.exe
+          if-no-files-found: error
