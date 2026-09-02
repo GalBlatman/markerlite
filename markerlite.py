@@ -51,10 +51,20 @@ from sklearn.exceptions import ConvergenceWarning
 
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
+# Table-grid reconstruction. table_recon.py is vendored from Marker (Apache-2.0,
+# see third_party/marker/LICENSE) because it is already weight-free. The vendored
+# copy is preferred; an installed marker-pdf is only a fallback. Never let this
+# silently degrade to None on a normal install.
 try:
-    from marker.processors.table_recon import reconstruct_table_html
-except Exception:  # pragma: no cover - marker not installed
-    reconstruct_table_html = None
+    from table_recon import reconstruct_table_html
+except ImportError:
+    try:
+        from marker.processors.table_recon import reconstruct_table_html
+    except ImportError:
+        reconstruct_table_html = None
+        import warnings as _w
+        _w.warn("table_recon.py not found beside markerlite.py; borderless "
+                "table reconstruction is disabled", RuntimeWarning)
 
 
 # --------------------------------------------------------------------------- #
