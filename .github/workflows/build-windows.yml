@@ -9,6 +9,9 @@ on:
   push:
     tags: ["v*"]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -44,11 +47,24 @@ jobs:
           if (!(Test-Path dist\markerlite\markerlite.exe)) { throw "exe missing" }
           Get-ChildItem dist\markerlite | Measure-Object | Select-Object -Expand Count
 
+      - name: Zip the folder build
+        run: Compress-Archive -Path dist\markerlite -DestinationPath markerlite-windows.zip
+
       - uses: actions/upload-artifact@v5
         with:
           name: markerlite-windows
-          # A folder build: markerlite.exe plus its DLLs beside it. Less prone
-          # to antivirus false positives than a self-extracting single file,
-          # and it starts in about a second instead of several.
-          path: dist/markerlite/
+          path: markerlite-windows.zip
           if-no-files-found: error
+
+      # A run artifact is not a download link: it expires and needs a GitHub
+      # login to fetch. On a version tag, attach the zip to a Release so the
+      # Releases page carries something a reader can actually click.
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" markerlite-windows.zip `
+            --title "markerlite ${{ github.ref_name }}" `
+            --notes "Windows build. Unzip, run markerlite.exe from inside the folder. Windows SmartScreen will warn once: click More info, then Run anyway. Scanned PDFs need Tesseract installed separately; digital PDFs do not." `
+            --latest

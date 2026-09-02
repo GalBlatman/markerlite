@@ -114,7 +114,8 @@ with your own Python.
 publisher — work fine without it. Scanned PDFs need Tesseract installed
 separately and on PATH, and will fail with a clear message otherwise.
 
-If you would rather not build locally, `.github/workflows/build-windows.yml`
-builds the same binary on a GitHub Actions Windows runner and attaches it to the
-run, which is the easier path if you ever want to hand a download link to
-readers.
+If you would rather not build at all, download the current build from the
+repository's **Releases** page: unzip, open the `markerlite` folder, run
+`markerlite.exe`. Each release is produced by
+`.github/workflows/build-windows.yml` on a GitHub Actions Windows runner when a
+version tag is pushed.
