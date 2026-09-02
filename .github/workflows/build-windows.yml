@@ -47,6 +47,13 @@ jobs:
           if (!(Test-Path dist\markerlite\markerlite.exe)) { throw "exe missing" }
           Get-ChildItem dist\markerlite | Measure-Object | Select-Object -Expand Count
 
+      - name: Ship license texts with the build
+        # Apache-2.0 requires the license and NOTICE to accompany redistributions.
+        run: |
+          Copy-Item LICENSE, NOTICE, README.md -Destination dist\markerlite\
+          New-Item -ItemType Directory -Force dist\markerlite\third_party\marker | Out-Null
+          Copy-Item third_party\marker\LICENSE -Destination dist\markerlite\third_party\marker\
+
       - name: Zip the folder build
         run: Compress-Archive -Path dist\markerlite -DestinationPath markerlite-windows.zip
 
