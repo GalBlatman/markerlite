@@ -67,7 +67,26 @@ class App:
 
         self._style()
         self._build()
+        self._set_icon()
         self.root.after(80, self._drain)
+
+    def _set_icon(self):
+        """Title-bar and taskbar icon. Best effort: a missing file is not fatal.
+
+        PyInstaller unpacks bundled data under sys._MEIPASS; from source the
+        assets folder sits beside this file.
+        """
+        base = pathlib.Path(getattr(sys, "_MEIPASS", pathlib.Path(__file__).resolve().parent))
+        ico = base / "assets" / "icon.ico"
+        png = base / "assets" / "icon-256.png"
+        try:
+            if sys.platform == "win32" and ico.exists():
+                self.root.iconbitmap(default=str(ico))
+            elif png.exists():
+                self._icon_img = tk.PhotoImage(file=str(png))
+                self.root.iconphoto(True, self._icon_img)
+        except Exception:
+            pass
 
     # ---------------------------------------------------------------- style
     def _style(self):

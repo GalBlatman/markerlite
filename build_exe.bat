@@ -14,6 +14,8 @@ python -m PyInstaller --noconfirm --onedir --windowed ^
   --name markerlite ^
   --collect-all tkinterdnd2 ^
   --collect-submodules sklearn ^
+  --icon "%~dp0assets\icon.ico" ^
+  --add-data "assets;assets" ^
   --add-data "markerlite.py;." ^
   --add-data "table_recon.py;." ^
   "%~dp0markerlite_gui.py"

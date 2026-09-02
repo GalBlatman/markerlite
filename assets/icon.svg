@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- markerlite: a page, and the one glyph that says "Markdown" -->
+  <rect x="0" y="0" width="256" height="256" rx="56" fill="#2b3a55"/>
+  <!-- page with folded corner -->
+  <path d="M72 40 h76 l40 40 v136 a8 8 0 0 1 -8 8 H80 a8 8 0 0 1 -8 -8 Z" fill="#faf9f7"/>
+  <path d="M148 40 v32 a8 8 0 0 0 8 8 h32 Z" fill="#c9c3ba"/>
+  <!-- hash: two verticals, two horizontals, drawn as strokes -->
+  <g stroke="#4a6fa5" stroke-width="16" stroke-linecap="round" fill="none">
+    <line x1="108" y1="100" x2="98" y2="196"/>
+    <line x1="150" y1="100" x2="140" y2="196"/>
+    <line x1="88" y1="128" x2="172" y2="128"/>
+    <line x1="82" y1="168" x2="166" y2="168"/>
+  </g>
+</svg>

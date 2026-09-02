@@ -1,3 +1,5 @@
+<img src="assets/icon-256.png" width="72" align="right" alt="">
+
 # markerlite — Marker's document understanding, without the weights
 
 [![Latest release](https://img.shields.io/github/v/release/GalBlatman/markerlite?label=release)](https://github.com/GalBlatman/markerlite/releases/latest)

@@ -33,6 +33,8 @@ jobs:
             --name markerlite `
             --collect-all tkinterdnd2 `
             --collect-submodules sklearn `
+            --icon assets/icon.ico `
+            --add-data "assets;assets" `
             --add-data "markerlite.py;." `
             --add-data "table_recon.py;." `
             markerlite_gui.py
