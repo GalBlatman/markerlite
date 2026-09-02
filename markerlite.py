@@ -769,6 +769,13 @@ def classify(pages: List[Page], body_size: float) -> None:
             if _is_heading(blk, body_size, text, first):
                 blk.btype = "SectionHeader"
                 continue
+            # Footnotes before lists: "1. Smith and Lee..." at the foot of the
+            # page in small type is a note, but it also matches the list-item
+            # pattern, and the list test used to win. Numbered footnotes then
+            # rendered as bullets and never reached the footnote path at all.
+            if _is_footnote(blk, page, body_size, first):
+                blk.btype = "Footnote"
+                continue
             if LIST_ITEM_START.match(first):
                 blk.btype = "ListItem"
                 continue
@@ -889,6 +896,32 @@ def _is_equation(blk: Block, page: Page, text: str) -> bool:
     if math_chars > 0.25 and has_ops:
         return True
     return False
+
+
+# Footnote marker at the start of a note: "[1]", "(1)", "1.", "1)", "1 ", the
+# LaTeX run-on "1We", or a symbol run. Group 1 is the whole marker.
+FOOTNOTE_MARKER = re.compile(
+    r"^\s*(\[(\d{1,3})\]|\((\d{1,3})\)|(\d{1,3})[.)]?(?=\s)|(\d{1,3})(?=[A-Z])|"
+    r"([*\u2020\u2021\u00a7\u00b6]{1,3}))\s*"
+)
+
+
+def footnote_label(text: str):
+    """(label, body) for a note that starts with a marker, else (None, text)."""
+    m = FOOTNOTE_MARKER.match(text)
+    if not m:
+        return None, text
+    label = next(g for g in m.groups()[1:] if g)
+    return label, text[m.end():]
+
+
+def _is_footnote(blk: Block, page: Page, body_size: float, first: str) -> bool:
+    h = page.height or 1
+    if blk.y_start / h < 0.70:
+        return False
+    if body_size and blk.max_size() >= body_size * 0.95:
+        return False
+    return bool(FOOTNOTE_MARKER.match(first))
 
 
 def _is_heading(blk: Block, body_size: float, text: str, first: str) -> bool:
@@ -1078,7 +1111,7 @@ def proc_marginalia(pages: List[Page], header_zone=0.08, footer_zone=0.13,
             continue  # unique text in a margin zone is content, not furniture
         if blk.btype == "SectionHeader" and not repeats:
             continue  # never drop a heading on position alone
-        if page_idx == 0 and not repeats:
+        if page_idx == 0 and not repeats and not bare_number:
             continue  # page 1 carries titles; require proof it is furniture
         blk.ignore_for_output = True
 
@@ -1122,7 +1155,15 @@ def _strip_merged_running_heads(pages: List[Page], groups: dict, keys: List[str]
 
 
 def proc_footnotes(pages: List[Page]) -> None:
-    """Relabel + push to bottom (marker/processors/footnote.py)."""
+    """Relabel stragglers, merge wrapped continuations, push notes to the bottom.
+
+    marker/processors/footnote.py pushes footnotes to the page foot. Two things
+    are added here. Blocks the classifier missed (small type, page foot, marker
+    at the start) are relabeled - including ones it called ListItem. And a
+    Footnote block that does NOT start with a marker is a wrapped continuation
+    of the note above it, so it is folded into that note. Without the merge,
+    one note wrapped across two blocks became two anonymous definitions.
+    """
     for page in pages:
         h = page.height or 1
         body_sizes = [
@@ -1130,22 +1171,59 @@ def proc_footnotes(pages: List[Page]) -> None:
             if b.btype == "Text" and not b.ignore_for_output
         ]
         body = median(body_sizes) if body_sizes else 0
-        notes = []
         for blk in page.blocks:
-            if blk.btype != "Text" or blk.ignore_for_output:
+            if blk.btype not in ("Text", "ListItem") or blk.ignore_for_output:
                 continue
-            if blk.y_start / h < 0.72:
+            if blk.y_start / h < 0.70:
                 continue
             if body and blk.max_size() >= body * 0.95:
                 continue
-            if not FOOTNOTE_START.match(blk.text.strip()):
+            if not FOOTNOTE_MARKER.match(blk.text.strip()):
                 continue
             blk.btype = "Footnote"
-            notes.append(blk)
-        if notes:
-            for n in notes:
-                page.blocks.remove(n)
-            page.blocks.extend(notes)
+
+        # A small-type block in the foot zone with no marker, immediately after
+        # a note in reading order, is that note's wrapped continuation.
+        prev_was_note = False
+        for blk in page.blocks:
+            if blk.ignore_for_output:
+                continue
+            if blk.btype == "Footnote":
+                prev_was_note = True
+                continue
+            if (
+                prev_was_note
+                and blk.btype in ("Text", "ListItem")
+                and blk.y_start / h >= 0.70
+                and (not body or blk.max_size() < body * 0.95)
+                and not FOOTNOTE_MARKER.match(blk.text.strip())
+                and not PAGE_NUMBER_ONLY.match(blk.text.strip())
+            ):
+                blk.btype = "Footnote"
+                continue
+            prev_was_note = False
+
+        notes = [b for b in page.blocks if b.btype == "Footnote" and not b.ignore_for_output]
+        if not notes:
+            continue
+
+        # Fold continuation blocks into the note above them. A block that opens
+        # without a marker, in the same small type, is the tail of a wrapped
+        # note, not a new one.
+        merged: List[Block] = []
+        for blk in notes:
+            label, _ = footnote_label(blk.text.strip())
+            if merged and label is None:
+                prev = merged[-1]
+                prev.lines.extend(blk.lines)
+                prev.bbox = _bbox_of([ln.bbox for ln in prev.lines])
+                page.blocks.remove(blk)
+                continue
+            merged.append(blk)
+
+        for n in merged:
+            page.blocks.remove(n)
+        page.blocks.extend(merged)
 
 
 def proc_section_levels(pages: List[Page], level_count=4, merge_threshold=0.25,
@@ -1474,10 +1552,25 @@ def table_html_to_markdown(html: str) -> str:
     return "\n".join(out)
 
 
-def _inline(spans: List[Span]) -> str:
-    """Emit bold/italic runs, coalescing adjacent spans with the same format."""
+def _inline(spans: List[Span], fn_labels=frozenset()) -> str:
+    """Emit bold/italic runs, coalescing adjacent spans with the same format.
+
+    A superscript span whose text is the label of a known footnote becomes the
+    reference ``[^N]``; other superscripts pass through untouched.
+    """
     parts = []
-    for bold_italic, group in groupby(spans, key=lambda s: (s.bold, s.italic)):
+    for key3, group in groupby(spans, key=lambda s: (s.bold, s.italic, s.superscript)):
+        group = list(group)
+        bold, italic, sup = key3
+        if sup:
+            key = "".join(s.text for s in group).strip()
+            if fn_labels and key in fn_labels:
+                parts.append(f"[^{key}]")
+            elif key:
+                # Not a note reference (an exponent, say): keep it raised.
+                # <sup> is valid in GFM and Pandoc; bare "103" is not 10^3.
+                parts.append(f"<sup>{key}</sup>")
+            continue
         text = "".join(s.text for s in group)
         if not text.strip():
             parts.append(text)
@@ -1485,7 +1578,6 @@ def _inline(spans: List[Span]) -> str:
         lead = len(text) - len(text.lstrip())
         trail = len(text) - len(text.rstrip())
         core = text.strip()
-        bold, italic = bold_italic
         if bold and italic:
             core = f"***{core}***"
         elif bold:
@@ -1496,6 +1588,9 @@ def _inline(spans: List[Span]) -> str:
     return "".join(parts)
 
 
+_FN_LABELS: set = set()
+
+
 def block_text(blk: Block, plain: bool = False) -> str:
     """Join a block's lines, dehyphenating and unwrapping soft line breaks.
 
@@ -1504,7 +1599,7 @@ def block_text(blk: Block, plain: bool = False) -> str:
     """
     pieces = []
     for i, ln in enumerate(blk.lines):
-        seg = (ln.text if plain else _inline(ln.spans)).rstrip()
+        seg = (ln.text if plain else _inline(ln.spans, _FN_LABELS)).rstrip()
         if i == 0:
             pieces.append(seg)
             continue
@@ -1526,6 +1621,20 @@ def _is_list_line(chunk: str) -> bool:
 def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
     out: List[str] = []
     pending_paragraph = ""
+    anon_counter = [0]
+    # Labels of every note in the document, so that a superscript "1" in body
+    # text can be emitted as the reference [^1] - and only when note 1 exists,
+    # so exponents in prose are left alone.
+    fn_labels = set()
+    for page in pages:
+        for blk in page.blocks:
+            if blk.btype == "Footnote" and not blk.ignore_for_output:
+                for ln in blk.lines:
+                    label, _ = footnote_label(ln.text.strip())
+                    if label:
+                        fn_labels.add(label)
+    global _FN_LABELS
+    _FN_LABELS = fn_labels
 
     def flush():
         nonlocal pending_paragraph
@@ -1607,19 +1716,26 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
             elif t == "Footnote":
                 if keep_footnotes:
                     notes = [
-                        _inline(ln.spans).strip() for ln in blk.lines
+                        _inline(ln.spans, fn_labels).strip() for ln in blk.lines
                         if ln.text.strip()
                     ]
                     merged = []
                     for n in notes:
                         # A new note starts with its own marker; anything else
                         # is a wrapped continuation of the note above.
-                        if FOOTNOTE_START.match(n) or not merged:
+                        if footnote_label(n)[0] is not None or not merged:
                             merged.append(n)
                         else:
                             merged[-1] += " " + n
                     for n in merged:
-                        out.append("[^]: " + n)
+                        label, body = footnote_label(n)
+                        if label is None:
+                            anon_counter[0] += 1
+                            label = f"n{anon_counter[0]}"
+                        # Real footnote syntax: a labeled definition. "[^]:"
+                        # carried no identity, so downstream tools had to guess
+                        # which lines belonged to which note.
+                        out.append(f"[^{label}]: {body.strip()}")
             elif t == "Figure":
                 if blk.image_path:
                     out.append(f"![]({blk.image_path})")

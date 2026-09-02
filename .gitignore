@@ -3,3 +3,6 @@ __pycache__/
 build/
 dist/
 *.spec
+
+# packaged builds are derived from the source here
+*.zip

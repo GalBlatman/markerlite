@@ -19,6 +19,10 @@ It runs offline, on CPU, with no model downloads.
 - **Headings**, with levels taken from section numbering when the document
   numbers its sections, and from font-size clustering otherwise.
 - **Lists**, including nesting depth from indentation.
+- **Footnotes**, as labeled definitions (`[^1]: ...`) with the in-text
+  superscript emitted as the matching reference (`[^1]`). Notes wrapped across
+  lines or blocks are merged; a superscript with no matching note (an exponent)
+  is left as `<sup>`.
 - **Scanned PDFs**, detected automatically and OCR'd through Tesseract with its
   own page segmentation, which handles columns.
 
@@ -109,8 +113,7 @@ print(summarize(info["stats"]))
    `np.sort(..., axis=0)`, which sorts the two columns independently and
    scrambles the value→cluster pairing, permuting heading levels.
 2. KMeans is asked for four clusters regardless of how many distinct heading
-   sizes exist, so with rendering jitter near-identical heading sizes get
-   split across clusters, inventing a level.
+   sizes exist, so it splits one size and invents a level.
 
 Both are fixed in markerlite.
 
