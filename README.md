@@ -1,5 +1,9 @@
 # markerlite — Marker's document understanding, without the weights
 
+[![Latest release](https://img.shields.io/github/v/release/GalBlatman/markerlite?label=release)](https://github.com/GalBlatman/markerlite/releases/latest)
+[![Windows build](https://img.shields.io/github/actions/workflow/status/GalBlatman/markerlite/build-windows.yml?label=windows%20build)](https://github.com/GalBlatman/markerlite/actions/workflows/build-windows.yml)
+[![License](https://img.shields.io/github/license/GalBlatman/markerlite)](LICENSE)
+
 [Marker](https://github.com/datalab-to/marker) needs downloaded model weights
 for five of its stages. markerlite is a reimplementation of the parts that
 don't, plus weight-free substitutes for the parts that do.
