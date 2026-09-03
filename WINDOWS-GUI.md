@@ -71,6 +71,22 @@ To pin it: right-click `markerlite.bat` → **Show more options** → **Send to*
 - Files convert one at a time on a background thread. One failure doesn't stop
   the batch; that file just shows `failed`, and selecting it shows the error.
 
+## If drag-and-drop doesn't work
+
+From source, drag-and-drop needs `tkinterdnd2` in the **same** Python that
+runs the app. The status line at the bottom of the window says so when it is
+missing; the fix is `pip install tkinterdnd2`. The exe has it built in.
+
+For anything else, run the app with `--diag`:
+
+```powershell
+.\markerlite.exe --diag
+```
+
+It writes `markerlite-diag.txt` next to the exe (or next to `markerlite_gui.py`
+from source) with the Python and Tcl versions, whether the drag-and-drop
+library loaded, and the exact error if it did not.
+
 ## If it doesn't start
 
 Double-clicking does nothing and no window appears: `pythonw` isn't on PATH.

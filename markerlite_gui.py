@@ -41,61 +41,6 @@ except Exception as _exc:  # pragma: no cover
     HAVE_DND = False
     DND_ERROR = f"{type(_exc).__name__}: {_exc}"
 
-def _hook_windows_dropfiles(root, on_paths):
-    """Accept Explorer drops through WM_DROPFILES - no Tcl extension needed.
-
-    tkinterdnd2 is a Tcl extension that has to be found and loaded at runtime,
-    and inside a PyInstaller bundle that can silently fail. Windows itself will
-    deliver dropped file paths to any window that asks; Tk draws all its
-    widgets in one HWND, so hooking the root makes the whole window a target.
-    (After the approach in the MIT-licensed `windnd` package.)
-    """
-    import ctypes
-    from ctypes import wintypes
-
-    WM_DROPFILES = 0x0233
-    GWLP_WNDPROC = -4
-    LRESULT = ctypes.c_ssize_t
-    user32, shell32 = ctypes.windll.user32, ctypes.windll.shell32
-    WNDPROC = ctypes.WINFUNCTYPE(LRESULT, wintypes.HWND, wintypes.UINT,
-                                 wintypes.WPARAM, wintypes.LPARAM)
-    set_long = getattr(user32, "SetWindowLongPtrW", None) or user32.SetWindowLongW
-    set_long.restype = ctypes.c_ssize_t
-    set_long.argtypes = [wintypes.HWND, ctypes.c_int, ctypes.c_ssize_t]
-    user32.CallWindowProcW.restype = LRESULT
-    user32.CallWindowProcW.argtypes = [ctypes.c_ssize_t, wintypes.HWND, wintypes.UINT,
-                                       wintypes.WPARAM, wintypes.LPARAM]
-    shell32.DragQueryFileW.restype = wintypes.UINT
-    shell32.DragQueryFileW.argtypes = [wintypes.HANDLE, wintypes.UINT,
-                                       wintypes.LPWSTR, wintypes.UINT]
-    shell32.DragFinish.argtypes = [wintypes.HANDLE]
-    shell32.DragAcceptFiles.argtypes = [wintypes.HWND, wintypes.BOOL]
-
-    hwnd = root.winfo_id()
-    state = {}
-
-    def proc(h, msg, wp, lp):
-        if msg == WM_DROPFILES:
-            try:
-                n = shell32.DragQueryFileW(wp, 0xFFFFFFFF, None, 0)
-                paths = []
-                for i in range(n):
-                    ln = shell32.DragQueryFileW(wp, i, None, 0) + 1
-                    buf = ctypes.create_unicode_buffer(ln)
-                    shell32.DragQueryFileW(wp, i, buf, ln)
-                    paths.append(buf.value)
-            finally:
-                shell32.DragFinish(wp)
-            root.after(0, lambda p=paths: on_paths(p))
-            return 0
-        return user32.CallWindowProcW(state["old"], h, msg, wp, lp)
-
-    cb = WNDPROC(proc)
-    state["old"] = set_long(hwnd, GWLP_WNDPROC, ctypes.cast(cb, ctypes.c_void_p).value)
-    shell32.DragAcceptFiles(hwnd, True)
-    root._native_drop_hook = cb  # keep the callback alive for the window's life
-
-
 APP = "markerlite"
 PAD = 10
 
@@ -129,47 +74,12 @@ class App:
         self.root.after(80, self._drain)
 
     def _enable_drop(self):
-        """tkinterdnd2 if it loaded; otherwise native WM_DROPFILES on Windows."""
-        self.drop_backend = None
-        if HAVE_DND:
-            self.drop_backend = "tkdnd"
-            return
-        # The native WM_DROPFILES hook crashed the app on its first real drop
-        # and cannot be exercised outside Windows, so it is opt-in until it has
-        # been verified: set MARKERLITE_NATIVE_DND=1 to try it.
-        if sys.platform == "win32" and os.environ.get("MARKERLITE_NATIVE_DND") == "1":
-            try:
-                self.root.update_idletasks()  # the HWND must exist first
-                _hook_windows_dropfiles(self.root, lambda paths: self.add(paths))
-                self.drop_backend = "native"
-                self.drop_label.configure(text="Drop PDFs here")
-                return
-            except Exception as exc:
-                self.status.configure(text=f"Native drop hook failed ({exc})")
-                return
-        # No drag-and-drop. Say exactly why, so the cause can be fixed rather
-        # than worked around.
-        self.status.configure(
-            text="Drag-and-drop unavailable — " + (DND_ERROR or "tkinterdnd2 not found")
-            + ". Click the zone or use Add folder.")
-
-    def _set_icon(self):
-        """Title-bar and taskbar icon. Best effort: a missing file is not fatal.
-
-        PyInstaller unpacks bundled data under sys._MEIPASS; from source the
-        assets folder sits beside this file.
-        """
-        base = pathlib.Path(getattr(sys, "_MEIPASS", pathlib.Path(__file__).resolve().parent))
-        ico = base / "assets" / "icon.ico"
-        png = base / "assets" / "icon-256.png"
-        try:
-            if sys.platform == "win32" and ico.exists():
-                self.root.iconbitmap(default=str(ico))
-            elif png.exists():
-                self._icon_img = tk.PhotoImage(file=str(png))
-                self.root.iconphoto(True, self._icon_img)
-        except Exception:
-            pass
+        """Drag-and-drop comes from tkinterdnd2; without it, say so plainly."""
+        self.drop_backend = "tkdnd" if HAVE_DND else None
+        if not HAVE_DND:
+            self.status.configure(
+                text="Drag-and-drop unavailable — " + (DND_ERROR or "tkinterdnd2 not found")
+                + ". Run: pip install tkinterdnd2  (or click the zone / Add folder).")
 
     # ---------------------------------------------------------------- style
     def _style(self):
