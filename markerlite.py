@@ -1399,10 +1399,17 @@ def proc_reflow(pages: List[Page], max_gap_lines=2.4, ragged_tol=0.15,
 
 
 def proc_continuation(pages: List[Page], column_gap_ratio=0.02) -> None:
-    """marker/processors/text.py - paragraphs continuing across columns/pages."""
+    """marker/processors/text.py - paragraphs continuing across columns/pages.
+
+    Marker skips single-line blocks outright. Here a single-line block is
+    still considered when its line ends in a hyphen: a paragraph that starts
+    on the last line of a column and breaks mid-word is a legitimate layout,
+    and the hyphen is unambiguous evidence. The full-width test alone is not
+    accepted for one line, because a lone line is trivially "full width".
+    """
     flat = _flat_text_blocks(pages)
     for i, blk in enumerate(flat[:-1]):
-        if blk.btype not in ("Text",) or len(blk.lines) < 2:
+        if blk.btype not in ("Text",) or not blk.lines:
             continue
         nxt = flat[i + 1]
         if nxt.btype != "Text" or nxt.ignore_for_output:
@@ -1436,6 +1443,8 @@ def proc_continuation(pages: List[Page], column_gap_ratio=0.02) -> None:
             max_x = math.floor(max(ln.x_end for ln in lines))
             last_full_width = lines[-1].x_end >= max_x
             last_hyphenated = bool(HYPHEN_END.match(lines[-1].text.strip()))
+        if len(blk.lines) < 2 and not last_hyphenated:
+            continue
 
         if (
             (last_full_width or last_hyphenated)

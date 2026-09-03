@@ -452,15 +452,15 @@ def make_hard():
     paras = paragraphs(12, start=0, width=4, step=4)
 
     flow.heading("1 Introduction")
-    flow.paragraph(paras[0], space_after=6, sup_refs={"forgives": "1"})
-    flow.paragraph(paras[1], space_after=6)
+    flow.paragraph(paras[0], space_after=4, sup_refs={"forgives": "1"})
+    flow.paragraph(paras[1], space_after=4)
     flow.heading("2 Related Work")
-    flow.paragraph(paras[2], space_after=6, sup_refs={"redistributed": "2"})
-    flow.paragraph(paras[3], space_after=6)
-    flow.paragraph(paras[4], space_after=6)
+    flow.paragraph(paras[2], space_after=4, sup_refs={"redistributed": "2"})
+    flow.paragraph(paras[3], space_after=4)
+    flow.paragraph(paras[4], space_after=4)
     flow.heading("3 Benchmark Design")
-    flow.paragraph(paras[5], space_after=6)
-    flow.paragraph(paras[6], space_after=6)
+    flow.paragraph(paras[5], space_after=4)
+    flow.paragraph(paras[6], space_after=4)
     # Table 1 goes wherever the flow is when it has room; force it onto page 2
     # left column top if we are still on page 1 right.
     flow.ensure_room(9)
@@ -480,13 +480,13 @@ def make_hard():
     ]
     y = ruled_table(pdf, flow.box[0], y, [88, 46, 46, 30], rows)
     flow.y = y + 10
-    flow.paragraph(paras[7], space_after=6, sup_refs={"support": "3"})
+    flow.paragraph(paras[7], space_after=4, sup_refs={"support": "3"})
     flow.heading("4 Results")
-    flow.paragraph(paras[8], space_after=6)
-    flow.paragraph(paras[9], space_after=6)
+    flow.paragraph(paras[8], space_after=4)
+    flow.paragraph(paras[9], space_after=4)
     flow.heading("5 Discussion")
-    flow.paragraph(paras[10], space_after=6)
-    flow.paragraph(paras[11], space_after=6)
+    flow.paragraph(paras[10], space_after=4)
+    flow.paragraph(paras[11], space_after=4)
 
     note(right_x, 696, "3",
          "The generators and the fixtures ship in the repository under an Apache-2.0 licence.")
