@@ -41,6 +41,61 @@ except Exception as _exc:  # pragma: no cover
     HAVE_DND = False
     DND_ERROR = f"{type(_exc).__name__}: {_exc}"
 
+def _hook_windows_dropfiles(root, on_paths):
+    """Accept Explorer drops through WM_DROPFILES - no Tcl extension needed.
+
+    tkinterdnd2 is a Tcl extension that has to be found and loaded at runtime,
+    and inside a PyInstaller bundle that can silently fail. Windows itself will
+    deliver dropped file paths to any window that asks; Tk draws all its
+    widgets in one HWND, so hooking the root makes the whole window a target.
+    (After the approach in the MIT-licensed `windnd` package.)
+    """
+    import ctypes
+    from ctypes import wintypes
+
+    WM_DROPFILES = 0x0233
+    GWLP_WNDPROC = -4
+    LRESULT = ctypes.c_ssize_t
+    user32, shell32 = ctypes.windll.user32, ctypes.windll.shell32
+    WNDPROC = ctypes.WINFUNCTYPE(LRESULT, wintypes.HWND, wintypes.UINT,
+                                 wintypes.WPARAM, wintypes.LPARAM)
+    set_long = getattr(user32, "SetWindowLongPtrW", None) or user32.SetWindowLongW
+    set_long.restype = ctypes.c_ssize_t
+    set_long.argtypes = [wintypes.HWND, ctypes.c_int, ctypes.c_ssize_t]
+    user32.CallWindowProcW.restype = LRESULT
+    user32.CallWindowProcW.argtypes = [ctypes.c_ssize_t, wintypes.HWND, wintypes.UINT,
+                                       wintypes.WPARAM, wintypes.LPARAM]
+    shell32.DragQueryFileW.restype = wintypes.UINT
+    shell32.DragQueryFileW.argtypes = [wintypes.HANDLE, wintypes.UINT,
+                                       wintypes.LPWSTR, wintypes.UINT]
+    shell32.DragFinish.argtypes = [wintypes.HANDLE]
+    shell32.DragAcceptFiles.argtypes = [wintypes.HWND, wintypes.BOOL]
+
+    hwnd = root.winfo_id()
+    state = {}
+
+    def proc(h, msg, wp, lp):
+        if msg == WM_DROPFILES:
+            try:
+                n = shell32.DragQueryFileW(wp, 0xFFFFFFFF, None, 0)
+                paths = []
+                for i in range(n):
+                    ln = shell32.DragQueryFileW(wp, i, None, 0) + 1
+                    buf = ctypes.create_unicode_buffer(ln)
+                    shell32.DragQueryFileW(wp, i, buf, ln)
+                    paths.append(buf.value)
+            finally:
+                shell32.DragFinish(wp)
+            root.after(0, lambda p=paths: on_paths(p))
+            return 0
+        return user32.CallWindowProcW(state["old"], h, msg, wp, lp)
+
+    cb = WNDPROC(proc)
+    state["old"] = set_long(hwnd, GWLP_WNDPROC, ctypes.cast(cb, ctypes.c_void_p).value)
+    shell32.DragAcceptFiles(hwnd, True)
+    root._native_drop_hook = cb  # keep the callback alive for the window's life
+
+
 APP = "markerlite"
 PAD = 10
 
@@ -70,7 +125,27 @@ class App:
         self._style()
         self._build()
         self._set_icon()
+        self._enable_drop()
         self.root.after(80, self._drain)
+
+    def _enable_drop(self):
+        """tkinterdnd2 if it loaded; otherwise native WM_DROPFILES on Windows."""
+        self.drop_backend = None
+        if HAVE_DND:
+            self.drop_backend = "tkdnd"
+            return
+        if sys.platform == "win32":
+            try:
+                self.root.update_idletasks()  # the HWND must exist first
+                _hook_windows_dropfiles(self.root, lambda paths: self.add(paths))
+                self.drop_backend = "native"
+                self.drop_label.configure(text="Drop PDFs here")
+                return
+            except Exception as exc:
+                self.status.configure(text=f"Drag-and-drop unavailable ({exc})")
+                return
+        if DND_ERROR:
+            self.status.configure(text=f"Drag-and-drop unavailable ({DND_ERROR})")
 
     def _set_icon(self):
         """Title-bar and taskbar icon. Best effort: a missing file is not fatal.
@@ -260,10 +335,7 @@ class App:
         statusbar.pack(fill="x", padx=PAD, pady=(0, PAD))
         self.status = ttk.Label(statusbar, text="No files yet", style="Muted.TLabel")
         self.status.pack(side="left")
-        if not HAVE_DND:
-            self.status.configure(
-                text="Drag-and-drop unavailable (" + (DND_ERROR or "tkinterdnd2 missing")
-                + ") — use the drop zone click or Add folder")
+
 
     # ---------------------------------------------------------------- files
     def _sync_out(self):
