@@ -134,7 +134,10 @@ class App:
         if HAVE_DND:
             self.drop_backend = "tkdnd"
             return
-        if sys.platform == "win32":
+        # The native WM_DROPFILES hook crashed the app on its first real drop
+        # and cannot be exercised outside Windows, so it is opt-in until it has
+        # been verified: set MARKERLITE_NATIVE_DND=1 to try it.
+        if sys.platform == "win32" and os.environ.get("MARKERLITE_NATIVE_DND") == "1":
             try:
                 self.root.update_idletasks()  # the HWND must exist first
                 _hook_windows_dropfiles(self.root, lambda paths: self.add(paths))
@@ -142,10 +145,13 @@ class App:
                 self.drop_label.configure(text="Drop PDFs here")
                 return
             except Exception as exc:
-                self.status.configure(text=f"Drag-and-drop unavailable ({exc})")
+                self.status.configure(text=f"Native drop hook failed ({exc})")
                 return
-        if DND_ERROR:
-            self.status.configure(text=f"Drag-and-drop unavailable ({DND_ERROR})")
+        # No drag-and-drop. Say exactly why, so the cause can be fixed rather
+        # than worked around.
+        self.status.configure(
+            text="Drag-and-drop unavailable — " + (DND_ERROR or "tkinterdnd2 not found")
+            + ". Click the zone or use Add folder.")
 
     def _set_icon(self):
         """Title-bar and taskbar icon. Best effort: a missing file is not fatal.
