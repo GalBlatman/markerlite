@@ -6,3 +6,6 @@ dist/
 
 # packaged builds are derived from the source here
 *.zip
+
+# real-document validation inputs: not ours to publish
+tests/real/

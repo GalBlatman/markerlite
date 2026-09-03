@@ -127,9 +127,9 @@ share one PyMuPDF block), `footnote_repro.pdf` (note wrapped across two
 blocks, superscript refs, an exponent), `scanned.pdf` (raster of hard.pdf,
 OCR path), `manuscript.pdf` (double-spaced, margin line numbers drawn as a
 separate pass, first-line indents, running head drawn last).
-`paper.pdf` (real pdflatex: display equations, booktabs table) is still
-missing: `tests/generators/paper.tex` + `make_paper.sh` build it, but no TeX
-was installed on the dev machine. Add it and run `regress.py --update paper`.
+`paper.pdf` is real pdflatex output (two-column, fancyhdr running head,
+amsmath display equations, booktabs table, itemize, two footnotes); it is
+rebuilt from `tests/generators/paper.tex` by `make_paper.sh`.
 
 `python tests/regress.py` converts every fixture and diffs against
 `tests/expected/`; non-zero on any difference. `--update` rewrites the
@@ -162,7 +162,6 @@ case, "bef-" / "ore").
 
 ## Open items
 
-- Add `paper.pdf` (needs pdflatex) and its expected output; see above.
 - Real-document validation: the user's Ragins 2012 (AMR manuscript PDF) and
   SBTi standards PDFs are the reference cases. Ask for them; do not assume
   the synthetic fixtures cover them.
