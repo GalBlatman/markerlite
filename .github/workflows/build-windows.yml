@@ -27,6 +27,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyinstaller pymupdf scikit-learn rapidfuzz regex numpy tkinterdnd2
 
+      - name: Check GUI method references
+        run: python check_gui.py
+
+      - name: Fixture regression
+        # Converts tests/fixtures/*.pdf and diffs against tests/expected/.
+        # The runner has no Tesseract, so the OCR fixture reports SKIP.
+        run: python tests/regress.py
+
       - name: Build
         run: |
           pyinstaller --noconfirm --onedir --windowed `

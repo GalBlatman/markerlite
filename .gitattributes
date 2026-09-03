@@ -1,0 +1,4 @@
+# Expected regression outputs are compared newline-normalised, but keep them
+# LF in the repo so diffs are clean on every platform.
+tests/expected/*.md text eol=lf
+tests/fixtures/*.pdf binary

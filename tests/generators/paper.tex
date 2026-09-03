@@ -1,0 +1,110 @@
+% paper.pdf - the one fixture that is real pdflatex output. Build with
+% make_paper.sh (pdflatex twice, so the table and equation references resolve).
+%
+% What it exercises: LaTeX display equations (amsmath), a booktabs table with
+% no vertical rules and only three horizontal ones, a numbered heading
+% hierarchy, a footnote set in LaTeX's run-on form ("1We thank" with a raised
+% label), an itemize list, and a thebibliography block. Keep it to two pages
+% and keep the packages to the ones a base TeX Live install carries.
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage[margin=1in]{geometry}
+\pagestyle{plain}
+
+\title{A Weight-Free Stand-In for Learned Layout Analysis}
+\author{Ada Lovelace \and Charles Babbage}
+\date{January 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We describe a converter that reproduces the heuristic half of a learned
+document-analysis pipeline on the PDF text layer alone. It needs no model
+weights and runs on a CPU. This fixture is real \LaTeX{} output and exists so
+that display equations, a booktabs table and LaTeX-style footnotes are covered
+by the regression set.
+\end{abstract}
+
+\section{Introduction}
+
+The character stream of a well-formed PDF already encodes reading order, and
+on text-layer pages a learned reading-order head rarely improves on it. We
+therefore keep stream order and spend the effort on the places where the
+stream is silent: headings, tables, footnotes and equations.\footnote{We thank
+the reviewers for pressing on this point; the argument is developed in
+Section~\ref{sec:method}.}
+
+\subsection{Scope}
+
+The scope is deliberately narrow: journal articles with a text layer,
+converted for reading by a language model. Books, slides and forms have
+layouts these heuristics were never shown.
+
+\section{Method}
+\label{sec:method}
+
+Let $y_i$ denote the observed response for document $i$ and $x_i$ the number
+of layout features it contains. We fit
+\begin{equation}
+  y_i = \alpha + \beta x_i + \varepsilon_i, \qquad
+  \varepsilon_i \sim \mathcal{N}(0, \sigma^2),
+  \label{eq:model}
+\end{equation}
+and report the pooled estimate
+\begin{equation}
+  \hat{\mu} = \frac{1}{n} \sum_{i=1}^{n} y_i .
+  \label{eq:mean}
+\end{equation}
+Equation~\eqref{eq:model} is linear in the parameters; Equation~\eqref{eq:mean}
+is what Table~\ref{tab:results} reports in its second column.
+
+The processors run in a fixed order:
+\begin{itemize}
+  \item line-number stripping, then paragraph reflow;
+  \item footnote relabelling before marginalia, so the footer rule cannot
+        swallow a note;
+  \item heading levels from section numbers, else from clustered line heights.
+\end{itemize}
+
+\section{Results}
+
+\begin{table}[h]
+  \centering
+  \caption{Conversion accuracy by layout feature. $N$ is the number of
+           documents in which the feature occurs.}
+  \label{tab:results}
+  \begin{tabular}{lccr}
+    \toprule
+    Feature       & $\hat{\mu}$ & Recall & $N$ \\
+    \midrule
+    Two columns   & 0.98 & 0.97 & 12 \\
+    Running head  & 1.00 & 0.94 & 12 \\
+    Footnotes     & 0.91 & 0.88 &  9 \\
+    Booktabs table& 0.87 & 0.83 &  6 \\
+    Display math  & 0.99 & 0.99 & 12 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Every threshold in the code was set by looking at a failure, not by tuning
+against a corpus. That makes the thresholds easy to defend and easy to revise
+when a new failure appears. Multi-line table cells remain the weakest point
+and are listed as partial support.
+
+\subsection{Limitations}
+
+Inline mathematics such as $\beta > 0$ is not detected; the reference
+implementation needs a language model for that as well. Scanned pages inherit
+every error of the recogniser.
+
+\begin{thebibliography}{9}
+\bibitem{marker} Datalab. Marker: convert PDF to Markdown quickly with high
+  accuracy. Software, 2024.
+\bibitem{mupdf} Artifex Software. MuPDF and PyMuPDF. Software, 2025.
+\end{thebibliography}
+
+\end{document}
