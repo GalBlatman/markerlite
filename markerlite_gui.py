@@ -596,10 +596,63 @@ class App:
                     return
 
 
+def write_diagnostics() -> pathlib.Path:
+    """`markerlite --diag`: dump what the app can see about its environment.
+
+    A windowed exe has no console, so this goes to a file beside it. Meant for
+    exactly one situation: drag-and-drop not working, and needing the actual
+    reason rather than a guess.
+    """
+    import platform
+    import traceback
+
+    frozen = getattr(sys, "frozen", False)
+    base = pathlib.Path(getattr(sys, "_MEIPASS", pathlib.Path(__file__).resolve().parent))
+    lines = [
+        f"python      {sys.version.split()[0]}  frozen={frozen}",
+        f"platform    {platform.system()} {platform.release()} {platform.machine()}"
+        f"  PROCESSOR_ARCHITECTURE={os.environ.get('PROCESSOR_ARCHITECTURE')}",
+        f"bundle dir  {base}",
+        f"HAVE_DND    {HAVE_DND}",
+        f"DND_ERROR   {DND_ERROR or '-'}",
+    ]
+    try:
+        import tkinter
+        tcl = tkinter.Tcl()
+        lines.append(f"tcl/tk      {tcl.eval('info patchlevel')}")
+    except Exception as exc:
+        lines.append(f"tcl/tk      failed: {exc!r}")
+    tkdnd = base / "tkinterdnd2" / "tkdnd"
+    lines.append(f"tkdnd dir   {tkdnd}  exists={tkdnd.is_dir()}")
+    if tkdnd.is_dir():
+        for sub in sorted(tkdnd.iterdir()):
+            files = sorted(p.name for p in sub.iterdir()) if sub.is_dir() else []
+            lines.append(f"   {sub.name}: {', '.join(files) if files else '(empty)'}")
+    if HAVE_DND:
+        try:
+            r = TkinterDnD.Tk()
+            lines.append(f"TkinterDnD.Tk()  OK  (tkdnd {r.TkdndVersion})")
+            r.destroy()
+        except Exception:
+            lines.append("TkinterDnD.Tk()  FAILED:\n" + traceback.format_exc())
+    exe_dir = pathlib.Path(sys.executable).parent if frozen else base
+    out = exe_dir / "markerlite-diag.txt"
+    out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return out
+
+
 def main():
+    if "--diag" in sys.argv[1:]:
+        out = write_diagnostics()
+        try:
+            print(f"wrote {out}")
+        except Exception:
+            pass
+        return
     root = TkinterDnD.Tk() if HAVE_DND else tk.Tk()
     App(root)
     root.mainloop()
+
 
 
 if __name__ == "__main__":
