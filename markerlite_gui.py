@@ -22,11 +22,24 @@ import traceback
 from tkinter import filedialog, ttk
 
 # Crisp text on high-DPI Windows displays; harmless elsewhere.
+#
+# Per-monitor awareness (v2) matters on mixed-scaling setups: with plain
+# "system DPI aware" (mode 1), a window opened on a monitor whose scaling
+# differs from the primary display is bitmap-stretched by Windows AFTER Tk has
+# sized it, so it ends up larger than the screen it is on.
 if sys.platform == "win32":
     try:
         from ctypes import windll
 
-        windll.shcore.SetProcessDpiAwareness(1)
+        try:
+            # DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 == -4 (Windows 10 1703+)
+            if not windll.user32.SetProcessDpiAwarenessContext(-4):
+                raise OSError
+        except Exception:
+            try:
+                windll.shcore.SetProcessDpiAwareness(2)  # per-monitor (v1)
+            except Exception:
+                windll.shcore.SetProcessDpiAwareness(1)  # system
     except Exception:
         pass
 
@@ -63,15 +76,64 @@ class App:
         self.running = False
 
         root.title(f"{APP} — PDF to Markdown")
-        root.geometry("1000x700")
-        root.minsize(820, 560)
         root.configure(bg=BG)
 
         self._style()
         self._build()
         self._set_icon()
         self._enable_drop()
+        self._fit_to_screen()
         self.root.after(80, self._drain)
+
+    def _work_area(self):
+        """(x, y, w, h) of the usable desktop - the screen minus the taskbar -
+        for the monitor the window is on. Falls back to Tk's screen size."""
+        sw, sh = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
+        if sys.platform == "win32":
+            try:
+                import ctypes
+                from ctypes import wintypes
+                hwnd = self.root.winfo_id()
+                mon = ctypes.windll.user32.MonitorFromWindow(hwnd, 2)  # nearest
+
+                class MONITORINFO(ctypes.Structure):
+                    _fields_ = [("cbSize", wintypes.DWORD), ("rcMonitor", wintypes.RECT),
+                                ("rcWork", wintypes.RECT), ("dwFlags", wintypes.DWORD)]
+
+                mi = MONITORINFO(); mi.cbSize = ctypes.sizeof(MONITORINFO)
+                if ctypes.windll.user32.GetMonitorInfoW(mon, ctypes.byref(mi)):
+                    r = mi.rcWork
+                    return r.left, r.top, r.right - r.left, r.bottom - r.top
+            except Exception:
+                pass
+        return 0, 0, sw, sh - 48  # leave room for a taskbar we cannot measure
+
+    def _fit_to_screen(self):
+        """Size the window to its content, capped to the usable screen.
+
+        A fixed "1000x700" is in device pixels; on a 150% display the widgets
+        render larger than that box and the button row falls off the bottom -
+        and Tk has no window-level scrolling to rescue it. Ask the layout what
+        it needs, cap it to the work area of the monitor it is on, and check
+        the result: if the bottom edge still lands off-screen, shrink again.
+        """
+        self.root.update_idletasks()
+        need_w, need_h = self.root.winfo_reqwidth(), self.root.winfo_reqheight()
+        ax, ay, aw, ah = self._work_area()
+        chrome = 60  # title bar + borders, roughly
+        w = min(max(need_w, int(aw * 0.55)), int(aw * 0.92))
+        h = min(max(need_h, int(ah * 0.6)), ah - chrome)
+        x, y = ax + (aw - w) // 2, ay + 16
+        self.root.geometry(f"{w}x{h}+{x}+{y}")
+        self.root.update_idletasks()
+        # Verify against reality: on a mixed-DPI setup the window can come out
+        # larger than requested. If so, size to what fits.
+        bottom = self.root.winfo_rooty() + self.root.winfo_height()
+        limit = ay + ah
+        if bottom > limit:
+            h = max(int(ah * 0.5), h - (bottom - limit) - 8)
+            self.root.geometry(f"{w}x{h}+{x}+{y}")
+        self.root.minsize(min(560, w), min(420, h))
 
     def _enable_drop(self):
         """Drag-and-drop comes from tkinterdnd2; without it, say so plainly."""
@@ -80,6 +142,24 @@ class App:
             self.status.configure(
                 text="Drag-and-drop unavailable — " + (DND_ERROR or "tkinterdnd2 not found")
                 + ". Run: pip install tkinterdnd2  (or click the zone / Add folder).")
+
+    def _set_icon(self):
+        """Title-bar and taskbar icon. Best effort: a missing file is not fatal.
+
+        PyInstaller unpacks bundled data under sys._MEIPASS; from source the
+        assets folder sits beside this file.
+        """
+        base = pathlib.Path(getattr(sys, "_MEIPASS", pathlib.Path(__file__).resolve().parent))
+        ico = base / "assets" / "icon.ico"
+        png = base / "assets" / "icon-256.png"
+        try:
+            if sys.platform == "win32" and ico.exists():
+                self.root.iconbitmap(default=str(ico))
+            elif png.exists():
+                self._icon_img = tk.PhotoImage(file=str(png))
+                self.root.iconphoto(True, self._icon_img)
+        except Exception:
+            pass
 
     # ---------------------------------------------------------------- style
     def _style(self):
@@ -108,6 +188,7 @@ class App:
     # ---------------------------------------------------------------- layout
     def _build(self):
         root = self.root
+        opts_ref = self._opts_ref = [None]
 
         # ---- drop zone -------------------------------------------------
         drop = tk.Frame(root, bg=CARD, highlightbackground=LINE,
@@ -145,6 +226,18 @@ class App:
                 w.drop_target_register(DND_FILES)
                 w.dnd_bind("<<Drop>>", self.on_drop)
 
+        # ---- bottom controls FIRST, anchored to the bottom edge -----------
+        # Whatever is packed first gets space first. If the window is ever
+        # too short, the file list and preview shrink; the buttons never do.
+        statusbar = ttk.Frame(root)
+        statusbar.pack(side="bottom", fill="x", padx=PAD, pady=(0, PAD))
+        bar = ttk.Frame(root)
+        bar.pack(side="bottom", fill="x", padx=PAD, pady=(4, 4))
+        self.bar = ttk.Progressbar(root, mode="determinate")
+        opts = ttk.Frame(root)
+        opts.pack(side="bottom", fill="x", padx=PAD, pady=(PAD, 4))
+        opts_ref[0] = opts
+
         # ---- middle: file list + preview -------------------------------
         mid = ttk.Frame(root)
         mid.pack(fill="both", expand=True, padx=PAD)
@@ -156,7 +249,7 @@ class App:
         table = ttk.Frame(left)
         table.pack(fill="both", expand=True, pady=(4, 0))
         self.tree = ttk.Treeview(table, columns=("status",), show="tree headings",
-                                 selectmode="browse", height=12)
+                                 selectmode="browse", height=5)
         self.tree.heading("#0", text="File")
         self.tree.heading("status", text="Status")
         self.tree.column("#0", width=300, stretch=True)
@@ -178,7 +271,7 @@ class App:
         self.preview = tk.Text(
             pv, wrap="word", bg=CARD, fg=INK, relief="flat",
             highlightbackground=LINE, highlightthickness=1,
-            font=("Consolas", 9), padx=10, pady=8, state="disabled",
+            font=("Consolas", 9), padx=10, pady=8, state="disabled", height=8,
         )
         pvsb = ttk.Scrollbar(pv, orient="vertical", command=self.preview.yview)
         self.preview.configure(yscrollcommand=pvsb.set)
@@ -186,8 +279,6 @@ class App:
         pvsb.pack(side="right", fill="y")
 
         # ---- options ----------------------------------------------------
-        opts = ttk.Frame(root)
-        opts.pack(fill="x", padx=PAD, pady=(PAD, 4))
 
         self.out_mode = tk.StringVar(value="beside")
         self.out_dir = tk.StringVar(value=str(pathlib.Path.home() / "Documents" / "markdown"))
@@ -226,8 +317,6 @@ class App:
         self._sync_out()
 
         # ---- action bar --------------------------------------------------
-        bar = ttk.Frame(root)
-        bar.pack(fill="x", padx=PAD, pady=(4, 4))
         self.go = ttk.Button(bar, text="Convert", style="Go.TButton",
                              command=self.start)
         self.go.pack(side="left")
@@ -244,11 +333,6 @@ class App:
                                    command=self.open_math, state="disabled")
         self.math_btn.pack(side="left")
 
-        # The summary line gets its own row: sharing the button row clipped it
-        # once the text grew to "5 pages -> 7 KB Markdown - 2 figures - ...".
-        self.bar = ttk.Progressbar(root, mode="determinate")
-        statusbar = ttk.Frame(root)
-        statusbar.pack(fill="x", padx=PAD, pady=(0, PAD))
         self.status = ttk.Label(statusbar, text="No files yet", style="Muted.TLabel")
         self.status.pack(side="left")
 
@@ -326,7 +410,7 @@ class App:
             return
         self.running = True
         self.go.configure(state="disabled")
-        self.bar.pack(fill="x", padx=PAD, pady=(0, 6))
+        self.bar.pack(side="bottom", fill="x", padx=PAD, pady=(0, 6), before=self._opts_ref[0])
         self.bar.configure(maximum=len(self.files), value=0)
         # Tk variables belong to the main thread: read them here, once, and
         # hand the worker a plain snapshot. Reading them from the worker is a
@@ -562,7 +646,6 @@ def main():
     root = TkinterDnD.Tk() if HAVE_DND else tk.Tk()
     App(root)
     root.mainloop()
-
 
 
 if __name__ == "__main__":
