@@ -303,6 +303,31 @@ def ruled_table(pdf: Doc, x, y, col_w, rows, size=9.0, row_h=14.0, header=True):
     return y
 
 
+def wrapped_table(pdf: Doc, x, y, col_w, rows, size=9.0, line_h=11.0):
+    """A ruled table whose middle column wraps over several lines per row -
+    the tall-cell shape of compliance tables. Every cell is bordered."""
+    for r, row in enumerate(rows):
+        pdf.set_font("Times", "B" if r == 0 else "", size)
+        # measure the wrapped column first
+        pdf.set_xy(x + col_w[0], y)
+        n_lines = len(pdf.multi_cell(col_w[1], line_h, row[1], dry_run=True, output="LINES"))
+        row_h = max(1, n_lines) * line_h + 4
+        cx = x
+        for c, cell in enumerate(row):
+            pdf.set_xy(cx, y)
+            if c == 1:
+                pdf.rect(cx, y, col_w[c], row_h)
+                pdf.set_xy(cx, y + 2)
+                pdf.multi_cell(col_w[c], line_h, cell)
+            else:
+                pdf.rect(cx, y, col_w[c], row_h)
+                pdf.set_xy(cx, y + 2)
+                pdf.cell(col_w[c], line_h, cell)
+            cx += col_w[c]
+        y += row_h
+    return y
+
+
 def booktabs_table(pdf: Doc, x, y, col_w, rows, size=9.0, row_h=13.0):
     """Horizontal rules only: top, below header, bottom (the LaTeX booktabs look)."""
     total = sum(col_w)
@@ -790,13 +815,30 @@ def make_watermark():
             f.y = 98
         f.paragraph(paras[4 * pg], space_after=8)
         f.paragraph(paras[4 * pg + 1], space_after=8)
+        # A ruled table across the middle of the page, where the diagonal
+        # watermark crosses it, on both pages: page 1 short cells, page 2
+        # tall wrapped cells (the shape that makes the grid sweep give up and
+        # fall back to PyMuPDF's own cell text).
+        f.y = max(f.y + 4, 330)
         if pg == 0:
-            y = f.y + 4
             rows = [["Metric", "2025", "2026", "2027"],
                     ["Share of renewable electricity", "80%", "84%", "88%"],
-                    ["Minimum coverage", "67%", "67%", "67%"]]
-            y = ruled_table(pdf, margin, y, [200, 60, 60, 60], rows)
-            f.y = y + 12
+                    ["Minimum coverage", "67%", "67%", "67%"],
+                    ["Reporting frequency", "annual", "annual", "annual"]]
+            y = ruled_table(pdf, margin, f.y, [200, 60, 60, 60], rows, row_h=22)
+        else:
+            rows = [["Criterion", "Requirement", "Assessment"],
+                    ["C1 Boundary", "All subsidiaries must be reported and included within "
+                     "the parent company inventory in accordance with the chosen "
+                     "consolidation approach.", "Met if all included"],
+                    ["C2 Gases", "All relevant gases required by the protocol must be "
+                     "covered; exclusions must be justified and stay below five "
+                     "percent of the inventory.", "Met if none excluded"],
+                    ["C3 Scopes", "At least one target covering scope 1 and scope 2 must "
+                     "be submitted, combined or separate, when each is above the "
+                     "exclusion threshold.", "Met if both covered"]]
+            y = wrapped_table(pdf, margin, f.y, [110, 220, 138], rows)
+        f.y = y + 12
         f.paragraph(paras[4 * pg + 2], space_after=8)
         f.paragraph(paras[4 * pg + 3], space_after=8)
         # the watermark: 110 pt light grey text rotated 45 degrees about the
@@ -871,6 +913,18 @@ def make_images_inline():
     pdf.image(io.BytesIO(pg.get_pixmap(dpi=72, alpha=False).tobytes("png")),
               x=0, y=0, w=LETTER_W, h=LETTER_H)
     bg.close()
+    # a second decoration: a page-HEIGHT strip down the left edge (Word splits
+    # some page backgrounds into vertical bands; each is far under 90% of
+    # the page area but spans its full height)
+    strip = pymupdf.open()
+    sp = strip.new_page(width=30, height=396)
+    ssh = sp.new_shape()
+    ssh.draw_rect(pymupdf.Rect(0, 0, 30, 396))
+    ssh.finish(color=None, fill=(0.85, 0.9, 1.0))
+    ssh.commit()
+    pdf.image(io.BytesIO(sp.get_pixmap(dpi=72, alpha=False).tobytes("png")),
+              x=0, y=0, w=60, h=LETTER_H)
+    strip.close()
     pdf.text_at(margin, 60, "2 Model", style="B", size=14)
     f = Flow(pdf, [(margin, 86, width, 740)], size=10, leading=13)
     f.paragraph(paras[0], space_after=6)

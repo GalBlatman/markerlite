@@ -1985,13 +1985,17 @@ def _vector_regions(pmpage: pymupdf.Page, min_items=8, min_side=60.0):
 
 
 def _content_images(pm: pymupdf.Page, min_side: float = 40.0,
-                    max_page_frac: float = 0.9) -> List[Tuple[int, int, tuple]]:
+                    max_page_frac: float = 0.9,
+                    span_frac: float = 0.95) -> List[Tuple[int, int, tuple]]:
     """(index, xref, bbox) of the embedded rasters that are content.
 
     Two kinds are not: icons (either side under ``min_side`` points) and
-    backgrounds (covering more than ``max_page_frac`` of the page). Word
-    exports a page-sized raster behind every page of some documents; it is
-    neither a figure to extract nor an image worth announcing.
+    backgrounds. A background covers more than ``max_page_frac`` of the page,
+    or spans the page's full height or full width (``span_frac``): Word
+    exports a page-sized raster behind every page of some documents, and on
+    landscape pages splits it into page-height vertical bands that are each
+    well under 90% of the area. None of these is a figure to extract or an
+    image worth announcing.
     """
     out = []
     prect = pm.rect
@@ -2006,6 +2010,8 @@ def _content_images(pm: pymupdf.Page, min_side: float = 40.0,
             continue
         clip = pymupdf.Rect(bbox) & prect
         if clip.width * clip.height > max_page_frac * page_area:
+            continue
+        if clip.height >= span_frac * prect.height or clip.width >= span_frac * prect.width:
             continue
         out.append((n, xref, tuple(bbox)))
     return out

@@ -8,6 +8,7 @@ Each document is short, synthetic, and free of copyright, so it can be redistrib
 | --- | --- | --- | --- |
 | Share of renewable electricity | 80% | 84% | 88% |
 | Minimum coverage | 67% | 67% | 67% |
+| Reporting frequency | annual | annual | annual |
 
 Footnotes were set two points smaller than the body and anchored in the bottom fifth of the column. Their labels are superscript digits, and matching digits appear in the body at the point of reference. The abstract runs across the full measure while the body is set in two columns, which is the arrangement most journals use. The manuscripts we care about in practice are less tidy than this, and we return to them in the discussion.
 
@@ -16,6 +17,12 @@ The text-layer path handles digital publications; a raster copy of the same file
 When numbers are present they win, because a numbered heading states its own depth. Captions are recognised by their leading label and attached to the nearest figure or table above them. Equations are left as images for a later pass rather than transcribed into notation that would be wrong half the time. The remaining processors are direct ports and are documented against the source files they come from.
 
 Every threshold in the code was set by looking at a failure, not by tuning against a corpus. That makes the thresholds easy to defend and easy to revise when a new failure appears. We report where the approach breaks so that a reader can decide whether it fits their documents. Multi-line table cells remain the weakest point and are listed as partial support.
+
+| Criterion | Requirement | Assessment |
+| --- | --- | --- |
+| C1 Boundary | All subsidiaries must be reported and included within the | Met if all included |
+| C2 Gases | All relevant gases required by the protocol must be | Met if none excluded |
+| C3 Scopes | At least one target covering scope 1 and scope 2 must be | Met if both covered |
 
 Journals that style every heading identically defeat the height clustering and lose a level. Scanned pages inherit every error of the recogniser, including stray page numbers in the middle of a paragraph. None of these failures corrupts the surrounding text; they degrade the structure rather than the content. The synthetic set is regenerated from scripts, so a fixture can be changed and the change reviewed.
 
