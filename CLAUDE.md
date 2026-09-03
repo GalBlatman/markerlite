@@ -103,9 +103,10 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
 
 - Commit messages: imperative subject, body explains WHY. Every commit ends
   with the Co-Authored-By / Claude-Session trailer.
-- Only the user pushes (`git push`) and tags. Tags: `vX.Y.Z`, patch bump per
-  release. Tag push triggers the build and publishes the Release. Never
-  force-move a published tag; if a tag exists, bump.
+- Push after committing (`git pull --rebase` first if the remote is ahead).
+  Never create or push tags: the user decides what is a release and tags it
+  (`vX.Y.Z`, patch bump per release; the tag push builds and publishes the
+  Release). Never force-move a published tag; if a tag exists, bump.
 - After editing markerlite_gui.py: `python check_gui.py`. After editing
   markerlite.py: `python tests/regress.py`; if the diff is intended,
   `--update` and commit the expected files with the change.
@@ -152,6 +153,12 @@ before the PyInstaller build.
 5. References section: bold "REFERENCES" heading sometimes merges with first
    entry.
 6. Inline math is not detected (Marker needs an LLM for this too).
+
+Fixed and covered by the regression (do not reintroduce): a paragraph whose
+last line in a column ends in a hyphen is joined across the column break even
+when the block is a single line (`proc_continuation`; Marker skips one-line
+blocks, we accept them when hyphenated - `hard.pdf` covers the multi-line
+case, "bef-" / "ore").
 
 ## Open items
 
