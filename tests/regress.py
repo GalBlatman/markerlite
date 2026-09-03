@@ -3,7 +3,7 @@ Markdown against tests/expected/.
 
     python tests/regress.py            # exit 1 on any difference
     python tests/regress.py --update   # rewrite tests/expected/ (intentional change)
-    python tests/regress.py hard repro # only these fixtures
+    python tests/regress.py hard repro # only these fixtures ("cli" = console check)
     python tests/regress.py -v         # full diffs instead of the first 40 lines
 
 The expected files are the converter's current behaviour, frozen. A diff means
@@ -44,6 +44,25 @@ def convert_to_string(pdf: pathlib.Path, workdir: pathlib.Path) -> str:
     return out.read_text(encoding="utf-8")  # universal newlines -> "\n"
 
 
+def check_cli_console(pdf: pathlib.Path) -> int:
+    """Run the CLI with a cp1252 console; return 1 on a non-zero exit."""
+    import os
+    import subprocess
+    env = dict(os.environ, PYTHONIOENCODING="cp1252", PYTHONUTF8="0")
+    with tempfile.TemporaryDirectory(prefix="markerlite-cli-") as td:
+        proc = subprocess.run(
+            [sys.executable, str(ROOT / "markerlite.py"), str(pdf), "-o", td],
+            env=env, capture_output=True, text=True, encoding="utf-8", errors="replace",
+        )
+    if proc.returncode == 0:
+        print(f"ok    {'cli-cp1252':16s} exit 0 on a cp1252 console")
+        return 0
+    print(f"FAIL  {'cli-cp1252':16s} exit {proc.returncode} on a cp1252 console")
+    for line in proc.stderr.strip().splitlines()[-3:]:
+        print("      " + line)
+    return 1
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -54,14 +73,15 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
 
     pdfs = sorted(FIXTURES.glob("*.pdf"))
+    run_cli = not args.names or "cli" in args.names
     if args.names:
-        wanted = set(args.names)
+        wanted = set(args.names) - {"cli"}
         pdfs = [p for p in pdfs if p.stem in wanted]
         missing = wanted - {p.stem for p in pdfs}
         if missing:
             print(f"no such fixture(s): {', '.join(sorted(missing))}")
             return 2
-    if not pdfs:
+    if not pdfs and not run_cli:
         print(f"no fixtures found under {FIXTURES}")
         return 2
 
@@ -102,6 +122,11 @@ def main(argv=None) -> int:
                 print("      " + line)
             if len(shown) < len(diff):
                 print(f"      ... {len(diff) - len(shown)} more lines (use -v)")
+
+    # The CLI must survive a console that cannot encode every character
+    # (Windows cp1252): it once crashed after the first file of a batch.
+    if run_cli:
+        failures += check_cli_console(sorted(FIXTURES.glob("*.pdf"))[0])
 
     if args.update:
         return 0

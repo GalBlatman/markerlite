@@ -154,11 +154,24 @@ before the PyInstaller build.
    entry.
 6. Inline math is not detected (Marker needs an LLM for this too).
 
-Fixed and covered by the regression (do not reintroduce): a paragraph whose
-last line in a column ends in a hyphen is joined across the column break even
-when the block is a single line (`proc_continuation`; Marker skips one-line
-blocks, we accept them when hyphenated - `hard.pdf` covers the multi-line
-case, "bef-" / "ore").
+Fixed and covered by the regression (do not reintroduce; the fixture in
+parentheses fails if the fix is undone):
+- a hyphenated last line joins across a column break even for a one-line
+  block (`hard.pdf`, "bef-" / "ore"; Marker skips one-line blocks).
+- a line-number column that arrives as ONE block is stripped, and reflow's
+  column edges come from body-sized, non-margin blocks (`manuscript_numcol`).
+  This was the Ragins "every line its own paragraph" failure.
+- footers are judged by position + repetition only; no reading-order guard
+  (`hard_footer_first`; Acrobat PDFMaker draws the footer before the body).
+- rotated rawdict lines (|dy| > 0.1) are dropped in extract_page
+  (`watermark`; a diagonal "RETIRED" seeded fake tables).
+- a footnote is sized by its text, not its label (`footnote_biglabel`; Word
+  labels are body-size glyphs).
+- a bulleted line is never a heading, whatever its weight (`bold_bullets`).
+- without --images, a content image leaves `<!-- image omitted: ... -->`;
+  page-sized rasters are ignored in both modes (`images_inline`).
+- the CLI reconfigures stdout/stderr with errors="replace" and prints an
+  ASCII arrow; regress.py's `cli-cp1252` check runs it under a cp1252 console.
 
 ## Open items
 

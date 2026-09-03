@@ -10,10 +10,6 @@ Analytical Engine Laboratory
 
 Correspondence concerning this article should be addressed to Ada Lovelace, Analytical Engine Laboratory, London. This manuscript is a synthetic fixture and describes no real study.
 
-1
-
-2
-
 **Introduction**
 
 A converter that joins lines with a space will emit a broken word at every such break. Tables were drawn with visible ruling lines so that the vector-based detector fires before the text-alignment fallback. Footnotes were set two points smaller than the body and anchored in the bottom fifth of the column. Their labels are superscript digits, and matching digits appear in the body at the point of reference.

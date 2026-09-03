@@ -78,6 +78,11 @@ LIST_ITEM_START = re.compile(
     r"^\s*(?:[•●○ഠ ം◦■▪▫–—-]|[\x80-\x9f-]|"
     r"\(?\d{1,3}[.)]|\(?[a-zA-Z][.)]|\(?[ivxlcIVXLC]{1,5}[.)])\s"
 )
+# The bullet-glyph half of LIST_ITEM_START on its own: a line that opens with
+# a bullet is a list item whatever its weight or size, never a heading.
+BULLET_START = re.compile(r"^\s*(?:[•●○ഠ ം◦■▪▫–—-]|[\x80-\x9f])\s")
+# "**• item**": the same glyph after the emphasis markers block_text adds.
+BULLET_IN_EMPHASIS = re.compile(r"^(\s*(?:\*{1,3}|_{1,2}))\s*(?:[•●○ഠ ം◦■▪▫–—-]|[\x80-\x9f])\s+")
 # marker/processors/text.py
 HYPHEN_END = regex.compile(r".*[\p{Ll}|\d][-—¬]\s?$", regex.DOTALL)
 
@@ -365,7 +370,8 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = 300) -> Optional[Pag
                 blocks=blocks, ocr_used=True)
 
 
-def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True) -> Page:
+def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
+                 max_line_tilt: float = 0.1) -> Page:
     """Blocks in PDF character-stream order.
 
     Marker orders text-layer pages by pdftext character position rather than by
@@ -396,6 +402,14 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True) -
             continue
         lines: List[Line] = []
         for ln in b.get("lines", []):
+            # Rotated text is never body text: a diagonal "DRAFT"/"RETIRED"
+            # watermark kept as a line seeds fake table columns and leaks
+            # one-letter cells. rawdict gives each line its writing direction;
+            # anything not near-horizontal is dropped here, before any
+            # processor sees it.
+            direction = ln.get("dir", (1.0, 0.0))
+            if len(direction) == 2 and abs(direction[1]) > max_line_tilt:
+                continue
             spans: List[Span] = []
             for s in ln.get("spans", []):
                 chars = s.get("chars", [])
@@ -925,11 +939,27 @@ def footnote_label(text: str):
     return label, text[m.end():]
 
 
+def note_text_size(blk: Block) -> float:
+    """The type size of a footnote's TEXT, ignoring its label.
+
+    Word sets the label as a body-size glyph (a "2" at 12 pt followed by a
+    tab) in front of a 10 pt note, so ``max_size`` is the label and the note
+    failed every "smaller than body" test. The median size of the spans after
+    the first non-empty span is the note's own size; a one-span block falls
+    back to that span.
+    """
+    spans = [s for s in blk.spans if s.text.strip()]
+    if not spans:
+        return 0.0
+    rest = spans[1:] or spans
+    return float(median(s.size for s in rest))
+
+
 def _is_footnote(blk: Block, page: Page, body_size: float, first: str) -> bool:
     h = page.height or 1
     if blk.y_start / h < 0.70:
         return False
-    if body_size and blk.max_size() >= body_size * 0.95:
+    if body_size and note_text_size(blk) >= body_size * 0.95:
         return False
     return bool(FOOTNOTE_MARKER.match(first))
 
@@ -941,6 +971,11 @@ def _is_heading(blk: Block, body_size: float, text: str, first: str) -> bool:
     if MATH_CHARS.search(text) and MATH_OPS.search(text):
         return False
     if EQ_NUMBER.search(text) and MATH_OPS.search(text):
+        return False
+    # A bulleted line is a list item regardless of weight. Compliance
+    # documents set their criteria bullets in bold at a size above the
+    # (table-dominated) body median, and each one became a heading.
+    if BULLET_START.match(first):
         return False
     size = blk.max_size()
     bold = blk.font_ratio("bold") > 0.6
@@ -980,26 +1015,45 @@ TEXTISH = ("Text", "SectionHeader", "ListItem", "Caption", "Equation")
 def proc_line_numbers(pages: List[Page], margin_frac=0.14, min_count=8) -> None:
     """marker/processors/line_numbers.py - manuscript line numbers in the margin.
 
-    Review-copy PDFs number every line down the left edge. Each number is its
-    own tiny block, so without this they render as a column of one-digit
+    Review-copy PDFs number every line down the left edge. Usually each number
+    is its own tiny block, so without this they render as a column of one-digit
     paragraphs. A run of many bare integers, all hugging the same margin and
     mostly increasing, is the signature.
+
+    ScholarOne draws the column at single spacing regardless of the text's
+    leading, and PyMuPDF then returns all sixty numbers as ONE block. That
+    block is caught by the same signature applied to its lines: every line a
+    short integer, mostly increasing, the block in the margin.
     """
+    def _increasing(vals) -> bool:
+        if len(vals) < min_count:
+            return False
+        inc = sum(1 for a, b in zip(vals, vals[1:]) if b > a)
+        return inc >= 0.8 * (len(vals) - 1)
+
     for page in pages:
         cands = []
         for blk in page.blocks:
-            t = blk.text.strip()
-            if not t.isdigit() or len(t) > 4 or blk.ignore_for_output:
+            if blk.ignore_for_output:
                 continue
             in_left = blk.x_end <= margin_frac * page.width
             in_right = blk.x_start >= (1 - margin_frac) * page.width
-            if in_left or in_right:
+            if not (in_left or in_right):
+                continue
+            t = blk.text.strip()
+            if t.isdigit() and len(t) <= 4:
                 cands.append((int(t), blk))
+                continue
+            # one block holding the whole column
+            lines = [ln.text.strip() for ln in blk.lines]
+            if (len(lines) >= min_count
+                    and all(x.isdigit() and len(x) <= 4 for x in lines)
+                    and _increasing([int(x) for x in lines])):
+                blk.ignore_for_output = True
         if len(cands) < min_count:
             continue
         vals = [v for v, _ in sorted(cands, key=lambda c: c[1].y_start)]
-        increasing = sum(1 for a, b in zip(vals, vals[1:]) if b > a)
-        if increasing >= 0.8 * (len(vals) - 1):
+        if _increasing(vals):
             for _v, blk in cands:
                 blk.ignore_for_output = True
 
@@ -1084,31 +1138,23 @@ def proc_marginalia(pages: List[Page], header_zone=0.08, footer_zone=0.13,
             continue
         body_top = min(yfrac(b)[0] for b in body)
         body_bottom = max(yfrac(b)[1] for b in body)
-        body_ids = {id(b) for b in body}
-        order = [id(b) for b in text_blocks]
-        first_body = next((i for i, o in enumerate(order) if o in body_ids), None)
-        last_body = next(
-            (len(order) - 1 - i for i, o in enumerate(reversed(order)) if o in body_ids),
-            None,
-        )
 
-        for idx, blk in enumerate(text_blocks):
+        for blk in text_blocks:
             y0, y1 = yfrac(blk)
             if (y1 - y0) > max_height_frac:
                 continue
             t = blk.text.strip()
             if not t or len(t) > max_chars:
                 continue
-            # Position only for headers. The reading-order guard is for the
-            # foot of a column; a running head is often DRAWN LAST in the
-            # content stream (manuscript templates do this), which put it after
-            # every body block in order and let it through as a heading.
-            # Repetition evidence, checked below, is what protects content here.
+            # Position only, for headers and footers alike. Content is
+            # protected by the repetition evidence checked below, not by
+            # stream order: a running head is often DRAWN LAST (manuscript
+            # templates), and a footer is often drawn FIRST (Acrobat
+            # PDFMaker), so ordering guards only ever let furniture through.
+            # The foot of a two-column page's left column never repeats
+            # across pages, so it needs no order guard either.
             is_header = y1 <= header_zone and y1 <= body_top
-            is_footer = (
-                y0 >= 1 - footer_zone and y0 >= body_bottom
-                and (last_body is None or idx > last_body)
-            )
+            is_footer = y0 >= 1 - footer_zone and y0 >= body_bottom
             if is_header or is_footer:
                 candidates.append((page.page_idx, blk, _clean_text(t)))
 
@@ -1215,7 +1261,7 @@ def proc_footnotes(pages: List[Page]) -> None:
                 continue
             if blk.y_start / h < 0.70:
                 continue
-            if body and blk.max_size() >= body * 0.95:
+            if body and note_text_size(blk) >= body * 0.95:
                 continue
             if not FOOTNOTE_MARKER.match(blk.text.strip()):
                 continue
@@ -1234,7 +1280,7 @@ def proc_footnotes(pages: List[Page]) -> None:
                 prev_was_note
                 and blk.btype in ("Text", "ListItem")
                 and blk.y_start / h >= 0.70
-                and (not body or blk.max_size() < body * 0.95)
+                and (not body or note_text_size(blk) < body * 0.95)
                 and not FOOTNOTE_MARKER.match(blk.text.strip())
                 and not PAGE_NUMBER_ONLY.match(blk.text.strip())
             ):
@@ -1346,7 +1392,7 @@ def _bucket_headings(line_heights: List[float], level_count: int, merge_threshol
 
 
 def proc_reflow(pages: List[Page], max_gap_lines=2.4, ragged_tol=0.15,
-                indent_frac=0.015) -> None:
+                indent_frac=0.015, margin_frac=0.14) -> None:
     """Rejoin lines that the extractor split into one block each.
 
     Double-spaced manuscripts put enough space between lines that PyMuPDF
@@ -1362,10 +1408,21 @@ def proc_reflow(pages: List[Page], max_gap_lines=2.4, ragged_tol=0.15,
                  and b.lines]
         if len(texts) < 2:
             continue
-        left = min(b.x_start for b in texts)
-        right = max(b.x_end for b in texts)
+        # The column edges come from body-sized blocks that are not parked in
+        # a margin. A line-number column at x=8 once set ``left`` for the whole
+        # page, which made every body line look indented and stopped all
+        # joining (the Ragins manuscript case).
+        size_med = median([b.max_size() for b in texts])
+        body_blocks = [
+            b for b in texts
+            if b.max_size() >= 0.9 * size_med
+            and b.x_end > margin_frac * page.width
+            and b.x_start < (1 - margin_frac) * page.width
+        ] or texts
+        left = min(b.x_start for b in body_blocks)
+        right = max(b.x_end for b in body_blocks)
         width = max(right - left, 1.0)
-        lh = median([b.line_height() for b in texts if b.line_height() > 0] or [12.0])
+        lh = median([b.line_height() for b in body_blocks if b.line_height() > 0] or [12.0])
 
         merged: List[Block] = []
         grown: set = set()  # blocks assembled here from single lines
@@ -1784,6 +1841,9 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                     bullet = f"{m.group(1)}."
                     txt = txt[m.end():]
                 else:
+                    # The glyph may sit inside the emphasis markers that
+                    # block_text wrapped around a bold or italic item.
+                    txt = BULLET_IN_EMPHASIS.sub(r"\1", txt, count=1)
                     txt = re.sub(LIST_ITEM_START, "", txt, count=1)
                 item = "  " * blk.list_indent + f"{bullet} {txt}"
                 # Keep a run of items in one list: no blank line between them.
@@ -1842,6 +1902,11 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                     out.append(f"![]({blk.image_path})")
                 for cap in blk.children:
                     out.append("*" + block_text(cap, plain=True) + "*")
+            elif t == "ImageMarker":
+                w = round(blk.width)
+                h = round(blk.height)
+                out.append(f"<!-- image omitted: {w}x{h} pt at page "
+                           f"{blk.page_idx + 1}; run --images -->")
     flush()
 
     text = "\n\n".join(x for x in out if x is not None and x.strip())
@@ -1919,6 +1984,69 @@ def _vector_regions(pmpage: pymupdf.Page, min_items=8, min_side=60.0):
     return out
 
 
+def _content_images(pm: pymupdf.Page, min_side: float = 40.0,
+                    max_page_frac: float = 0.9) -> List[Tuple[int, int, tuple]]:
+    """(index, xref, bbox) of the embedded rasters that are content.
+
+    Two kinds are not: icons (either side under ``min_side`` points) and
+    backgrounds (covering more than ``max_page_frac`` of the page). Word
+    exports a page-sized raster behind every page of some documents; it is
+    neither a figure to extract nor an image worth announcing.
+    """
+    out = []
+    prect = pm.rect
+    page_area = max(prect.width * prect.height, 1.0)
+    for n, info in enumerate(pm.get_image_info(xrefs=True)):
+        xref = info.get("xref", 0)
+        bbox = info.get("bbox")
+        if not xref or not bbox:
+            continue
+        w, h = bbox[2] - bbox[0], bbox[3] - bbox[1]
+        if w < min_side or h < min_side:
+            continue
+        clip = pymupdf.Rect(bbox) & prect
+        if clip.width * clip.height > max_page_frac * page_area:
+            continue
+        out.append((n, xref, tuple(bbox)))
+    return out
+
+
+def _insert_block(page: Page, blk: Block) -> None:
+    """Put a lineless block (figure, marker) in front of the first text block
+    that starts at or below it, leaving the rest of the page order alone.
+
+    Sorting the whole page by char_pos looked equivalent but was not:
+    proc_footnotes had already moved the notes to the end of the page, and a
+    sort pulled them back to their stream position, mid-page.
+    """
+    y0 = blk.y_start
+    for i, b in enumerate(page.blocks):
+        if b.lines and b.btype != "Footnote" and b.y_start >= y0 - 2:
+            page.blocks.insert(i, blk)
+            return
+    page.blocks.append(blk)
+
+
+def mark_images(doc, pages: List[Page]) -> int:
+    """Without --images, leave a trace where a content image was.
+
+    An equation pasted as a picture used to vanish with nothing in the
+    output; the sentence "as shown by the formula below" was followed by the
+    next paragraph. The marker names the size and page so a reader knows
+    something is missing and how to get it.
+    """
+    count = 0
+    for page in pages:
+        pm = doc[page.page_idx]
+        for _n, _xref, bbox in _content_images(pm):
+            _insert_block(page, Block(
+                lines=[], bbox=bbox, page_idx=page.page_idx,
+                char_pos=_insert_pos(page, bbox[1]), btype="ImageMarker",
+            ))
+            count += 1
+    return count
+
+
 def extract_images(doc, pages: List[Page], outdir: pathlib.Path, stem: str,
                    vectors: bool = True) -> int:
     """Extract raster images and (optionally) vector drawings as figures."""
@@ -1928,13 +2056,7 @@ def extract_images(doc, pages: List[Page], outdir: pathlib.Path, stem: str,
         pm = doc[page.page_idx]
         found: List[Tuple[str, tuple]] = []
 
-        for n, info in enumerate(pm.get_image_info(xrefs=True)):
-            xref = info.get("xref", 0)
-            bbox = info.get("bbox")
-            if not xref or not bbox:
-                continue
-            if (bbox[2] - bbox[0]) < 40 or (bbox[3] - bbox[1]) < 40:
-                continue
+        for n, xref, bbox in _content_images(pm):
             try:
                 pix = pymupdf.Pixmap(doc, xref)
                 if pix.n - pix.alpha >= 4:
@@ -1976,15 +2098,12 @@ def extract_images(doc, pages: List[Page], outdir: pathlib.Path, stem: str,
                 found.append((name, tuple(box)))
 
         for name, bbox in found:
-            page.blocks.append(
-                Block(
-                    lines=[], bbox=bbox, page_idx=page.page_idx,
-                    char_pos=_insert_pos(page, bbox[1]), btype="Figure",
-                    image_path=f"{imgdir.name}/{name}",
-                )
-            )
+            _insert_block(page, Block(
+                lines=[], bbox=bbox, page_idx=page.page_idx,
+                char_pos=_insert_pos(page, bbox[1]), btype="Figure",
+                image_path=f"{imgdir.name}/{name}",
+            ))
             count += 1
-        page.blocks.sort(key=lambda b: b.char_pos)
     return count
 
 
@@ -2090,6 +2209,8 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
     n_figures = 0
     if images:
         n_figures = extract_images(doc, pages, outdir, path.stem)
+    else:
+        mark_images(doc, pages)
     proc_captions(pages)
 
     manifest = {}
@@ -2114,7 +2235,9 @@ def summarize(stats: dict) -> str:
     """'17 pages -> 76 KB Markdown · 3 figures · 2 equation crops'."""
     kb = stats.get("bytes", 0) / 1024
     size = f"{kb:.0f} KB" if kb >= 1 else f"{stats.get('bytes', 0)} B"
-    parts = [f"{stats.get('pages', 0)} pages → {size} Markdown"]
+    # ASCII arrow: the summary is printed to whatever console the user has,
+    # and a cp1252 console cannot encode U+2192.
+    parts = [f"{stats.get('pages', 0)} pages -> {size} Markdown"]
     if stats.get("figures"):
         parts.append(f"{stats['figures']} figure{'s' * (stats['figures'] != 1)}")
     if stats.get("equations"):
@@ -2126,6 +2249,15 @@ def summarize(stats: dict) -> str:
 
 
 def main() -> None:
+    # Never let console encoding take the batch down: on a Windows cp1252
+    # console a single non-encodable character in a filename or summary
+    # raised UnicodeEncodeError after the first file and stopped the run.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(errors="replace")
+            except (ValueError, AttributeError):  # pragma: no cover
+                pass
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("pdfs", nargs="*")

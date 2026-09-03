@@ -375,7 +375,7 @@ def vector_chart(pdf: Doc, x, y, w=260, h=150):
 # --------------------------------------------------------------------------- #
 
 
-def make_hard():
+def make_hard(name="hard.pdf", footer_first=False):
     """Two-column article with a running head, page numbers, a word hyphenated
     across the column break, a ruled table and footnotes.
 
@@ -395,12 +395,15 @@ def make_hard():
         pdf.right(30, "Lovelace and Babbage", style="I", size=9)
 
     def folio(page_no):
-        # Drawn after the body: a footer is last in the stream, as LaTeX and
-        # Word emit it, which is what the footer rule keys on.
+        # Normally drawn after the body, as LaTeX and Word emit footers. With
+        # footer_first the page number is drawn right after the running head,
+        # i.e. BEFORE the body in the stream (Acrobat PDFMaker does this).
         pdf.centered(752, str(page_no), size=9)
 
     pdf.add_page()
     furniture(1)
+    if footer_first:
+        folio(1)
     pdf.centered(84, "Reading Order Under Adversarial Layout:", style="B", size=17)
     pdf.centered(106, "A Synthetic Benchmark for Weight-Free PDF Conversion", style="B", size=17)
     pdf.centered(136, "Ada Lovelace and Charles Babbage", size=11)
@@ -444,9 +447,12 @@ def make_hard():
         if i == 1:
             page1_notes()
         if i == 2:
-            folio(1)
+            if not footer_first:
+                folio(1)
             pdf.add_page()
             furniture(2)
+            if footer_first:
+                folio(2)
 
     flow = Flow(pdf, boxes, size=10, leading=12, on_box=on_box)
     paras = paragraphs(12, start=0, width=4, step=4)
@@ -490,8 +496,9 @@ def make_hard():
 
     note(right_x, 696, "3",
          "The generators and the fixtures ship in the repository under an Apache-2.0 licence.")
-    folio(2)
-    pdf.out("hard.pdf")
+    if not footer_first:
+        folio(2)
+    pdf.out(name)
 
 
 def _make_repro(name: str, top: float, header_y: float, header_size=9.0,
@@ -603,7 +610,7 @@ def make_repro_tight():
     _make_repro("repro_tight.pdf", top=11 / 25.4 * 72, header_y=11 / 25.4 * 72 - 11)
 
 
-def make_footnote_repro():
+def make_footnote_repro(name="footnote_repro.pdf", big_label=False):
     """One page: two body references as superscripts, an exponent that is also
     a superscript digit, and a footnote whose body wraps across two blocks.
 
@@ -632,12 +639,22 @@ def make_footnote_repro():
     y = 668
     pdf.set_line_width(0.4)
     pdf.line(margin, y - 6, margin + 90, y - 6)
-    pdf.note_label(margin, y, "1", 8.5, 10)
+
+    def label(y, s):
+        if big_label:
+            # Word-style: the label is a body-size (11 pt) glyph on the note's
+            # baseline, followed by a tab; the note itself is 8.5 pt.
+            pdf.set_font("Times", "", 11)
+            pdf.text(margin, y + 0.5 * 10 + 0.3 * 8.5, s)
+        else:
+            pdf.note_label(margin, y, s, 8.5, 10)
+
+    label(y, "1")
     Flow(pdf, [(margin, y, width, y + 20)], size=8.5, leading=10).paragraph(
         "Two columns, in every document in the set; the abstract runs full measure.",
         indent=7)
     y += 12
-    pdf.note_label(margin, y, "2", 8.5, 10)
+    label(y, "2")
     note2 = Flow(pdf, [(margin, y, width, y + 12)], size=8.5, leading=10)
     note2.paragraph("Scanned copies were produced by rasterising the digital file at 150 dots "
                     "per inch and recognising it with", indent=7, hyphenate=False)
@@ -647,10 +664,10 @@ def make_footnote_repro():
         "Tesseract at default settings; the recogniser was not tuned for the fonts used, "
         "which understates its accuracy on real scans.", hyphenate=False)
     pdf.centered(752, "1", size=9)
-    pdf.out("footnote_repro.pdf")
+    pdf.out(name)
 
 
-def make_manuscript():
+def make_manuscript(name="manuscript.pdf", number_column=False):
     """Double-spaced submission manuscript: margin line numbers on every line,
     first-line indents, unnumbered centred headings, and a running head with
     page number drawn AFTER the body on each page.
@@ -673,10 +690,24 @@ def make_manuscript():
             pending.append((self.y, line_no[0]))
             super()._emit(words, indent, sup_refs)
 
+    col_no = [0]
+
     def line_numbers():
         # A word processor draws the margin numbers as a separate pass, so
         # they come after the page's text in the stream and form their own
         # blocks rather than sharing a block with each line.
+        if number_column:
+            # ScholarOne-style: a continuous column of numbers at SINGLE
+            # spacing down the margin, independent of the double-spaced
+            # text, so PyMuPDF returns all of them as ONE block.
+            pdf.set_font("Helvetica", "", 10)
+            y = 43.0
+            while y < 745:
+                col_no[0] += 1
+                pdf.text(8, y + 9, str(col_no[0]))
+                y += 11.7
+            pending.clear()
+            return
         for y, n in pending:
             pdf.text_at(40, y + 4, str(n), size=8)
         pending.clear()
@@ -721,7 +752,7 @@ def make_manuscript():
                             "fewer reading-order errors than documents converted with "
                             "geometric block sorting.", indent=36, hyphenate=False)
         running_head(page_no)
-    pdf.out("manuscript.pdf")
+    pdf.out(name)
 
 
 def make_scanned():
@@ -738,12 +769,151 @@ def make_scanned():
     pdf.out("scanned.pdf")
 
 
+def make_watermark():
+    """Two pages of prose with a large diagonal "RETIRED" drawn across each
+    page as real text at 45 degrees (a Word/Acrobat watermark), plus a small
+    ruled table.
+
+    Bug: the rotated glyphs were kept as text and seeded fake table columns
+    and stray one-letter cells; the word itself leaked into the output.
+    """
+    pdf = Doc()
+    margin = 72.0
+    width = LETTER_W - 2 * margin
+    paras = paragraphs(8, start=5, step=4, width=4)
+    for pg in range(2):
+        pdf.add_page()
+        pdf.text_at(margin, 30, "Protocol for Something, version 2", style="I", size=9)
+        f = Flow(pdf, [(margin, 72, width, 740)], size=10, leading=13)
+        if pg == 0:
+            pdf.text_at(margin, 72, "1 Scope", style="B", size=14)
+            f.y = 98
+        f.paragraph(paras[4 * pg], space_after=8)
+        f.paragraph(paras[4 * pg + 1], space_after=8)
+        if pg == 0:
+            y = f.y + 4
+            rows = [["Metric", "2025", "2026", "2027"],
+                    ["Share of renewable electricity", "80%", "84%", "88%"],
+                    ["Minimum coverage", "67%", "67%", "67%"]]
+            y = ruled_table(pdf, margin, y, [200, 60, 60, 60], rows)
+            f.y = y + 12
+        f.paragraph(paras[4 * pg + 2], space_after=8)
+        f.paragraph(paras[4 * pg + 3], space_after=8)
+        # the watermark: 110 pt light grey text rotated 45 degrees about the
+        # page centre, drawn after the body as Word does
+        pdf.set_text_color(200, 200, 200)
+        pdf.set_font("Helvetica", "B", 110)
+        w = pdf.get_string_width("RETIRED")
+        with pdf.rotation(45, LETTER_W / 2, LETTER_H / 2):
+            pdf.text(LETTER_W / 2 - w / 2, LETTER_H / 2 + 35, "RETIRED")
+        pdf.set_text_color(0, 0, 0)
+        pdf.centered(752, str(pg + 1), size=9)
+    pdf.out("watermark.pdf")
+
+
+def make_bold_bullets():
+    """Body text at 9 pt (a table-heavy document's median) and a bulleted list
+    set in 10 pt bold, the way a compliance document emphasises its criteria.
+
+    Bug: the bullets were larger than the body size and bold, so _is_heading
+    promoted each of them to a section heading.
+    """
+    pdf = Doc()
+    margin = 72.0
+    width = LETTER_W - 2 * margin
+    paras = paragraphs(6, start=9, step=4, width=4)
+    pdf.add_page()
+    pdf.text_at(margin, 60, "C16 - Absolute targets", style="B", size=12)
+    f = Flow(pdf, [(margin, 84, width, 740)], size=9, leading=11.5)
+    for k in range(3):
+        f.paragraph(paras[k], space_after=6)
+    f.skip(4)
+    pdf.set_font("Times", "B", 10)
+    pdf.set_xy(margin, f.y)
+    pdf.cell(width, 12, "Criterion met if:")
+    f.y += 14
+    items = ["Company is in compliance with criterion C16. AND",
+             "The ambition is at a minimum aligned with the 1.5\u00b0C threshold. OR",
+             "For base years after 2020 the reduction meets the minimum value"]
+    for it in items:
+        pdf.set_font("Times", "B", 10)
+        pdf.set_xy(margin + 10, f.y)
+        pdf.cell(width - 10, 12.5, "\u2022 " + it)
+        f.y += 19  # Word space-after: each bullet is its own block
+    f.skip(8)
+    for k in range(3, 6):
+        f.paragraph(paras[k], space_after=6)
+    pdf.out("bold_bullets.pdf")
+
+
+def make_images_inline():
+    """A page whose first drawing operation is a full-page raster background,
+    with prose and a small raster (an equation pasted as a picture) between
+    two paragraphs.
+
+    Bug: without --images the equation image vanished with no trace, and with
+    --images the page-sized background was extracted as a figure.
+    """
+    pdf = Doc()
+    margin = 72.0
+    width = LETTER_W - 2 * margin
+    paras = paragraphs(4, start=13, step=4, width=4)
+    pdf.add_page()
+    # full-page background: a very light gradient
+    bg = pymupdf.open()
+    pg = bg.new_page(width=306, height=396)
+    sh = pg.new_shape()
+    for i in range(16):
+        g = 0.97 - 0.03 * i / 16
+        sh.draw_rect(pymupdf.Rect(0, i * 396 / 16, 306, (i + 1) * 396 / 16))
+        sh.finish(color=None, fill=(g, g, 1.0))
+    sh.commit()
+    pdf.image(io.BytesIO(pg.get_pixmap(dpi=72, alpha=False).tobytes("png")),
+              x=0, y=0, w=LETTER_W, h=LETTER_H)
+    bg.close()
+    pdf.text_at(margin, 60, "2 Model", style="B", size=14)
+    f = Flow(pdf, [(margin, 86, width, 740)], size=10, leading=13)
+    f.paragraph(paras[0], space_after=6)
+    f.paragraph("The forward-looking adjustment is given by the following formula:",
+                space_after=8)
+    # the "formula": a small raster drawn by PyMuPDF (text rendered to pixels)
+    eq = pymupdf.open()
+    ep = eq.new_page(width=240, height=44)
+    ep.insert_text((8, 30), "A = A0 - (NZA - RTD) / (2050 - Y)", fontsize=18, fontname="tiro")
+    png = ep.get_pixmap(dpi=144, alpha=False).tobytes("png")
+    eq.close()
+    pdf.image(io.BytesIO(png), x=(LETTER_W - 240) / 2, y=f.y, w=240, h=44)
+    f.y += 44 + 10
+    f.paragraph("Where A0 is the minimum ambition before adjustment.", space_after=6)
+    f.paragraph(paras[1], space_after=6)
+    f.paragraph(paras[2], space_after=6)
+    pdf.out("images_inline.pdf")
+
+
+def make_manuscript_numcol():
+    make_manuscript("manuscript_numcol.pdf", number_column=True)
+
+
+def make_hard_footer_first():
+    make_hard("hard_footer_first.pdf", footer_first=True)
+
+
+def make_footnote_biglabel():
+    make_footnote_repro("footnote_biglabel.pdf", big_label=True)
+
+
 MAKERS = {
     "hard": make_hard,
     "repro": make_repro,
     "repro_tight": make_repro_tight,
     "footnote_repro": make_footnote_repro,
     "manuscript": make_manuscript,
+    "hard_footer_first": make_hard_footer_first,
+    "manuscript_numcol": make_manuscript_numcol,
+    "footnote_biglabel": make_footnote_biglabel,
+    "watermark": make_watermark,
+    "bold_bullets": make_bold_bullets,
+    "images_inline": make_images_inline,
     "scanned": make_scanned,      # last: depends on hard.pdf
 }
 
