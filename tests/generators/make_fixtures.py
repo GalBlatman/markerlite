@@ -956,6 +956,26 @@ def make_footnote_biglabel():
     make_footnote_repro("footnote_biglabel.pdf", big_label=True)
 
 
+def make_table_only_footer():
+    """Tables must establish body bounds for repeated textual footers.
+
+    The footer is drawn first, as in SBTi. The third page has a unique
+    margin note that must survive, rather than repetition evidence.
+    """
+    pdf = Doc()
+    for n, label in enumerate(("Alpha", "Beta", "Gamma")):
+        pdf.add_page()
+        footer = "Protocol validation edition" if n < 2 else "Unique margin observation"
+        pdf.text_at(72, 745, footer, size=9)
+        ruled_table(pdf, 72, 200, [156, 156, 156], [
+            ["Category", "Description", "Assessment"],
+            [label, "Inventory boundary", "Included"],
+            [label + " revised", "Reported exclusions", "Reviewed"],
+            [label + " final", "Published account", "Accepted"],
+        ], row_h=28)
+    pdf.out("table_only_footer.pdf")
+
+
 def make_tall_cell():
     """A bordered three-column table whose middle column wraps over three to
     four lines per row, between two prose paragraphs, with no watermark.
@@ -1005,6 +1025,7 @@ MAKERS = {
     "bold_bullets": make_bold_bullets,
     "images_inline": make_images_inline,
     "tall_cell": make_tall_cell,
+    "table_only_footer": make_table_only_footer,
     "scanned": make_scanned,      # last: depends on hard.pdf
 }
 

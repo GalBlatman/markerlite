@@ -1207,7 +1207,7 @@ def proc_marginalia(pages: List[Page], header_zone=0.08, footer_zone=0.13,
     for page in pages:
         text_blocks = [
             b for b in page.blocks
-            if b.btype in TEXTISH and not b.ignore_for_output and b.text.strip()
+            if b.btype in (*TEXTISH, "Table") and not b.ignore_for_output and b.text.strip()
         ]
         if len(text_blocks) < 2:
             continue
