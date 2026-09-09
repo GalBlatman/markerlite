@@ -1,4 +1,5 @@
-# markerlite — project context for Claude Code
+<!-- GENERATED from CLAUDE.md by tools/sync_agents.py - do not edit -->
+# markerlite — project context for coding agents
 
 Read this before touching anything. It is the handoff from the sessions that
 built the project and it records decisions, defects, and rules that are not

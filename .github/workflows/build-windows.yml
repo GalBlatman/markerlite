@@ -22,6 +22,12 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Check generated agent instructions
+        shell: bash
+        run: |
+          python tools/sync_agents.py
+          git diff --exit-code AGENTS.md
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
