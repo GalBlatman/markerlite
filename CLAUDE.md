@@ -104,9 +104,11 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
 - Commit messages: imperative subject, body explains WHY. Every commit ends
   with the Co-Authored-By / Claude-Session trailer.
 - Push after committing (`git pull --rebase` first if the remote is ahead).
-  Never create or push tags: the user decides what is a release and tags it
-  (`vX.Y.Z`, patch bump per release; the tag push builds and publishes the
-  Release). Never force-move a published tag; if a tag exists, bump.
+  Create and push a version tag ONLY when the user explicitly writes
+  "tag vX.Y.Z" in a message - never on your own initiative and never as part
+  of another task. Tags are `vX.Y.Z`, patch bump per release; the tag push
+  builds and publishes the Release. Never force-move a published tag; if a
+  tag exists, bump.
 - After editing markerlite_gui.py: `python check_gui.py`. After editing
   markerlite.py: `python tests/regress.py`; if the diff is intended,
   `--update` and commit the expected files with the change.
