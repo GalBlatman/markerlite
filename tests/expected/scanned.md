@@ -1,3 +1,5 @@
+<!-- ocr page 1 -->
+
 # Reading Order Under Adversarial Layout: A Synthetic Benchmark for Weight-Free PDF Conversion
 
 ### Ada Lovelace and Charles Babbage Analytical Engine Laboratory, London
@@ -35,6 +37,8 @@ Line heights are clustered to recover heading levels when a document has no sect
 The remaining processors are direct ports and are documented against the source files they come from. Every threshold in the code was set by looking at a failure, not by tuning against a corpus. That makes the thresholds easy to defend and easy to revise when a new failure appears. We report where the approach breaks so that a reader can decide whether it fits their documents.
 
 [^2]: The footer zone is the bottom thirteen percent of the page in the reference implementation.
+
+<!-- ocr page 2 -->
 
 | Feature | Precision | Recall | N |
 | --- | --- | --- | --- |

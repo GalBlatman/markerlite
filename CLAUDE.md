@@ -61,6 +61,8 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
    `extract_images`, `proc_captions`, `flag_math`.
 6. `render` — Markdown. Footnotes as `[^N]:` with the detected label;
    superscript body refs become `[^N]` only when note N exists (else `<sup>`).
+   Pages with `ocr_used` emit `<!-- ocr page N -->` independently of
+   `--page-markers`, so recognized text keeps its provenance.
 
 ### Decisions that look wrong but aren't
 

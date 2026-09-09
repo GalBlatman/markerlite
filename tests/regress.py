@@ -23,6 +23,7 @@ from __future__ import annotations
 import argparse
 import difflib
 import pathlib
+import re
 import shutil
 import sys
 import tempfile
@@ -36,12 +37,29 @@ FIXTURES = ROOT / "tests" / "fixtures"
 EXPECTED = ROOT / "tests" / "expected"
 
 # Fixtures with no text layer: their output depends on the OCR engine.
-NEEDS_TESSERACT = {"scanned"}
+NEEDS_TESSERACT = {"scanned", "isolated_ocr_page"}
 
 
 def convert_to_string(pdf: pathlib.Path, workdir: pathlib.Path) -> str:
     out, _info = markerlite.convert(pdf, workdir)
     return out.read_text(encoding="utf-8")  # universal newlines -> "\n"
+
+
+def check_ocr_markers(pdf: pathlib.Path, workdir: pathlib.Path, plain: str) -> int:
+    """OCR provenance survives both page-marker settings, even on a blank page."""
+    out, _ = markerlite.convert(pdf, workdir, page_markers=True)
+    marked = out.read_text(encoding="utf-8")
+    expected = ["2", "3", "4"]
+    if (re.findall(r"<!-- ocr page (\d+) -->", plain) == expected
+            and re.findall(r"<!-- ocr page (\d+) -->", marked) == expected
+            and re.findall(r"<!-- page (\d+) -->", marked) == ["1", "2", "3", "4"]
+            and all(f"<!-- page {n} -->\n\n<!-- ocr page {n} -->" in marked
+                    for n in expected)
+            and "<!-- page " not in plain):
+        print("ok    ocr-provenance   isolated OCR markers with and without page markers")
+        return 0
+    print("FAIL  ocr-provenance   missing, duplicated, or misplaced page markers")
+    return 1
 
 
 def check_cli_console(pdf: pathlib.Path) -> int:
@@ -97,6 +115,8 @@ def main(argv=None) -> int:
                 print(f"SKIP  {stem:16s} needs tesseract on PATH")
                 continue
             got = convert_to_string(pdf, workdir)
+            if stem == "isolated_ocr_page":
+                failures += check_ocr_markers(pdf, workdir, got)
             if args.update:
                 old = exp_path.read_text(encoding="utf-8") if exp_path.exists() else None
                 with open(exp_path, "w", encoding="utf-8", newline="\n") as fh:

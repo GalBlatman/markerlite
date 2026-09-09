@@ -1892,6 +1892,9 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
             # PDF something came from.
             flush()
             out.append(f"<!-- page {page.page_idx + 1} -->")
+        if page.ocr_used:
+            flush()
+            out.append(f"<!-- ocr page {page.page_idx + 1} -->")
         for blk in page.blocks:
             if blk.ignore_for_output:
                 continue

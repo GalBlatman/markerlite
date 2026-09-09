@@ -148,6 +148,8 @@ python3 markerlite.py --apply-math md_out/paper_math.json -o md_out
 
 Page markers cost almost nothing in context and let you ask an LLM where in the
 source PDF something appeared.
+OCR pages always carry `<!-- ocr page N -->`, even without `--page-markers`,
+so you can distinguish recognized text from the PDF's original text layer.
 
 `INSTALL.md` walks through the WSL setup; `WINDOWS-GUI.md` covers the native
 Windows install, the launcher, and building the exe yourself.

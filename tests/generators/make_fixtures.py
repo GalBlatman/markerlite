@@ -956,6 +956,43 @@ def make_footnote_biglabel():
     make_footnote_repro("footnote_biglabel.pdf", big_label=True)
 
 
+def make_isolated_ocr_page():
+    """OCR provenance on isolated raster pages, without requiring page markers.
+
+    Includes digital prose, a raster copyright notice, a truly blank page,
+    and a scanned table. The notice is visible content, not a blank page.
+    """
+    pdf = Doc()
+    pdf.add_page()
+    pdf.text_at(72, 90, "Digital introduction", style="B", size=14)
+    pdf.text_at(72, 130, "This page has a text layer and does not require recognition.", size=12)
+
+    def raster_page(source):
+        with pymupdf.open(stream=bytes(source.output()), filetype="pdf") as doc:
+            png = doc[0].get_pixmap(dpi=144).tobytes("png")
+        pdf.add_page()
+        pdf.image(io.BytesIO(png), x=0, y=0, w=LETTER_W, h=LETTER_H)
+
+    notice = Doc()
+    notice.add_page()
+    notice.text_at(72, 120, "Copyright of the Example Research Society.", size=14)
+    notice.text_at(72, 150, "Readers may print this notice for individual use.", size=14)
+    raster_page(notice)
+    pdf.add_page()  # no marks, no text layer
+
+    table = Doc()
+    table.add_page()
+    table.text_at(72, 90, "Scanned inventory", size=14)
+    ruled_table(table, 72, 140, [156, 156, 156], [
+        ["Product", "Quantity", "Location"],
+        ["Apples", "120", "North"],
+        ["Pears", "240", "South"],
+        ["Plums", "360", "West"],
+    ], size=12, row_h=32)
+    raster_page(table)
+    pdf.out("isolated_ocr_page.pdf")
+
+
 def make_table_only_footer():
     """Tables must establish body bounds for repeated textual footers.
 
@@ -1026,6 +1063,7 @@ MAKERS = {
     "images_inline": make_images_inline,
     "tall_cell": make_tall_cell,
     "table_only_footer": make_table_only_footer,
+    "isolated_ocr_page": make_isolated_ocr_page,
     "scanned": make_scanned,      # last: depends on hard.pdf
 }
 
