@@ -14,7 +14,7 @@ use. A blog post about it is planned; the README is written for that audience
 and its claims have been deliberately made honest — do not inflate them.
 
 Public repo: github.com/GalBlatman/markerlite · Apache-2.0 · current release
-v0.1.7 (`/releases/latest` is the download link the README and blog use).
+v0.1.8 (`/releases/latest` is the download link the README and blog use).
 
 ## Layout
 
