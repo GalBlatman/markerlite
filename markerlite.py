@@ -271,6 +271,11 @@ class Page:
     blocks: List[Block]
     images: List[dict] = field(default_factory=list)
     ocr_used: bool = False
+    # table_recon vs. geometric-cell decisions on this page (see
+    # TABLE_FALLBACK_MIN_KEEP): how many tables were emitted, and how many of
+    # them took PyMuPDF's cell text because the reconstruction lost words.
+    tables_emitted: int = 0
+    tables_fell_back: int = 0
 
 
 # --------------------------------------------------------------------------- #
@@ -551,6 +556,53 @@ def _tokens_for_recon(blocks: List[Block], bbox) -> list:
     return [(sorted(t, key=lambda x: x[1]), y0, y1) for t, y0, y1 in rows]
 
 
+def _grid_from_members(tbl, members: List[Block]) -> List[List[str]]:
+    """PyMuPDF's cell geometry filled with OUR text.
+
+    ``tbl.extract()`` reads the page's own text layer, so it duplicates words
+    shared with an overlapping table candidate and carries rotated watermark
+    glyphs that extract_page already dropped. Assigning the member blocks'
+    words to the cells by position keeps the geometric truth of the grid
+    (each word in the cell the ruling lines put it in) with only the text the
+    converter has already accepted.
+    """
+    cells = [[c for c in row.cells] for row in tbl.rows]
+    grid = [["" for _ in row] for row in cells]
+
+    def place(word: str, cx: float, cy: float) -> None:
+        for ri, row in enumerate(cells):
+            for ci, c in enumerate(row):
+                if c and c[0] <= cx <= c[2] and c[1] <= cy <= c[3]:
+                    grid[ri][ci] = (grid[ri][ci] + " " + word).strip()
+                    return
+
+    for blk in members:
+        for ln in blk.lines:
+            cy = (ln.bbox[1] + ln.bbox[3]) / 2
+            word, wx0, wx1 = "", 0.0, 0.0
+            for sp in ln.spans:
+                if not sp.chars:
+                    t = sp.text.strip()
+                    if t:
+                        place(t, (sp.bbox[0] + sp.bbox[2]) / 2, cy)
+                    continue
+                for c in sp.chars:
+                    ch = c.get("c", "")
+                    cx0, _y0, cx1, _y1 = c["bbox"]
+                    if ch.isspace():
+                        if word:
+                            place(word, (wx0 + wx1) / 2, cy)
+                        word = ""
+                        continue
+                    if not word:
+                        wx0 = cx0
+                    word += ch
+                    wx1 = cx1
+            if word:
+                place(word, (wx0 + wx1) / 2, cy)
+    return grid
+
+
 def _grid_to_html(rows: List[List[str]]) -> str:
     rows = [[(c or "").strip() for c in r] for r in rows if any((c or "").strip() for c in r)]
     if len(rows) < 2:
@@ -563,6 +615,22 @@ def _grid_to_html(rows: List[List[str]]) -> str:
         parts.append("<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>")
     parts.append("</tbody></table>")
     return "".join(parts)
+
+
+# A grid reconstruction may keep no less than this share of the words that
+# PyMuPDF's own geometric cells hold for the same table. table_recon assigns
+# text to rows by y-band and has nowhere to put the continuation lines of a
+# tall wrapped cell, so on compliance-style tables it can "win" the sanity
+# check with a tidy grid that has silently dropped most of the cell text (the
+# SBTi protocol lost 70% of some pages this way). Silent data loss is worse
+# than an ugly grid: below this ratio the geometric cells are used instead.
+TABLE_FALLBACK_MIN_KEEP = 0.9
+
+
+def _html_word_count(html: str) -> int:
+    """Words of visible text in a table's HTML (tags stripped)."""
+    text = re.sub(r"<[^>]+>", " ", html or "")
+    return len(unescape(text).split())
 
 
 def _table_sane(html: str, max_header_ratio=1.4, max_empty_frac=0.45) -> bool:
@@ -658,14 +726,32 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
             if res:
                 html, score = res
 
+        # PyMuPDF's geometric cells: text assigned by cell bbox, so wrapped
+        # lines stay in their cell. Used when the reconstruction is unusable,
+        # and also when it is "sane" but has lost words (TABLE_FALLBACK_MIN_KEEP).
+        try:
+            fallback = _grid_to_html(_grid_from_members(tbl, members))
+        except Exception:
+            fallback = ""
+        fell_back = False
         if not html or not _table_sane(html):
-            try:
-                fallback = _grid_to_html(tbl.extract())
-            except Exception:
-                fallback = ""
+            # No usable reconstruction: the geometric grid stands in only if
+            # it passes the same sanity check (else the region stays prose).
             html = fallback if _table_sane(fallback) else ""
+            fell_back = bool(html)
+        elif fallback:
+            # A usable reconstruction still loses to the geometric grid when
+            # it has dropped words. The grid is not required to be "sane"
+            # here: a sparse criteria table has many genuinely empty cells,
+            # which is what _table_sane rejects, and its text is geometric
+            # truth - every word sits in the cell the ruling lines put it in.
+            kept, cells = _html_word_count(html), _html_word_count(fallback)
+            if kept < TABLE_FALLBACK_MIN_KEEP * cells:
+                html, fell_back = fallback, True
         if not html:
             continue
+        page.tables_emitted += 1
+        page.tables_fell_back += int(fell_back)
 
         for i, b in enumerate(page.blocks):
             if b in members:
@@ -2232,6 +2318,8 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         "figures": n_figures,
         "equations": len(manifest.get("regions", [])),
         "ocr_pages": sum(1 for p in pages if p.ocr_used),
+        "tables": sum(p.tables_emitted for p in pages),
+        "tables_fallback": sum(p.tables_fell_back for p in pages),
     }
     doc.close()
     return out, manifest
@@ -2251,6 +2339,10 @@ def summarize(stats: dict) -> str:
         parts.append(f"{n} equation crop{'s' * (n != 1)}")
     if stats.get("ocr_pages"):
         parts.append(f"{stats['ocr_pages']} OCR'd")
+    if stats.get("tables_fallback"):
+        n = stats["tables_fallback"]
+        parts.append(f"{n} of {stats.get('tables', n)} table{'s' * (n != 1)} "
+                     f"fell back to cell text")
     return " · ".join(parts)
 
 

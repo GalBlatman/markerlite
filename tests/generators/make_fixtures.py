@@ -956,6 +956,42 @@ def make_footnote_biglabel():
     make_footnote_repro("footnote_biglabel.pdf", big_label=True)
 
 
+def make_tall_cell():
+    """A bordered three-column table whose middle column wraps over three to
+    four lines per row, between two prose paragraphs, with no watermark.
+
+    Bug: the grid reconstruction wins over PyMuPDF's geometric cells and keeps
+    only the first line of each wrapped cell; the rest of the cell text is
+    silently dropped. The text-loss guard makes the cell text win instead.
+    """
+    pdf = Doc()
+    margin = 72.0
+    width = LETTER_W - 2 * margin
+    paras = paragraphs(3, start=17, step=4, width=4)
+    pdf.add_page()
+    pdf.text_at(margin, 60, "4 Requirements", style="B", size=14)
+    f = Flow(pdf, [(margin, 86, width, 740)], size=10, leading=13)
+    f.paragraph(paras[0], space_after=10)
+    rows = [["Criterion", "Requirement", "Assessment"],
+            ["C1 Boundary", "All subsidiaries must be reported and included within "
+             "the parent company inventory in accordance with the chosen "
+             "consolidation approach, and any exclusion must be justified.",
+             "Met if all included"],
+            ["C2 Gases", "All relevant gases required by the protocol must be "
+             "covered; exclusions must be justified and stay below five "
+             "percent of the inventory and target boundary.",
+             "Met if none excluded"],
+            ["C3 Scopes", "At least one target covering scope 1 and scope 2 must "
+             "be submitted, combined or separate, when each is above the "
+             "exclusion threshold of five percent.",
+             "Met if both covered"]]
+    y = wrapped_table(pdf, margin, f.y, [110, 220, 138], rows)
+    f.y = y + 12
+    f.paragraph(paras[1], space_after=8)
+    f.paragraph(paras[2], space_after=8)
+    pdf.out("tall_cell.pdf")
+
+
 MAKERS = {
     "hard": make_hard,
     "repro": make_repro,
@@ -968,6 +1004,7 @@ MAKERS = {
     "watermark": make_watermark,
     "bold_bullets": make_bold_bullets,
     "images_inline": make_images_inline,
+    "tall_cell": make_tall_cell,
     "scanned": make_scanned,      # last: depends on hard.pdf
 }
 

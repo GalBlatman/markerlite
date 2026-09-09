@@ -143,7 +143,10 @@ before the PyInstaller build.
 
 1. Tables with tall multi-line cells assign content to wrong rows
    (`_attach_wrapped_lines` only fires when a numeric header transition is
-   found). README lists tables under "partial" for this reason.
+   found). README lists tables under "partial" for this reason. Since the
+   text-loss guard (below) the words are no longer LOST - the geometric grid
+   takes over - but that grid can be an ugly many-column shred of a table
+   whose reconstruction had the right shape (SBTi pp. 26, 34).
 2. Heading recovery on journals that style all headings identically with no
    numbering: some headings render as paragraphs.
 3. ScholarOne cover sheets (rotated/clipped submission metadata) produce junk
@@ -172,6 +175,13 @@ parentheses fails if the fix is undone):
   page-sized rasters are ignored in both modes (`images_inline`).
 - the CLI reconfigures stdout/stderr with errors="replace" and prints an
   ASCII arrow; regress.py's `cli-cp1252` check runs it under a cp1252 console.
+- text-loss guard in `detect_tables`: a reconstruction that keeps fewer than
+  `TABLE_FALLBACK_MIN_KEEP` (0.9) of the words in PyMuPDF's geometric cells
+  loses to those cells (`tall_cell`). The geometric grid is filled from the
+  table's own member tokens (`_grid_from_members`), not `tbl.extract()`, so
+  it neither duplicates text shared with an overlapping candidate nor carries
+  the rotated watermark glyphs. `info["stats"]["tables_fallback"]` counts the
+  decisions; summarize() prints "N of M tables fell back to cell text".
 
 ## Open items
 

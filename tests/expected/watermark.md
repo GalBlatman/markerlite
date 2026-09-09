@@ -20,9 +20,9 @@ Every threshold in the code was set by looking at a failure, not by tuning again
 
 | Criterion | Requirement | Assessment |
 | --- | --- | --- |
-| C1 Boundary | All subsidiaries must be reported and included within the | Met if all included |
-| C2 Gases | All relevant gases required by the protocol must be | Met if none excluded |
-| C3 Scopes | At least one target covering scope 1 and scope 2 must be | Met if both covered |
+| C1 Boundary | All subsidiaries must be reported and included within the parent company inventory in accordance with the chosen consolidation approach. | Met if all included |
+| C2 Gases | All relevant gases required by the protocol must be covered; exclusions must be justified and stay below five percent of the inventory. | Met if none excluded |
+| C3 Scopes | At least one target covering scope 1 and scope 2 must be submitted, combined or separate, when each is above the exclusion threshold. | Met if both covered |
 
 Journals that style every heading identically defeat the height clustering and lose a level. Scanned pages inherit every error of the recogniser, including stray page numbers in the middle of a paragraph. None of these failures corrupts the surrounding text; they degrade the structure rather than the content. The synthetic set is regenerated from scripts, so a fixture can be changed and the change reviewed.
 
