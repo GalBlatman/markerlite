@@ -75,5 +75,6 @@ the better choice outright.
 ## Files
 
 - `markerlite.py` — the converter
+- `table_wrap.py` — markerlite-owned wrapped-cell recovery
 - `table_recon.py` — vendored from Marker (Apache-2.0), table grid reconstruction
 - `third_party/marker/LICENSE` — Marker's license, covering the vendored file

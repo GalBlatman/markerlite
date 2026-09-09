@@ -148,8 +148,15 @@ def main(argv=None) -> int:
     if run_cli:
         failures += check_cli_console(sorted(FIXTURES.glob("*.pdf"))[0])
 
+    if not args.names or "all_text_wrapped" in args.names:
+        import unittest
+        from test_table_wrap import WrappedCellsTests
+        suite = unittest.defaultTestLoader.loadTestsFromTestCase(WrappedCellsTests)
+        result = unittest.TextTestRunner().run(suite)
+        failures += not result.wasSuccessful()
+
     if args.update:
-        return 0
+        return int(bool(failures))
     if failures:
         print(f"\n{failures} fixture(s) differ. If the change is intended: "
               f"python tests/regress.py --update")

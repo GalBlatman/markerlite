@@ -22,6 +22,7 @@ v0.1.8 (`/releases/latest` is the download link the README and blog use).
 ```
 markerlite.py        the converter (CLI + `convert()` API). ~2000 lines.
 markerlite_gui.py    Tk drag-and-drop front end. Runs from source or as the exe.
+table_wrap.py        markerlite-owned wrapped-cell attachment around the winning grid.
 table_recon.py       VENDORED from Marker (Apache-2.0). Table grid reconstruction.
                      Do not "improve" it; treat as third-party.
 check_gui.py         static check: every `self.x()` in App resolves to a method.
@@ -192,6 +193,8 @@ parentheses fails if the fix is undone):
 
 ## Open items
 
+- Table work follows tests/PLAN-tables.md; items 0, 1, 11b done; 8 next;
+  5,6,2,3,4 then 7,9,10,11a,11c pending review.
 - Real-document validation: the user's Ragins 2012 (AMR manuscript PDF) and
   SBTi standards PDFs are the reference cases. Ask for them; do not assume
   the synthetic fixtures cover them.

@@ -956,6 +956,49 @@ def make_footnote_biglabel():
     make_footnote_repro("footnote_biglabel.pdf", big_label=True)
 
 
+def make_all_text_wrapped():
+    """The same all-text table with and without rules, including sparse wraps.
+
+    A span-rich continuation in two columns must not become a new record;
+    a percentage within prose must stay with its owner. Short and tall rows
+    alternate, with unique words for checking loss, duplication, and cells.
+    """
+    pdf = Doc()
+    rows = [
+        [["Record", "Requirement", "Assessment"]],
+        [["Alpha", "Include the whole reporting boundary", "Accepted"],
+         ["", "and retain every subsidiary without", ""],
+         ["", "dropping any exception from the account.", "Review continues"]],
+        [["Beta", "Report the short independent entry.", "Pending"]],
+        [["Gamma", "Cover at least 7% of relevant activity", "Reviewed"],
+         ["", "without treating the percentage as a new row.", ""],
+         ["", "Publish all checks and name their owners.", ""]],
+        [["Delta", "Keep the final independent record.", "Complete"]],
+    ]
+    for ruled in (True, False):
+        pdf.add_page()
+        pdf.text_at(72, 90, "All-text inventory: " + ("ruled" if ruled else "unruled"),
+                    style="B", size=14)
+        y = 160
+        xs = [72, 192, 412]
+        widths = [120, 220, 128]
+        for r, lines in enumerate(rows):
+            height = len(lines) * 12 + (2 if ruled else 0)
+            if ruled:
+                for x, width in zip(xs, widths):
+                    pdf.rect(x, y, width, height)
+            for i, cells in enumerate(lines):
+                for x, cell in zip(xs, cells):
+                    if cell:
+                        # A vertically centered key must not pull the first
+                        # requirement line back into the preceding row.
+                        offset = 12 if ruled and cell == "Gamma" else 0
+                        pdf.text_at(x + 3, y + i * 12 + offset, cell,
+                                    style="B" if r == 0 else "", size=9)
+            y += height
+    pdf.out("all_text_wrapped.pdf")
+
+
 def make_isolated_ocr_page():
     """OCR provenance on isolated raster pages, without requiring page markers.
 
@@ -1064,6 +1107,7 @@ MAKERS = {
     "tall_cell": make_tall_cell,
     "table_only_footer": make_table_only_footer,
     "isolated_ocr_page": make_isolated_ocr_page,
+    "all_text_wrapped": make_all_text_wrapped,
     "scanned": make_scanned,      # last: depends on hard.pdf
 }
 

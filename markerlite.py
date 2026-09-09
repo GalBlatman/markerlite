@@ -48,6 +48,7 @@ import regex
 from rapidfuzz import fuzz
 from sklearn.cluster import KMeans
 from sklearn.exceptions import ConvergenceWarning
+from table_wrap import recover_wrapped_lines
 
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
@@ -721,6 +722,7 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
             lines = _tokens_for_recon(members, region)
             try:
                 res = reconstruct_table_html(lines)
+                res = recover_wrapped_lines(lines, res, tbl)
             except Exception:
                 res = None
             if res:
@@ -827,6 +829,7 @@ def propose_tables_from_text(pages: List[Page], min_score=0.62) -> None:
                 continue
             try:
                 res = reconstruct_table_html(lines)
+                res = recover_wrapped_lines(lines, res)
             except Exception:
                 continue
             if not res:

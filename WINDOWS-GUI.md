@@ -43,6 +43,7 @@ these together:
 ```
 markerlite_gui.py     the app
 markerlite.py         the converter
+table_wrap.py         wrapped-cell recovery
 table_recon.py        table grid reconstruction (vendored from Marker)
 markerlite.bat        launcher
 ```
