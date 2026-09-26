@@ -277,6 +277,8 @@ class Page:
     # them took PyMuPDF's cell text because the reconstruction lost words.
     tables_emitted: int = 0
     tables_fell_back: int = 0
+    # text-only table proposals rejected because the grid lost words
+    proposals_kept_prose: int = 0
     # A raster covers the page and the native layer is (at most) a stamp:
     # the page's content is in the image, whether or not OCR ran.
     image_only: bool = False
@@ -877,6 +879,18 @@ def propose_tables_from_text(pages: List[Page], min_score=0.62) -> None:
             ncols = html.count("<th>") or html.split("</tr>")[0].count("<td>")
             if score < min_score or not (2 <= ncols <= 12) or not _table_sane(html):
                 continue
+            # Text-loss guard, the proposal path's counterpart of the one in
+            # detect_tables. The proposal consumes this block, so the block's
+            # own words are the baseline: a grid that keeps fewer than
+            # TABLE_FALLBACK_MIN_KEEP of them has dropped rows (justified OCR
+            # prose on a two-column scan loses half its lines this way) and
+            # the block stays prose. This rejects proposals only; it does not
+            # change what is admitted (PLAN-tables items 4 and 5 still stand).
+            src_words = len(blk.text.split())
+            if src_words and _html_word_count(html) < TABLE_FALLBACK_MIN_KEEP * src_words:
+                page.proposals_kept_prose += 1
+                continue
+            page.tables_emitted += 1
             blk.btype = "Table"
             blk.html = html
 
@@ -2475,6 +2489,7 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         "provenance": [c.split(";")[0].replace("<!-- source: ", "") for c in provenance],
         "tables": sum(p.tables_emitted for p in pages),
         "tables_fallback": sum(p.tables_fell_back for p in pages),
+        "proposals_kept_prose": sum(p.proposals_kept_prose for p in pages),
     }
     doc.close()
     return out, manifest
@@ -2504,6 +2519,9 @@ def summarize(stats: dict) -> str:
         n = stats["tables_fallback"]
         parts.append(f"{n} of {stats.get('tables', n)} table{'s' * (n != 1)} "
                      f"fell back to cell text")
+    if stats.get("proposals_kept_prose"):
+        n = stats["proposals_kept_prose"]
+        parts.append(f"{n} text-table proposal{'s' * (n != 1)} kept as prose")
     return " · ".join(parts)
 
 
