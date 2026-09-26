@@ -302,10 +302,11 @@ def _bbox_of(items) -> Tuple[float, float, float, float]:
 # converting to nothing. So a page whose area is covered by one raster is
 # also OCR'd when its native layer is shorter than this, and that native
 # layer (the stamp) is discarded in favour of the recognised text. ProQuest's
-# first page adds a 275-character citation banner to the stamp. A digital
+# first page adds a 275-character citation banner to the stamp and shrinks
+# the page image to 89.6% of the page to make room for it. A digital
 # page that is mostly one figure with a caption is above the limit.
 OCR_MAX_NATIVE_CHARS = 500
-OCR_RASTER_MIN_FRAC = 0.9
+OCR_RASTER_MIN_FRAC = 0.8
 
 
 def _page_is_image_only(page: pymupdf.Page, native_chars: int) -> bool:
