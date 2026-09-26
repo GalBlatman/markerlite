@@ -42,7 +42,16 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
 1. `extract_page` — PyMuPDF `rawdict`, **unsorted**: block order = PDF
    character-stream order. This IS the reading-order algorithm; Marker itself
    prefers stream order over its learned head on text-layer pages. Never sort
-   blocks geometrically.
+   blocks geometrically. OCR runs when a page has < 20 native chars, OR when
+   one raster covers >= `OCR_RASTER_MIN_FRAC` (0.8) of the page and the native
+   layer is < `OCR_MAX_NATIVE_CHARS` (500) and confined to the top/bottom 15%
+   (a ProQuest/ResearchGate stamp or banner); the native layer is then
+   discarded. Such pages carry `Page.image_only`; if none was OCR'd,
+   summarize() says "N image-only pages, 0 OCR'd — check Tesseract".
+   Before extraction, `detect_provenance` recognises JSTOR / ResearchGate /
+   ProQuest cover pages and banners by their boilerplate text (never by
+   position), drops them, and writes the citation they carried as
+   `<!-- source: ... -->` comments at the top of the Markdown.
 2. `detect_tables` — `find_tables` cascade (ruling lines, then
    `vertical_strategy="text", horizontal_strategy="lines"` for booktabs), then
    `reconstruct_table_html` from table_recon on word tokens re-split at gaps.
@@ -70,9 +79,10 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
 - **Marginalia requires repetition evidence.** Position alone deleted page-top
   headings and titles. A running head is suppressed only if its text (page
   numbers stripped, fuzzy) recurs on 2+ pages, or is a bare page number.
-  Headers are judged by position only (they are often drawn LAST in the
-  stream); footers additionally require being last in reading order (protects
-  the foot of column 1 on two-column pages).
+  Headers and footers are both judged by position plus repetition; the old
+  last-in-reading-order guard for footers was dropped (PDFMaker draws the
+  footer first). Page-number tokens are stripped before matching, including
+  tokens that merely contain a digit ("1995 Suchman $79" from OCR).
 - **Reflow only joins single-line blocks.** Double-spaced manuscripts make
   PyMuPDF emit one block per line. Multi-line blocks are PyMuPDF's own
   paragraph grouping and must not be merged — the first version welded
@@ -159,7 +169,9 @@ before the PyInstaller build.
 3. ScholarOne cover sheets (rotated/clipped submission metadata) produce junk
    tables at the top of some manuscripts.
 4. OCR path: Tesseract lets a page number through mid-text; misreads large
-   display type.
+   display type. Rule-less scanned tables and boxed figures are not
+   recovered (Suchman Table 1 / Figure 1); superscript footnote references
+   are lost (no superscript flag from Tesseract). See tests/REPORT-jstor.md.
 5. References section: bold "REFERENCES" heading sometimes merges with first
    entry.
 6. Inline math is not detected (Marker needs an LLM for this too).
@@ -182,6 +194,20 @@ parentheses fails if the fix is undone):
   page-sized rasters are ignored in both modes (`images_inline`).
 - the CLI reconfigures stdout/stderr with errors="replace" and prints an
   ASCII arrow; regress.py's `cli-cp1252` check runs it under a cp1252 console.
+- aggregator scans with a native copyright stamp are OCR'd (`scanned_with_stamp`;
+  the 20-char gate alone converted Suchman 1995 to 185 words of 17,550).
+- on OCR pages `_is_heading` treats line height as shape evidence only, and a
+  numbered opener must be short (`scanned`, `scanned_with_stamp`; Tesseract
+  line boxes made ~60 body lines headings in one article).
+- running heads match across pages after dropping digit-bearing edge tokens
+  (`scanned_with_stamp`, "1995 Suchman 579" vs "1995 Suchman S81").
+- provenance pages/banners (JSTOR, ResearchGate, ProQuest) are dropped by
+  content signature and recorded as `<!-- source: ... -->` (`provenance_pages`;
+  the control title page must survive).
+- `propose_tables_from_text` keeps a block as prose when the proposed grid
+  keeps < `TABLE_FALLBACK_MIN_KEEP` of the block's words (interim; no
+  synthetic fixture yet - needs a justified two-column scan; PLAN items 4/5
+  remain the real fix). stats: `proposals_kept_prose`.
 - text-loss guard in `detect_tables`: a reconstruction that keeps fewer than
   `TABLE_FALLBACK_MIN_KEEP` (0.9) of the words in PyMuPDF's geometric cells
   loses to those cells (`tall_cell`). The geometric grid is filled from the

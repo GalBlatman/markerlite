@@ -60,9 +60,18 @@ glyph content, equation numbering and display placement, so it catches
 Symbol+Times equations that font-name matching misses, but it is not exhaustive.
 
 **Scanned PDFs** are detected automatically and OCR'd through Tesseract, using
-its own page segmentation so two-column scans keep their columns. The output
-inherits Tesseract's errors — large display type is sometimes misread, and a
-page number can land mid-text — so it is readable, not clean.
+its own page segmentation so two-column scans keep their columns. This includes
+aggregator scans (ProQuest, ResearchGate) that carry a one-line copyright stamp
+on every page: the stamp used to count as "text" and such files converted to
+nothing. If a document is image-only and Tesseract is missing, the summary says
+so instead of staying silent. The output inherits Tesseract's errors — large
+display type is sometimes misread, and a page number can land mid-text — so it
+is readable, not clean.
+
+**Provenance pages.** A JSTOR terms page, a ResearchGate cover, or a ProQuest
+citation banner is recognised by its boilerplate and left out of the body; the
+citation it carried (title, source line, DOI or Stable URL) is written as an
+HTML comment at the top of the Markdown, so the origin is not lost.
 
 **Heading recovery on real journal articles** is decent but not complete. A
 document that styles every heading identically, with no numbering, gives the
