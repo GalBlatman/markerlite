@@ -794,6 +794,25 @@ def make_scanned():
     pdf.out("scanned.pdf")
 
 
+def make_scanned_with_stamp():
+    """hard.pdf page 1 as a full-page raster plus a ONE-LINE native copyright
+    stamp at the foot, the way ProQuest and ResearchGate deliver scans.
+
+    Bug: the stamp's 100-odd native characters exceeded the 20-character OCR
+    gate, so the page was never recognised and converted to the stamp alone.
+    """
+    src = pymupdf.open(FIXTURES / "hard.pdf")
+    pdf = Doc()
+    pix = src[0].get_pixmap(dpi=150, colorspace=pymupdf.csGRAY, alpha=False)
+    pdf.add_page()
+    pdf.image(io.BytesIO(pix.tobytes("png")), x=0, y=0, w=LETTER_W, h=LETTER_H)
+    pdf.set_font("Helvetica", "", 8)
+    pdf.text(40, LETTER_H - 14, "Reproduced with permission of the copyright owner. "
+             "Further reproduction prohibited without permission.")
+    src.close()
+    pdf.out("scanned_with_stamp.pdf")
+
+
 def make_watermark():
     """Two pages of prose with a large diagonal "RETIRED" drawn across each
     page as real text at 45 degrees (a Word/Acrobat watermark), plus a small
@@ -1109,6 +1128,7 @@ MAKERS = {
     "isolated_ocr_page": make_isolated_ocr_page,
     "all_text_wrapped": make_all_text_wrapped,
     "scanned": make_scanned,      # last: depends on hard.pdf
+    "scanned_with_stamp": make_scanned_with_stamp,
 }
 
 

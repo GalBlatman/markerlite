@@ -277,6 +277,9 @@ class Page:
     # them took PyMuPDF's cell text because the reconstruction lost words.
     tables_emitted: int = 0
     tables_fell_back: int = 0
+    # A raster covers the page and the native layer is (at most) a stamp:
+    # the page's content is in the image, whether or not OCR ran.
+    image_only: bool = False
 
 
 # --------------------------------------------------------------------------- #
@@ -290,6 +293,38 @@ def _bbox_of(items) -> Tuple[float, float, float, float]:
     xs1 = max(i[2] for i in items)
     ys1 = max(i[3] for i in items)
     return (xs0, ys0, xs1, ys1)
+
+
+# When to OCR. A page with (almost) no native text is the obvious case. The
+# other is an aggregator scan: ProQuest and ResearchGate deliver page images
+# with a one-line native copyright stamp on every page (38-103 characters),
+# which is enough to look like "a page with text" and left 40-page articles
+# converting to nothing. So a page whose area is covered by one raster is
+# also OCR'd when its native layer is shorter than this, and that native
+# layer (the stamp) is discarded in favour of the recognised text. ProQuest's
+# first page adds a 275-character citation banner to the stamp. A digital
+# page that is mostly one figure with a caption is above the limit.
+OCR_MAX_NATIVE_CHARS = 500
+OCR_RASTER_MIN_FRAC = 0.9
+
+
+def _page_is_image_only(page: pymupdf.Page, native_chars: int) -> bool:
+    if native_chars >= OCR_MAX_NATIVE_CHARS:
+        return False
+    prect = page.rect
+    area = max(prect.width * prect.height, 1.0)
+    try:
+        infos = page.get_image_info()
+    except Exception:
+        return False
+    for info in infos:
+        bbox = info.get("bbox")
+        if not bbox:
+            continue
+        clip = pymupdf.Rect(bbox) & prect
+        if clip.width * clip.height >= OCR_RASTER_MIN_FRAC * area:
+            return True
+    return False
 
 
 def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = 300) -> Optional[Page]:
@@ -396,9 +431,11 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
         for s in ln.get("spans", [])
         for c in s.get("chars", [])
     )
-    if ocr_if_empty and text_len < 20:
+    image_only = _page_is_image_only(page, text_len)
+    if ocr_if_empty and (text_len < 20 or image_only):
         ocr_page = _ocr_page(page, page_idx)
         if ocr_page is not None:
+            ocr_page.image_only = image_only
             return ocr_page
 
     counter = 0
@@ -460,6 +497,7 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
         height=page.rect.height,
         blocks=blocks,
         ocr_used=ocr_used,
+        image_only=image_only,
     )
 
 
@@ -2324,6 +2362,7 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         "figures": n_figures,
         "equations": len(manifest.get("regions", [])),
         "ocr_pages": sum(1 for p in pages if p.ocr_used),
+        "image_only_pages": sum(1 for p in pages if p.image_only),
         "tables": sum(p.tables_emitted for p in pages),
         "tables_fallback": sum(p.tables_fell_back for p in pages),
     }
@@ -2345,6 +2384,12 @@ def summarize(stats: dict) -> str:
         parts.append(f"{n} equation crop{'s' * (n != 1)}")
     if stats.get("ocr_pages"):
         parts.append(f"{stats['ocr_pages']} OCR'd")
+    elif stats.get("image_only_pages"):
+        # Pages whose content is a raster and none was recognised: the
+        # output is empty and the reason is almost always a missing
+        # Tesseract. Silence here was the bug.
+        n = stats["image_only_pages"]
+        parts.append(f"{n} image-only page{'s' * (n != 1)}, 0 OCR'd \u2014 check Tesseract")
     if stats.get("tables_fallback"):
         n = stats["tables_fallback"]
         parts.append(f"{n} of {stats.get('tables', n)} table{'s' * (n != 1)} "

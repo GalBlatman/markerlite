@@ -37,7 +37,7 @@ FIXTURES = ROOT / "tests" / "fixtures"
 EXPECTED = ROOT / "tests" / "expected"
 
 # Fixtures with no text layer: their output depends on the OCR engine.
-NEEDS_TESSERACT = {"scanned", "isolated_ocr_page"}
+NEEDS_TESSERACT = {"scanned", "isolated_ocr_page", "scanned_with_stamp"}
 
 
 def convert_to_string(pdf: pathlib.Path, workdir: pathlib.Path) -> str:
