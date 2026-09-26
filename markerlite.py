@@ -1211,9 +1211,13 @@ def proc_ignore_common(pages: List[Page]) -> None:
 
 
 def _clean_text(text: str) -> str:
+    """Furniture text with its page-number tokens removed, for repetition
+    matching. A leading or trailing token that merely CONTAINS a digit goes
+    too: OCR reads "1995 Suchman 579" on one page and "1995 Suchman $79" on
+    the next, and "Suchman $79" missed the fuzzy match against "Suchman"."""
     text = text.replace("\n", "").strip()
-    text = re.sub(r"^\d+\s*", "", text)
-    text = re.sub(r"\s*\d+$", "", text)
+    text = re.sub(r"^\S*\d\S*\s*", "", text)
+    text = re.sub(r"\s*\S*\d\S*$", "", text)
     return text
 
 

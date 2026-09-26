@@ -795,20 +795,33 @@ def make_scanned():
 
 
 def make_scanned_with_stamp():
-    """hard.pdf page 1 as a full-page raster plus a ONE-LINE native copyright
-    stamp at the foot, the way ProQuest and ResearchGate deliver scans.
+    """hard.pdf pages 1-2 as full-page rasters plus a ONE-LINE native copyright
+    stamp at the foot of each, the way ProQuest and ResearchGate deliver scans.
 
     Bug: the stamp's 100-odd native characters exceeded the 20-character OCR
     gate, so the page was never recognised and converted to the stamp alone.
+
+    Second bug (page 2): the running head is the same on both pages but the
+    scan reads its page number differently ("579" vs "S81"), and the
+    repetition test then missed it, so the head survived as a heading.
     """
     src = pymupdf.open(FIXTURES / "hard.pdf")
+    heads = ["1995 Suchman 579", "1995 Suchman S81"]
     pdf = Doc()
-    pix = src[0].get_pixmap(dpi=150, colorspace=pymupdf.csGRAY, alpha=False)
-    pdf.add_page()
-    pdf.image(io.BytesIO(pix.tobytes("png")), x=0, y=0, w=LETTER_W, h=LETTER_H)
-    pdf.set_font("Helvetica", "", 8)
-    pdf.text(40, LETTER_H - 14, "Reproduced with permission of the copyright owner. "
-             "Further reproduction prohibited without permission.")
+    for i, head in enumerate(heads):
+        page = src[i]
+        # replace hard.pdf's running head with a Suchman-style one
+        shape = page.new_shape()
+        shape.draw_rect(pymupdf.Rect(0, 20, LETTER_W, 46))
+        shape.finish(color=None, fill=(1, 1, 1))
+        shape.commit()
+        page.insert_text((72, 40), head, fontsize=10, fontname="tiro")
+        pix = page.get_pixmap(dpi=150, colorspace=pymupdf.csGRAY, alpha=False)
+        pdf.add_page()
+        pdf.image(io.BytesIO(pix.tobytes("png")), x=0, y=0, w=LETTER_W, h=LETTER_H)
+        pdf.set_font("Helvetica", "", 8)
+        pdf.text(40, LETTER_H - 14, "Reproduced with permission of the copyright owner. "
+                 "Further reproduction prohibited without permission.")
     src.close()
     pdf.out("scanned_with_stamp.pdf")
 
