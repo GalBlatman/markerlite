@@ -917,7 +917,7 @@ def classify(pages: List[Page], body_size: float) -> None:
                 continue
             # Headings are tested BEFORE lists: "2. Method" satisfies the list
             # pattern too, and a numbered heading must not become a bullet.
-            if _is_heading(blk, body_size, text, first):
+            if _is_heading(blk, body_size, text, first, ocr=page.ocr_used):
                 blk.btype = "SectionHeader"
                 continue
             # Footnotes before lists: "1. Smith and Lee..." at the foot of the
@@ -1091,7 +1091,8 @@ def _is_footnote(blk: Block, page: Page, body_size: float, first: str) -> bool:
     return bool(FOOTNOTE_MARKER.match(first))
 
 
-def _is_heading(blk: Block, body_size: float, text: str, first: str) -> bool:
+def _is_heading(blk: Block, body_size: float, text: str, first: str,
+                ocr: bool = False) -> bool:
     if len(text) > 250 or len(blk.lines) > 3:
         return False
     # An equation is never a heading, however heading-shaped it looks.
@@ -1107,6 +1108,15 @@ def _is_heading(blk: Block, body_size: float, text: str, first: str) -> bool:
     size = blk.max_size()
     bold = blk.font_ratio("bold") > 0.6
     bigger = size > body_size * 1.06
+    if ocr:
+        # On a recognised page the "size" is Tesseract's line box, which
+        # swells on a tall ascender, a superscript, or a speck: a scanned
+        # page shows 5-13 pt around an 8 pt body, and a single body line
+        # clears 6% easily (some 60 false headings in one article). Line
+        # height is therefore only shape evidence there, like bold: the
+        # block must also look like a heading (numbered, title case, caps).
+        bold = bold or bigger
+        bigger = False
     if not (bigger or bold):
         return False
     stripped = text.rstrip()
@@ -1116,9 +1126,12 @@ def _is_heading(blk: Block, body_size: float, text: str, first: str) -> bool:
     if bigger:
         return True
     # Bold-only: demand a heading shape (numbered, title case, or all caps).
-    if NUMBERED_HEADING.match(first) or BIB_HINT.match(stripped):
-        return True
     words = stripped.split()
+    if NUMBERED_HEADING.match(first) or BIB_HINT.match(stripped):
+        # A recognised footnote opens "1 Currently, the most accepted
+        # definition ..." and matches the numbered pattern; a numbered
+        # heading is short.
+        return not ocr or len(words) <= 12
     if len(words) <= 12 and (stripped.isupper() or _title_case(words)):
         return True
     return False
