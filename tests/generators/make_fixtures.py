@@ -826,6 +826,83 @@ def make_scanned_with_stamp():
     pdf.out("scanned_with_stamp.pdf")
 
 
+def make_provenance_pages():
+    """Four native-text pages: a real title page (control), a JSTOR terms
+    page, a ResearchGate cover, and a ProQuest citation banner over a body
+    page with the per-page permission stamp.
+
+    Bug: the covers and banner came through as content (the ResearchGate
+    title as an h2, "CITATIONS 2,718", "SEE PROFILE"), and nothing recorded
+    where the file came from once they were removed by hand.
+    """
+    pdf = Doc()
+    margin, width = 72.0, LETTER_W - 144
+    paras = paragraphs(6, start=21, step=4, width=4)
+
+    # p1: control - a genuine title page that must survive intact
+    pdf.add_page()
+    pdf.centered(120, "Institutional Distance and Legitimacy", style="B", size=16)
+    pdf.centered(150, "Ada Lovelace and Charles Babbage", size=11)
+    f = Flow(pdf, [(margin, 190, width, 740)], size=10, leading=13)
+    f.paragraph(paras[0], space_after=8)
+    f.paragraph(paras[1], space_after=8)
+
+    # p2: JSTOR terms page
+    pdf.add_page()
+    y = 72
+    for line, style, size in [
+        ("Institutional Distance and Legitimacy", "B", 12),
+        ("Author(s): Ada Lovelace and Charles Babbage", "", 10),
+        ("Source: The Journal of Synthetic Studies, Vol. 12, No. 3 (Jul., 2026), pp. 571-610", "", 10),
+        ("Published by: Academy of Synthetic Studies", "", 10),
+        ("Stable URL: https://www.jstor.org/stable/258788", "", 10),
+        ("Accessed: 14-09-2026 10:22 UTC", "", 10),
+    ]:
+        pdf.text_at(margin, y, line, style=style, size=size)
+        y += 16
+    f = Flow(pdf, [(margin, y + 20, width, 740)], size=9, leading=12)
+    f.paragraph("JSTOR is a not-for-profit service that helps scholars, researchers, and "
+                "students discover, use, and build upon a wide range of content in a trusted "
+                "digital archive. We use information technology and tools to increase "
+                "productivity and facilitate new forms of scholarship.", space_after=8)
+    f.paragraph("Your use of the JSTOR archive indicates your acceptance of the Terms & "
+                "Conditions of Use, available at https://about.jstor.org/terms", space_after=8)
+
+    # p3: ResearchGate cover
+    pdf.add_page()
+    pdf.text_at(margin, 60, "See discussions, stats, and author profiles for this publication at: "
+                "https://www.researchgate.net/publication/234021651", size=7)
+    pdf.text_at(margin, 90, "Institutional Distance and Legitimacy: The Case of the", style="B", size=14)
+    pdf.text_at(margin, 108, "Multinational Enterprise", style="B", size=14)
+    pdf.text_at(margin, 140, "Article  in  Journal of Synthetic Studies \u00b7 January 2026", size=8)
+    pdf.text_at(margin, 154, "DOI: 10.2307/259037", size=7)
+    pdf.text_at(margin, 190, "CITATIONS", size=6)
+    pdf.text_at(margin + 200, 190, "READS", size=6)
+    pdf.text_at(margin, 200, "2,718", size=9)
+    pdf.text_at(margin + 200, 200, "3,585", size=9)
+    pdf.text_at(margin, 240, "2 authors, including:", size=8)
+    pdf.text_at(margin, 256, "Charles Babbage", size=8)
+    pdf.text_at(margin, 268, "SEE PROFILE", size=6)
+    pdf.text_at(margin, 720, "All content following this page was uploaded by Charles Babbage on 03 May 2026.", size=7)
+    pdf.text_at(margin, 734, "The user has requested enhancement of the downloaded file.", size=7)
+
+    # p4: ProQuest banner above a body page, permission stamp at the foot
+    pdf.add_page()
+    pdf.text_at(30, 14, "Institutional distance and legitimacy", style="B", size=10)
+    pdf.text_at(30, 26, "Lovelace, Ada", size=8)
+    pdf.text_at(30, 36, "Academy of Synthetic Studies. The Journal of Synthetic Studies; Jul 2026; 12, 3; "
+                "ABI/INFORM Global", style="I", size=8)
+    pdf.text_at(30, 46, "pg. 571", size=8)
+    pdf.text_at(margin, 100, "1 Introduction", style="B", size=14)
+    f = Flow(pdf, [(margin, 126, width, 740)], size=10, leading=13)
+    f.paragraph(paras[2], space_after=8)
+    f.paragraph(paras[3], space_after=8)
+    pdf.set_font("Helvetica", "", 8)
+    pdf.text(30, LETTER_H - 14, "Reproduced with permission of the copyright owner. "
+             "Further reproduction prohibited without permission.")
+    pdf.out("provenance_pages.pdf")
+
+
 def make_watermark():
     """Two pages of prose with a large diagonal "RETIRED" drawn across each
     page as real text at 45 degrees (a Word/Acrobat watermark), plus a small
@@ -1136,6 +1213,7 @@ MAKERS = {
     "watermark": make_watermark,
     "bold_bullets": make_bold_bullets,
     "images_inline": make_images_inline,
+    "provenance_pages": make_provenance_pages,
     "tall_cell": make_tall_cell,
     "table_only_footer": make_table_only_footer,
     "isolated_ocr_page": make_isolated_ocr_page,

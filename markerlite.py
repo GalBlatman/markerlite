@@ -2328,6 +2328,86 @@ def apply_math(md_path: pathlib.Path, manifest_path: pathlib.Path) -> int:
 # --------------------------------------------------------------------------- #
 
 
+# --------------------------------------------------------------------------- #
+# provenance pages (aggregator covers and banners)
+# --------------------------------------------------------------------------- #
+
+# Content signatures, never position: each aggregator prints fixed boilerplate.
+# JSTOR and ResearchGate prepend a whole page; ProQuest prints a citation
+# banner above the first page's image and a permission stamp on every page.
+_JSTOR_PHRASES = ("JSTOR is a not-for-profit service", "Your use of the JSTOR archive")
+_RG_PHRASES = ("See discussions, stats, and author profiles",
+               "All content following this page was uploaded")
+_PROQUEST_STAMP = "Reproduced with permission of the copyright owner"
+_RG_FOOTER = "View publication stats"
+_JSTOR_CITE = re.compile(r"^(Author\(s\)|Source|Published by|Stable URL)\s*:", re.I)
+_RG_CITE = re.compile(r"^(Article|Chapter|Conference Paper|Preprint|Book|Thesis)\b.*\bin\b", re.I)
+_PROQUEST_PG = re.compile(r"^pg\.\s*\d+", re.I)
+
+
+def _lines_of(text: str) -> List[str]:
+    return [re.sub(r"\s+", " ", ln).strip() for ln in text.splitlines() if ln.strip()]
+
+
+def detect_provenance(doc) -> Tuple[dict, set, List[str]]:
+    """Find aggregator cover pages and banners by their boilerplate.
+
+    Returns ``(drop_pages, drop_lines, comments)``: page indices to leave out
+    entirely, exact native line texts to drop wherever they occur, and one
+    HTML comment per detection carrying the citation the page supplied (title,
+    source line, DOI or stable URL), so the provenance survives the removal.
+    """
+    drop_pages: dict = {}
+    drop_lines: set = {_RG_FOOTER}
+    comments: List[str] = []
+    for idx in range(len(doc)):
+        text = doc[idx].get_text()
+        lines = _lines_of(text)
+        if not lines:
+            continue
+        if any(ph in text for ph in _JSTOR_PHRASES):
+            # Title is the first line; the citation is the labelled lines.
+            cite = [lines[0]] + [ln for ln in lines[1:] if _JSTOR_CITE.match(ln)]
+            comments.append(f"<!-- source: JSTOR; {'; '.join(cite)} -->")
+            drop_pages[idx] = "JSTOR"
+            continue
+        if any(ph in text for ph in _RG_PHRASES):
+            # Title is everything between the "See discussions" line and the
+            # "Article in <journal> · <date>" line; then the DOI line.
+            start = next((i for i, ln in enumerate(lines) if _RG_PHRASES[0] in ln), -1)
+            art = next((i for i, ln in enumerate(lines) if _RG_CITE.match(ln)), None)
+            title = " ".join(lines[start + 1:art]) if art is not None else ""
+            cite = [t for t in (title, lines[art] if art is not None else "") if t]
+            cite += [ln for ln in lines if ln.upper().startswith("DOI")]
+            comments.append(f"<!-- source: ResearchGate; {'; '.join(cite)} -->")
+            drop_pages[idx] = "ResearchGate"
+            continue
+        if _PROQUEST_STAMP in text:
+            stamp = next(ln for ln in lines if _PROQUEST_STAMP in ln)
+            drop_lines.add(stamp)
+            pg = next((ln for ln in lines if _PROQUEST_PG.match(ln)), None)
+            if pg is not None and ("ABI/INFORM" in text or "ProQuest" in text or idx == 0):
+                # The banner: every native line up to and including "pg. N"
+                # (title, author, journal; date; volume; database).
+                banner = []
+                for ln in lines:
+                    if ln == stamp:
+                        continue
+                    banner.append(ln)
+                    if _PROQUEST_PG.match(ln):
+                        break
+                drop_lines.update(banner)
+                comments.append(f"<!-- source: ProQuest; {'; '.join(banner)} -->")
+    return drop_pages, drop_lines, comments
+
+
+def _drop_provenance_lines(page: Page, drop_lines: set) -> None:
+    for blk in page.blocks:
+        if blk.lines and all(re.sub(r"\s+", " ", ln.text).strip() in drop_lines
+                             for ln in blk.lines):
+            blk.ignore_for_output = True
+
+
 def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
             do_flag_math=False, page_markers=False) -> Tuple[pathlib.Path, dict]:
     """Convert one PDF. Returns (markdown path, info).
@@ -2336,9 +2416,18 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
     ``stats`` (pages, bytes, figures, equations) for reporting.
     """
     doc = pymupdf.open(path)
+    drop_pages, drop_lines, provenance = detect_provenance(doc)
     pages = []
     for i in range(len(doc)):
+        if i in drop_pages:
+            # An aggregator cover: nothing on it is the article. Keep an
+            # empty page so page numbers in markers stay true to the PDF.
+            pages.append(Page(page_idx=i, width=doc[i].rect.width,
+                              height=doc[i].rect.height, blocks=[]))
+            continue
         p = extract_page(doc[i], i)
+        if not p.ocr_used:
+            _drop_provenance_lines(p, drop_lines)
         detect_tables(doc[i], p)
         pages.append(p)
 
@@ -2371,6 +2460,8 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         manifest = flag_math(doc, pages, outdir, path.stem)
 
     md = render(pages, page_markers=page_markers)
+    if provenance:
+        md = "\n".join(provenance) + "\n\n" + md
     out = outdir / f"{path.stem}.md"
     out.write_text(md, encoding="utf-8")
     manifest["stats"] = {
@@ -2380,6 +2471,7 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         "equations": len(manifest.get("regions", [])),
         "ocr_pages": sum(1 for p in pages if p.ocr_used),
         "image_only_pages": sum(1 for p in pages if p.image_only),
+        "provenance": [c.split(";")[0].replace("<!-- source: ", "") for c in provenance],
         "tables": sum(p.tables_emitted for p in pages),
         "tables_fallback": sum(p.tables_fell_back for p in pages),
     }
