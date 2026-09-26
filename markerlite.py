@@ -309,12 +309,25 @@ def _bbox_of(items) -> Tuple[float, float, float, float]:
 # page that is mostly one figure with a caption is above the limit.
 OCR_MAX_NATIVE_CHARS = 500
 OCR_RASTER_MIN_FRAC = 0.8
+OCR_STAMP_MARGIN = 0.15   # native text must lie in the top/bottom 15% to be a stamp
 
 
-def _page_is_image_only(page: pymupdf.Page, native_chars: int) -> bool:
+def _page_is_image_only(page: pymupdf.Page, native_chars: int,
+                        native_lines=()) -> bool:
+    """A page-covering raster with, at most, a stamp of native text.
+
+    ``native_lines`` are the rawdict line bboxes. A stamp or citation banner
+    sits in the top or bottom margin; a title printed over a decorative
+    full-page background (a report cover) sits mid-page and is real text,
+    so that page keeps its native layer.
+    """
     if native_chars >= OCR_MAX_NATIVE_CHARS:
         return False
     prect = page.rect
+    for x0, y0, x1, y1 in native_lines:
+        yc = (y0 + y1) / 2 / max(prect.height, 1.0)
+        if OCR_STAMP_MARGIN < yc < 1 - OCR_STAMP_MARGIN:
+            return False
     area = max(prect.width * prect.height, 1.0)
     try:
         infos = page.get_image_info()
@@ -434,7 +447,9 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
         for s in ln.get("spans", [])
         for c in s.get("chars", [])
     )
-    image_only = _page_is_image_only(page, text_len)
+    native_lines = [tuple(ln["bbox"]) for b in raw.get("blocks", []) if b.get("type") == 0
+                    for ln in b.get("lines", [])]
+    image_only = _page_is_image_only(page, text_len, native_lines)
     if ocr_if_empty and (text_len < 20 or image_only):
         ocr_page = _ocr_page(page, page_idx)
         if ocr_page is not None:
