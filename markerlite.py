@@ -2456,10 +2456,16 @@ def detect_provenance(doc) -> Tuple[dict, set, List[str]]:
                 host = _SAGE_HOST.search(text).group(0)
                 # "at <institution> on <date>" follows the host, either in
                 # the same line or in the next native piece.
-                stamp = " ".join(ln for ln in pieces if _SAGE_COLLECTIONS not in ln)
-                tail = stamp.split(host, 1)[1] if host in stamp else ""
-                m_at = re.search(r"\bat\s+(.+)", tail)
-                at = ("at " + m_at.group(1).strip()) if m_at else ""
+                # The native pieces may arrive in any order (SAGE emits
+                # them right-to-left), so look for the "at ..." piece first
+                # and only then for "at ..." after the host in a merged line.
+                at_piece = next((ln for ln in pieces if ln.lower().startswith("at ")), None)
+                if at_piece is None:
+                    stamp = " ".join(ln for ln in pieces if _SAGE_COLLECTIONS not in ln)
+                    tail = stamp.split(host, 1)[1] if host in stamp else ""
+                    m_at = re.search(r"\bat\s+(.+)", tail)
+                    at_piece = ("at " + m_at.group(1).strip()) if m_at else ""
+                at = at_piece
                 comments.append(f"<!-- source: SAGE Journals ({host}); downloaded {at} -->".replace(" ;", ";").replace("  ", " "))
             continue
         if _PROQUEST_STAMP in text:
