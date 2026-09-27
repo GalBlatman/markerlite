@@ -75,6 +75,7 @@ class App:
         self.results: dict[str, dict] = {}
         self.events: "queue.Queue[tuple]" = queue.Queue()
         self.running = False
+        self.log_paths: list[pathlib.Path] = []
 
         root.title(f"{APP} — PDF to Markdown")
         root.configure(bg=BG)
@@ -367,6 +368,9 @@ class App:
         self.open_btn = ttk.Button(bar, text="Open output folder",
                                    command=self.open_out, state="disabled")
         self.open_btn.pack(side="left")
+        self.log_btn = ttk.Button(bar, text="Open log", command=self.open_log,
+                                  state="disabled")
+        self.log_btn.pack(side="left", padx=(6, 0))
         self.md_btn = ttk.Button(bar, text="Open Markdown",
                                  command=self.open_md, state="disabled")
         self.md_btn.pack(side="left", padx=6)
@@ -434,8 +438,10 @@ class App:
         self.tree.delete(*self.tree.get_children())
         self._set_preview("")
         self.open_btn.configure(state="disabled")
+        self.log_btn.configure(state="disabled")
         self.md_btn.configure(state="disabled")
         self.math_btn.configure(state="disabled")
+        self.log_paths = []
         self.status.configure(text="No files yet")
 
     def pick_out(self):
@@ -474,23 +480,47 @@ class App:
 
     def _worker(self, files: list[pathlib.Path], opts: dict):
         try:
-            from markerlite import convert
+            from markerlite import convert, stat_warnings, summarize
         except Exception:
             self.events.put(("fatal", traceback.format_exc()))
             return
+        import datetime as _dt
+        stamp = _dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        logs: dict[pathlib.Path, list[str]] = {}
+
+        def log(outdir: pathlib.Path, line: str):
+            # One markerlite-run.log per output folder, appended per batch:
+            # a batch header, then one line per file with its summary and
+            # warnings, so a "why is this file empty" question has an answer
+            # after the window is closed.
+            path = outdir / "markerlite-run.log"
+            try:
+                with open(path, "a", encoding="utf-8") as fh:
+                    if path not in logs:
+                        fh.write(f"=== markerlite run {stamp} ({len(files)} file(s)) ===\n")
+                        logs[path] = []
+                    fh.write(line + "\n")
+                    logs[path].append(line)
+            except Exception:
+                pass
+
         for pdf in files:
             self.events.put(("busy", str(pdf)))
+            outdir = (pathlib.Path(opts["dir"]) if opts["mode"] == "fixed" else pdf.parent)
             try:
-                outdir = (pathlib.Path(opts["dir"]) if opts["mode"] == "fixed"
-                          else pdf.parent)
                 outdir.mkdir(parents=True, exist_ok=True)
                 md, manifest = convert(pdf, outdir, opts["images"], opts["math"],
                                        opts["page_markers"])
-                self.events.put(("done", str(pdf), str(md),
-                                 manifest.get("stats", {})))
+                stats = manifest.get("stats", {})
+                warns = stat_warnings(stats)
+                log(outdir, f"{pdf.name}: {summarize(stats)}"
+                            + (" | WARNINGS: " + "; ".join(warns) if warns else ""))
+                self.events.put(("done", str(pdf), str(md), stats))
             except Exception as exc:
-                self.events.put(("error", str(pdf), f"{type(exc).__name__}: {exc}"))
-        self.events.put(("finished",))
+                msg = f"{type(exc).__name__}: {exc}"
+                log(outdir, f"{pdf.name}: FAILED {msg}")
+                self.events.put(("error", str(pdf), msg))
+        self.events.put(("finished", sorted(logs)))
 
     def _drain(self):
         try:
@@ -537,6 +567,7 @@ class App:
                     )
                     self._finish()
                 elif kind == "finished":
+                    self.log_paths = list(ev[1]) if len(ev) > 1 else []
                     self._finish()
         except queue.Empty:
             pass
@@ -572,6 +603,8 @@ class App:
         if done:
             self.open_btn.configure(state="normal")
             self.md_btn.configure(state="normal")
+        if self.log_paths:
+            self.log_btn.configure(state="normal")
         if any(r.get("eqs") for r in self.results.values()):
             self.math_btn.configure(state="normal")
 
@@ -695,6 +728,12 @@ class App:
         if len(seen) > 4:
             self.status.configure(
                 text=f"Opened 4 of {len(seen)} output folders")
+
+    def open_log(self):
+        """Open this batch's markerlite-run.log (one per output folder)."""
+        for path in self.log_paths[:4]:
+            if pathlib.Path(path).exists():
+                self._reveal(pathlib.Path(path))
 
     def open_md(self):
         """Open the selected file's Markdown in the system default editor."""
