@@ -275,12 +275,21 @@ class App:
 
         table = ttk.Frame(left)
         table.pack(fill="both", expand=True, pady=(4, 0))
-        self.tree = ttk.Treeview(table, columns=("status",), show="tree headings",
-                                 selectmode="browse", height=5)
+        self.tree = ttk.Treeview(
+            table, columns=("status", "pages", "words", "ocr", "tables"),
+            show="tree headings", selectmode="browse", height=5)
         self.tree.heading("#0", text="File")
         self.tree.heading("status", text="Status")
-        self.tree.column("#0", width=300, stretch=True)
-        self.tree.column("status", width=150, stretch=False, anchor="w")
+        self.tree.heading("pages", text="Pages")
+        self.tree.heading("words", text="Words")
+        self.tree.heading("ocr", text="OCR")
+        self.tree.heading("tables", text="Tables (fallback)")
+        self.tree.column("#0", width=260, stretch=True)
+        self.tree.column("status", width=110, stretch=False, anchor="w")
+        self.tree.column("pages", width=54, stretch=False, anchor="e")
+        self.tree.column("words", width=64, stretch=False, anchor="e")
+        self.tree.column("ocr", width=48, stretch=False, anchor="e")
+        self.tree.column("tables", width=104, stretch=False, anchor="e")
         sb = ttk.Scrollbar(table, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscrollcommand=sb.set)
         self.tree.pack(side="left", fill="both", expand=True)
@@ -288,7 +297,12 @@ class App:
         self.tree.tag_configure("done", foreground=OK)
         self.tree.tag_configure("error", foreground=BAD)
         self.tree.tag_configure("busy", foreground=ACCENT)
+        self.tree.tag_configure("warn", foreground=BAD)
         self.tree.bind("<<TreeviewSelect>>", self.on_select)
+        self.tree.bind("<Motion>", self._tree_motion)
+        self.tree.bind("<Leave>", lambda _e: self._hide_tip())
+        self._tip = None
+        self._tip_row = None
 
         right = ttk.Frame(mid)
         right.pack(side="left", fill="both", expand=True, padx=(PAD, 0))
@@ -401,7 +415,8 @@ class App:
             if p in self.files:
                 continue
             self.files.append(p)
-            self.tree.insert("", "end", iid=str(p), text=p.name, values=("queued",))
+            self.tree.insert("", "end", iid=str(p), text=p.name,
+                             values=("queued", "", "", "", ""))
             added += 1
         skipped = len(found) - added
         msg = f"{len(self.files)} file(s) ready"
@@ -483,21 +498,34 @@ class App:
                 ev = self.events.get_nowait()
                 kind = ev[0]
                 if kind == "busy":
-                    self.tree.item(ev[1], values=("converting…",), tags=("busy",))
+                    self.tree.item(ev[1], values=("converting\u2026", "", "", "", ""),
+                                   tags=("busy",))
                     self.tree.see(ev[1])
                     self.status.configure(text=f"Converting {pathlib.Path(ev[1]).name}")
                 elif kind == "done":
                     _, src, md, stats = ev
                     eqs = stats.get("equations", 0)
                     label = "converted" + (f" · {eqs} eq" if eqs else "")
-                    self.tree.item(src, values=(label,), tags=("done",))
-                    self.results[src] = {"md": md, "eqs": eqs, "stats": stats}
+                    warnings = self._warnings(stats)
+                    pages = stats.get("pages", 0)
+                    tables = stats.get("tables", 0)
+                    fell = stats.get("tables_fallback", 0)
+                    values = (label, pages, stats.get("words", ""),
+                              f"{stats.get('ocr_pages', 0)}/{pages}" if stats.get("ocr_pages")
+                              or stats.get("image_only_pages") else "\u2013",
+                              f"{tables} ({fell})" if tables else "\u2013")
+                    name = pathlib.Path(src).name
+                    self.tree.item(src, text=("\u26a0 " + name) if warnings else name,
+                                   values=values, tags=("warn",) if warnings else ("done",))
+                    self.results[src] = {"md": md, "eqs": eqs, "stats": stats,
+                                         "warnings": warnings,
+                                         "provenance": self._provenance_of(md)}
                     self.bar.step(1)
                     if not self.tree.selection():
                         self.tree.selection_set(src)
                 elif kind == "error":
                     _, src, msg = ev
-                    self.tree.item(src, values=("failed",), tags=("error",))
+                    self.tree.item(src, values=("failed", "", "", "", ""), tags=("error",))
                     self.results[src] = {"error": msg}
                     self.bar.step(1)
                 elif kind == "fatal":
@@ -526,14 +554,18 @@ class App:
             "figures": sum(r.get("stats", {}).get("figures", 0) for r in done),
             "equations": sum(r.get("stats", {}).get("equations", 0) for r in done),
             "ocr_pages": sum(r.get("stats", {}).get("ocr_pages", 0) for r in done),
+            "words": sum(r.get("stats", {}).get("words", 0) for r in done),
         }
         parts = []
         if done:
             try:
                 from markerlite import summarize
-                parts.append(summarize(agg))
+                parts.append(summarize(agg) + f" · {agg['words']:,} words")
             except Exception:
                 parts.append(f"{len(done)} converted")
+        warned = sum(1 for r in done if r.get("warnings"))
+        if warned:
+            parts.append(f"\u26a0 {warned} file{'s' * (warned != 1)} with warnings")
         if bad:
             parts.append(f"{bad} failed")
         self.status.configure(text=" · ".join(parts) or "Nothing converted")
@@ -542,6 +574,67 @@ class App:
             self.md_btn.configure(state="normal")
         if any(r.get("eqs") for r in self.results.values()):
             self.math_btn.configure(state="normal")
+
+    # ---------------------------------------------------------------- results
+    @staticmethod
+    def _warnings(stats: dict) -> list[str]:
+        try:
+            from markerlite import stat_warnings
+            return stat_warnings(stats)
+        except Exception:
+            return []
+
+    @staticmethod
+    def _summary(stats: dict) -> str:
+        try:
+            from markerlite import summarize
+            return summarize(stats)
+        except Exception:
+            return ""
+
+    @staticmethod
+    def _provenance_of(md: str) -> list[str]:
+        """The <!-- source: ... --> comments convert() wrote at the top."""
+        out = []
+        try:
+            with open(md, encoding="utf-8") as fh:
+                for _ in range(8):
+                    line = fh.readline()
+                    if line.startswith("<!-- source:"):
+                        out.append(line.strip()[len("<!-- "):-len(" -->")])
+        except Exception:
+            pass
+        return out
+
+    def _tree_motion(self, event):
+        row = self.tree.identify_row(event.y)
+        if row != self._tip_row:
+            self._hide_tip()
+            self._tip_row = row
+            res = self.results.get(row)
+            if res and "stats" in res:
+                text = self._summary(res["stats"])
+                for cite in res.get("provenance", []):
+                    text += "\n" + cite
+                self._show_tip(text, event.x_root + 12, event.y_root + 16)
+
+    def _show_tip(self, text: str, x: int, y: int):
+        tip = tk.Toplevel(self.root)
+        tip.wm_overrideredirect(True)
+        tip.wm_geometry(f"+{x}+{y}")
+        tk.Label(tip, text=text, justify="left", bg="#fff8e1", fg=INK,
+                 relief="solid", borderwidth=1, font=("Segoe UI", 9),
+                 padx=8, pady=5, wraplength=520).pack()
+        self._tip = tip
+
+    def _hide_tip(self):
+        if self._tip is not None:
+            try:
+                self._tip.destroy()
+            except Exception:
+                pass
+            self._tip = None
+        self._tip_row = None
 
     # --------------------------------------------------------------- preview
     def on_select(self, _event=None):
