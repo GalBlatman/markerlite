@@ -1144,6 +1144,8 @@ def _is_heading(blk: Block, body_size: float, text: str, first: str,
     size = blk.max_size()
     bold = blk.font_ratio("bold") > 0.6
     bigger = size > body_size * 1.06
+    stripped = text.rstrip()
+    words = stripped.split()
     if ocr:
         # On a recognised page the "size" is Tesseract's line box, which
         # swells on a tall ascender, a superscript, or a speck: a scanned
@@ -1153,24 +1155,29 @@ def _is_heading(blk: Block, body_size: float, text: str, first: str,
         # block must also look like a heading (numbered, title case, caps).
         bold = bold or bigger
         bigger = False
+        # Two shapes need no size evidence at all, because a bold heading
+        # set at body size has neither a bold flag nor a taller line box
+        # after OCR: the references keyword, and a lone capitalised word in
+        # its own one-line block ("Abstract", "Introduction", "Note").
+        if len(blk.lines) == 1 and not in_refs:
+            if BIB_HINT.match(stripped):
+                return True
+            if len(words) == 1 and words[0].isalpha() and words[0][0].isupper() \
+                    and len(words[0]) >= 4:
+                return True
     if not (bigger or bold):
         return False
-    stripped = text.rstrip()
     # Body paragraphs end in sentence punctuation; headings almost never do.
     if stripped.endswith((".", ";", ",")) and not NUMBERED_HEADING.match(first):
         return False
     if bigger:
         return True
     # Bold-only: demand a heading shape (numbered, title case, or all caps).
-    words = stripped.split()
-    # "Abstract", "Introduction", "References", "Note": a heading that is one
-    # word fails the title-case test (it needs two words). On a recognised
-    # page Tesseract gives such a heading its own one-line block, so accept
-    # a lone capitalised word of four letters or more there.
-    if ocr and len(words) == 1 and len(blk.lines) == 1:
-        w = words[0]
-        if w.isalpha() and w[0].isupper() and len(w) >= 4:
-            return True
+    if ocr and in_refs:
+        # Inside a recognised reference list only an all-caps line can be a
+        # heading: "1995 'Hospital reorganization after merger'" is numbered
+        # and a wrapped surname ("Hinings") is a lone capitalised word.
+        return len(words) <= 12 and stripped.isupper()
     if NUMBERED_HEADING.match(first) or BIB_HINT.match(stripped):
         # A recognised footnote opens "1 Currently, the most accepted
         # definition ..." and matches the numbered pattern; a numbered
