@@ -283,6 +283,9 @@ class Page:
     # A raster covers the page and the native layer is (at most) a stamp:
     # the page's content is in the image, whether or not OCR ran.
     image_only: bool = False
+    # A raster covers the page (whatever the native layer holds): with OCR
+    # unavailable such a page can emit almost nothing, see LOW_YIELD_WORDS.
+    raster_covered: bool = False
 
 
 # --------------------------------------------------------------------------- #
@@ -311,6 +314,65 @@ def _bbox_of(items) -> Tuple[float, float, float, float]:
 OCR_MAX_NATIVE_CHARS = 500
 OCR_RASTER_MIN_FRAC = 0.8
 OCR_STAMP_MARGIN = 0.15   # native text must lie in the top/bottom 15% to be a stamp
+# A page covered by a raster that emits fewer words than this is "low yield":
+# the reader is looking at a page of text and the Markdown has a stamp or
+# nothing. Without Tesseract every scanned page is one; with it, a page whose
+# recognition failed. stats["low_yield_pages"] lists them so the GUI and the
+# run log can say so instead of reporting a tiny file in silence.
+LOW_YIELD_WORDS = 15
+
+
+def _page_raster_covered(page: pymupdf.Page) -> bool:
+    prect = page.rect
+    area = max(prect.width * prect.height, 1.0)
+    try:
+        infos = page.get_image_info()
+    except Exception:
+        return False
+    for info in infos:
+        bbox = info.get("bbox")
+        if not bbox:
+            continue
+        clip = pymupdf.Rect(bbox) & prect
+        if clip.width * clip.height >= OCR_RASTER_MIN_FRAC * area:
+            return True
+    return False
+
+
+def content_words(md: str) -> int:
+    """The project's one word metric ("content words"): whitespace tokens of
+    the Markdown after removing HTML comments, table separator rows, HTML
+    tags, heading hashes, pipes, emphasis stars and $$ fences, NFKC-normalised.
+    tests/audit_table_recovery.py and the GUI both use this."""
+    import unicodedata
+    text = re.sub(r"<!--.*?-->", " ", md, flags=re.S)
+    text = re.sub(r"(?m)^\s*\|(?:\s*:?-+:?\s*\|)+\s*$", " ", text)
+    text = re.sub(r"<[^>]*>", " ", text)
+    text = re.sub(r"(?m)^#{1,6}\s+", "", text)
+    text = text.replace("|", " ").replace("*", "").replace("$$", "")
+    return len(unicodedata.normalize("NFKC", unescape(text)).split())
+
+
+def stat_warnings(stats: dict) -> List[str]:
+    """Human-readable warnings derived from convert()'s stats, shared by
+    summarize(), the GUI's file list and the run log."""
+    out: List[str] = []
+    if stats.get("image_only_pages") and not stats.get("ocr_pages"):
+        n = stats["image_only_pages"]
+        out.append(f"{n} image-only page{'s' * (n != 1)}, 0 OCR'd \u2014 check Tesseract")
+    low = stats.get("low_yield_pages") or []
+    if low:
+        shown = ", ".join(str(n) for n in low[:8]) + (", \u2026" if len(low) > 8 else "")
+        out.append(f"{len(low)} low-yield page{'s' * (len(low) != 1)} ({shown})")
+    if stats.get("tables_fallback"):
+        n = stats["tables_fallback"]
+        out.append(f"{n} of {stats.get('tables', n)} table{'s' * (n != 1)} fell back to cell text")
+    if stats.get("proposals_kept_prose"):
+        n = stats["proposals_kept_prose"]
+        out.append(f"{n} text-table proposal{'s' * (n != 1)} kept as prose")
+    if stats.get("provenance"):
+        out.append("provenance page dropped: " + ", ".join(stats["provenance"]))
+    return out
 
 
 def _page_is_image_only(page: pymupdf.Page, native_chars: int,
@@ -451,10 +513,12 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
     native_lines = [tuple(ln["bbox"]) for b in raw.get("blocks", []) if b.get("type") == 0
                     for ln in b.get("lines", [])]
     image_only = _page_is_image_only(page, text_len, native_lines)
+    raster_covered = image_only or _page_raster_covered(page)
     if ocr_if_empty and (text_len < 20 or image_only):
         ocr_page = _ocr_page(page, page_idx)
         if ocr_page is not None:
             ocr_page.image_only = image_only
+            ocr_page.raster_covered = raster_covered
             return ocr_page
 
     counter = 0
@@ -517,6 +581,7 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
         blocks=blocks,
         ocr_used=ocr_used,
         image_only=image_only,
+        raster_covered=raster_covered,
     )
 
 
@@ -2567,9 +2632,19 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         md = "\n".join(provenance) + "\n\n" + md
     out = outdir / f"{path.stem}.md"
     out.write_text(md, encoding="utf-8")
+    low_yield = []
+    for p in pages:
+        if not p.raster_covered:
+            continue
+        emitted = sum(len(b.text.split()) for b in p.blocks
+                      if not b.ignore_for_output and b.btype not in ("PageHeader", "PageFooter"))
+        if emitted < LOW_YIELD_WORDS:
+            low_yield.append(p.page_idx + 1)
     manifest["stats"] = {
         "pages": len(pages),
         "bytes": len(md.encode("utf-8")),
+        "words": content_words(md),
+        "low_yield_pages": low_yield,
         "figures": n_figures,
         "equations": len(manifest.get("regions", [])),
         "ocr_pages": sum(1 for p in pages if p.ocr_used),
@@ -2598,19 +2673,10 @@ def summarize(stats: dict) -> str:
         parts.append(f"{n} equation crop{'s' * (n != 1)}")
     if stats.get("ocr_pages"):
         parts.append(f"{stats['ocr_pages']} OCR'd")
-    elif stats.get("image_only_pages"):
-        # Pages whose content is a raster and none was recognised: the
-        # output is empty and the reason is almost always a missing
-        # Tesseract. Silence here was the bug.
-        n = stats["image_only_pages"]
-        parts.append(f"{n} image-only page{'s' * (n != 1)}, 0 OCR'd \u2014 check Tesseract")
-    if stats.get("tables_fallback"):
-        n = stats["tables_fallback"]
-        parts.append(f"{n} of {stats.get('tables', n)} table{'s' * (n != 1)} "
-                     f"fell back to cell text")
-    if stats.get("proposals_kept_prose"):
-        n = stats["proposals_kept_prose"]
-        parts.append(f"{n} text-table proposal{'s' * (n != 1)} kept as prose")
+    # Warnings (image-only pages with no OCR, low-yield pages, table
+    # fallbacks, provenance) come from stat_warnings so the CLI, the GUI
+    # and the run log say the same thing. Silence here was the bug.
+    parts.extend(stat_warnings(stats))
     return " · ".join(parts)
 
 

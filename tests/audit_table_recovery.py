@@ -58,12 +58,7 @@ def markdown_words(text):
     Counts are not the historical gross-word metric. Keep normalization fixed
     across snapshots; this deliberately does not guess words from math glyphs.
     """
-    text = re.sub(r"<!--.*?-->", " ", text, flags=re.S)
-    text = re.sub(r"(?m)^\s*\|(?:\s*:?-+:?\s*\|)+\s*$", " ", text)
-    text = re.sub(r"<[^>]*>", " ", text)
-    text = re.sub(r"(?m)^#{1,6}\s+", "", text)
-    text = text.replace("|", " ").replace("*", "").replace("$$", "")
-    return len(words(text))
+    return markerlite.content_words(text)
 
 
 def capture(pdf, directory):

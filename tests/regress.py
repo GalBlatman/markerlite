@@ -62,6 +62,24 @@ def check_ocr_markers(pdf: pathlib.Path, workdir: pathlib.Path, plain: str) -> i
     return 1
 
 
+def check_low_yield(workdir: pathlib.Path) -> int:
+    """With OCR unavailable, every raster page of scanned_with_stamp is reported
+    as low-yield and the summary says so. Runs without Tesseract by design."""
+    from unittest.mock import patch
+    pdf = FIXTURES / "scanned_with_stamp.pdf"
+    with patch.object(markerlite, "_ocr_page", lambda page, idx, dpi=300: None):
+        (workdir / "lowyield").mkdir(parents=True, exist_ok=True)
+        _out, info = markerlite.convert(pdf, workdir / "lowyield")
+    stats = info["stats"]
+    line = markerlite.summarize(stats)
+    if stats.get("low_yield_pages") == [1, 2, 3] and "3 low-yield pages (1, 2, 3)" in line \
+            and "check Tesseract" in line:
+        print(f"ok    {'low-yield':16s} 3 raster pages reported when OCR is unavailable")
+        return 0
+    print(f"FAIL  {'low-yield':16s} stats={stats.get('low_yield_pages')!r} summary={line!r}")
+    return 1
+
+
 def check_cli_console(pdf: pathlib.Path) -> int:
     """Run the CLI with a cp1252 console; return 1 on a non-zero exit."""
     import os
@@ -147,6 +165,8 @@ def main(argv=None) -> int:
     # (Windows cp1252): it once crashed after the first file of a batch.
     if run_cli:
         failures += check_cli_console(sorted(FIXTURES.glob("*.pdf"))[0])
+        with tempfile.TemporaryDirectory(prefix="markerlite-lowyield-") as td:
+            failures += check_low_yield(pathlib.Path(td))
 
     if not args.names or "all_text_wrapped" in args.names:
         import unittest
