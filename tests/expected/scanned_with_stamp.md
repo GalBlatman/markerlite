@@ -78,16 +78,16 @@ Geometric sorting of blocks discards that signal and replaces it with a guess ab
 
 #### References
 
-#### Abbot, Andrew
+Abbot, Andrew
 
 1988 The system of professions: An essay on the division of expert labour. Chicago: University of Chicago Press.
 
-### Abrahamson, Eric
+Abrahamson, Eric
 
 1991 Managerial fads and fashions: The diffusion and rejection of innovations. Academy of Management Review 16/3: 586-612.
 
 Ackroyd, Stephen 1995 The new public management and the professionals. Working Paper No. 24, Stockholm University.
 
-### Barley, Stephen, and Pamela Tolbert
+Barley, Stephen, and Pamela Tolbert
 
 1997 Institutionalization and structuration: Studying the links between action and institution. Organization Studies 18/1: 93-117.

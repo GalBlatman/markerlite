@@ -924,6 +924,9 @@ def body_font_size(pages: List[Page]) -> float:
 
 
 def classify(pages: List[Page], body_size: float) -> None:
+    # Set once a "References" line has been seen: past it, an OCR page's
+    # title-case lines are author names, not headings.
+    in_refs = False
     for page in pages:
         for blk in page.blocks:
             if blk.btype == "Table":
@@ -932,6 +935,8 @@ def classify(pages: List[Page], body_size: float) -> None:
             if not text:
                 blk.ignore_for_output = True
                 continue
+            if BIB_HINT.match(text):
+                in_refs = True
 
             first = blk.lines[0].text.strip()
 
@@ -947,7 +952,8 @@ def classify(pages: List[Page], body_size: float) -> None:
                 continue
             # Headings are tested BEFORE lists: "2. Method" satisfies the list
             # pattern too, and a numbered heading must not become a bullet.
-            if _is_heading(blk, body_size, text, first, ocr=page.ocr_used):
+            if _is_heading(blk, body_size, text, first, ocr=page.ocr_used,
+                           in_refs=in_refs):
                 blk.btype = "SectionHeader"
                 continue
             # Footnotes before lists: "1. Smith and Lee..." at the foot of the
@@ -1122,7 +1128,7 @@ def _is_footnote(blk: Block, page: Page, body_size: float, first: str) -> bool:
 
 
 def _is_heading(blk: Block, body_size: float, text: str, first: str,
-                ocr: bool = False) -> bool:
+                ocr: bool = False, in_refs: bool = False) -> bool:
     if len(text) > 250 or len(blk.lines) > 3:
         return False
     # An equation is never a heading, however heading-shaped it looks.
@@ -1170,7 +1176,12 @@ def _is_heading(blk: Block, body_size: float, text: str, first: str,
         # definition ..." and matches the numbered pattern; a numbered
         # heading is short.
         return not ocr or len(words) <= 12
-    if len(words) <= 12 and (stripped.isupper() or _title_case(words)):
+    if len(words) <= 12 and stripped.isupper():
+        return True
+    # Title case is not enough after "References" on a recognised page: each
+    # author line ("Ackroyd, Stephen") is title case and Tesseract gives it
+    # its own block, so a reference list became fifty headings.
+    if len(words) <= 12 and _title_case(words) and not (ocr and in_refs):
         return True
     return False
 
