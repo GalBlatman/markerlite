@@ -112,6 +112,16 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
   controls are packed first with side=bottom so they can never be clipped.
   The user has two monitors with different scaling — test both.
 - `markerlite.exe --diag` writes markerlite-diag.txt beside the exe.
+- The status bar shows Tesseract's version (or a warning) at startup and on
+  every Convert. After a batch each row shows pages / content words / OCR
+  pages / tables (fallbacks); a row with any `stat_warnings()` entry gets a
+  warning glyph and a hover tooltip with the summarize() line and the
+  provenance citation. Every batch appends to `markerlite-run.log` in each
+  output folder ("Open log"). Warning text comes from markerlite.stat_warnings
+  so CLI, GUI and log agree; do not phrase warnings in the GUI.
+- Low-yield pages: a raster-covered page emitting < `LOW_YIELD_WORDS` (15)
+  words. A report cover with a full-page picture and a short title trips it
+  (SBTi p1); that is a known false positive, not a bug in the count.
 
 ## Workflow rules
 
