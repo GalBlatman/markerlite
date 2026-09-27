@@ -277,7 +277,8 @@ class Page:
     # them took PyMuPDF's cell text because the reconstruction lost words.
     tables_emitted: int = 0
     tables_fell_back: int = 0
-    # text-only table proposals rejected because the grid lost words
+    # text-only table proposals: accepted, and rejected because the grid lost words
+    proposals_emitted: int = 0
     proposals_kept_prose: int = 0
     # A raster covers the page and the native layer is (at most) a stamp:
     # the page's content is in the image, whether or not OCR ran.
@@ -906,6 +907,7 @@ def propose_tables_from_text(pages: List[Page], min_score=0.62) -> None:
                 page.proposals_kept_prose += 1
                 continue
             page.tables_emitted += 1
+            page.proposals_emitted += 1
             blk.btype = "Table"
             blk.html = html
 
@@ -2575,6 +2577,7 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         "provenance": [c.split(";")[0].replace("<!-- source: ", "") for c in provenance],
         "tables": sum(p.tables_emitted for p in pages),
         "tables_fallback": sum(p.tables_fell_back for p in pages),
+        "proposals": sum(p.proposals_emitted for p in pages),
         "proposals_kept_prose": sum(p.proposals_kept_prose for p in pages),
     }
     doc.close()

@@ -16,6 +16,7 @@ import inspect
 import json
 import pathlib
 import re
+import shutil
 import sys
 import tempfile
 import unicodedata
@@ -47,8 +48,13 @@ def errors(source, rendered):
 
 
 def markdown_words(text):
-    """Content whitespace count, excluding comments and major Markdown syntax.
+    """CONTENT WORDS - the project's one word metric for real-document reports.
 
+    Whitespace-split tokens of the Markdown after removing HTML comments
+    (page/OCR/source markers), table separator rows, HTML tags, heading
+    hashes, pipes, emphasis stars and $$ fences; NFKC-normalised. Every
+    figure quoted in tests/REPORT-*.md from REPORT-kitchener.md onward uses
+    this and nothing else (earlier reports mixed gross counts).
     Counts are not the historical gross-word metric. Keep normalization fixed
     across snapshots; this deliberately does not guess words from math glyphs.
     """
@@ -107,7 +113,10 @@ def capture(pdf, directory):
             md, info = markerlite.convert(pdf, directory, page_markers=True)
     finally:
         sys.settrace(previous_trace)
-    assert len(records) == info["stats"]["tables"], "incomplete decision trace"
+    # The trace covers detect_tables; stats["tables"] also counts text-table
+    # proposals accepted by propose_tables_from_text (stats["proposals"]).
+    expected_records = info["stats"]["tables"] - info["stats"].get("proposals", 0)
+    assert len(records) == expected_records, "incomplete decision trace"
     assert sum(r["fallback"] for r in records) == info["stats"]["tables_fallback"]
     return {"stats": info["stats"], "words": markdown_words(md.read_text(encoding="utf-8")),
             "regions": records, "tables": cells}
@@ -117,10 +126,19 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=pathlib.Path, required=True)
     parser.add_argument("--without-wrapped", action="store_true")
+    parser.add_argument("pdfs", nargs="*", help="audit only these PDFs")
     args = parser.parse_args()
     paths = [ROOT / "tests/real/Target-Validation-Protocol.pdf",
              ROOT / "tests/real/Ragins craft of clear writing 2012.pdf",
              ROOT / "tests/fixtures/paper.pdf", ROOT / "tests/fixtures/hard.pdf"]
+    # Scanned reference documents need Tesseract; they are audited when present
+    # and on PATH (WSL), and skipped otherwise.
+    scans = [ROOT / "tests/real/suchman1995.pdf", ROOT / "tests/real/kostova1999.pdf",
+             ROOT / "tests/real/kitchener2002.pdf"]
+    if args.pdfs:
+        paths = [pathlib.Path(x) for x in args.pdfs]
+    elif shutil.which("tesseract"):
+        paths += [x for x in scans if x.exists()]
     missing = [str(path) for path in paths if not path.exists()]
     if missing:
         parser.error("missing local reference PDFs: " + ", ".join(missing))
