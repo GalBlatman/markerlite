@@ -2370,6 +2370,12 @@ _RG_PHRASES = ("See discussions, stats, and author profiles",
                "All content following this page was uploaded")
 _PROQUEST_STAMP = "Reproduced with permission of the copyright owner"
 _RG_FOOTER = "View publication stats"
+# SAGE Journals Online: "Downloaded from <journal>.sagepub.com at <institution>
+# on <date>" at the foot of every page, split across three native lines, and
+# "from the SAGE Social Science Collections. All Rights Reserved." on page 1.
+_SAGE_HOST = re.compile(r"\b[\w.-]*sagepub\.com\b", re.I)
+_SAGE_DOWNLOADED = "Downloaded from"
+_SAGE_COLLECTIONS = "SAGE Social Science Collections"
 _JSTOR_CITE = re.compile(r"^(Author\(s\)|Source|Published by|Stable URL)\s*:", re.I)
 _RG_CITE = re.compile(r"^(Article|Chapter|Conference Paper|Preprint|Book|Thesis)\b.*\bin\b", re.I)
 _PROQUEST_PG = re.compile(r"^pg\.\s*\d+", re.I)
@@ -2412,6 +2418,24 @@ def detect_provenance(doc) -> Tuple[dict, set, List[str]]:
             comments.append(f"<!-- source: ResearchGate; {'; '.join(cite)} -->")
             drop_pages[idx] = "ResearchGate"
             continue
+        if _SAGE_HOST.search(text) and (_SAGE_DOWNLOADED in text or _SAGE_COLLECTIONS in text):
+            # The stamp is one visual line in three native pieces ("Downloaded
+            # from ", "oss.sagepub.com", " at SAGE Publications on ..."); drop
+            # each piece, and record the host and download line once.
+            pieces = [ln for ln in lines
+                      if _SAGE_HOST.search(ln) or ln.startswith(_SAGE_DOWNLOADED)
+                      or ln.startswith("at ") or _SAGE_COLLECTIONS in ln]
+            drop_lines.update(pieces)
+            if not any(c.startswith("<!-- source: SAGE") for c in comments):
+                host = _SAGE_HOST.search(text).group(0)
+                # "at <institution> on <date>" follows the host, either in
+                # the same line or in the next native piece.
+                stamp = " ".join(ln for ln in pieces if _SAGE_COLLECTIONS not in ln)
+                tail = stamp.split(host, 1)[1] if host in stamp else ""
+                m_at = re.search(r"\bat\s+(.+)", tail)
+                at = ("at " + m_at.group(1).strip()) if m_at else ""
+                comments.append(f"<!-- source: SAGE Journals ({host}); downloaded {at} -->".replace(" ;", ";").replace("  ", " "))
+            continue
         if _PROQUEST_STAMP in text:
             stamp = next(ln for ln in lines if _PROQUEST_STAMP in ln)
             drop_lines.add(stamp)
@@ -2432,9 +2456,20 @@ def detect_provenance(doc) -> Tuple[dict, set, List[str]]:
 
 
 def _drop_provenance_lines(page: Page, drop_lines: set) -> None:
+    """Hide blocks made only of provenance lines. A stamp that is several
+    native pieces ("Downloaded from ", "oss.sagepub.com", " at ...") is one
+    OCR line, so a line also matches when it is the pieces run together."""
+    def norm(t):
+        return re.sub(r"\s+", " ", t).strip()
+    def is_prov(t):
+        t = norm(t)
+        if t in drop_lines:
+            return True
+        # every word of the line belongs to some provenance piece
+        pieces = " ".join(drop_lines)
+        return bool(t) and all(w in pieces for w in t.split())
     for blk in page.blocks:
-        if blk.lines and all(re.sub(r"\s+", " ", ln.text).strip() in drop_lines
-                             for ln in blk.lines):
+        if blk.lines and all(is_prov(ln.text) for ln in blk.lines):
             blk.ignore_for_output = True
 
 
@@ -2456,8 +2491,9 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
                               height=doc[i].rect.height, blocks=[]))
             continue
         p = extract_page(doc[i], i)
-        if not p.ocr_used:
-            _drop_provenance_lines(p, drop_lines)
+        # On an OCR'd page the native layer is gone, but Tesseract reads the
+        # stamp off the rendered page, so the same texts are dropped there.
+        _drop_provenance_lines(p, drop_lines)
         detect_tables(doc[i], p)
         pages.append(p)
 

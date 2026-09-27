@@ -827,9 +827,9 @@ def make_scanned_with_stamp():
 
 
 def make_provenance_pages():
-    """Four native-text pages: a real title page (control), a JSTOR terms
-    page, a ResearchGate cover, and a ProQuest citation banner over a body
-    page with the per-page permission stamp.
+    """Five native-text pages: a real title page (control), a JSTOR terms
+    page, a ResearchGate cover, a ProQuest citation banner over a body page
+    with the per-page permission stamp, and a SAGE download stamp.
 
     Bug: the covers and banner came through as content (the ResearchGate
     title as an h2, "CITATIONS 2,718", "SEE PROFILE"), and nothing recorded
@@ -900,6 +900,20 @@ def make_provenance_pages():
     pdf.set_font("Helvetica", "", 8)
     pdf.text(30, LETTER_H - 14, "Reproduced with permission of the copyright owner. "
              "Further reproduction prohibited without permission.")
+
+    # p5: SAGE Journals Online stamp at the foot of a body page, in the three
+    # native pieces SAGE emits (the host is a hyperlink), plus the page-1
+    # collections line
+    pdf.add_page()
+    pdf.text_at(margin, 100, "2 Method", style="B", size=14)
+    f = Flow(pdf, [(margin, 126, width, 740)], size=10, leading=13)
+    f.paragraph(paras[4], space_after=8)
+    f.paragraph(paras[5], space_after=8)
+    pdf.set_font("Helvetica", "", 5)
+    pdf.text(200, LETTER_H - 30, "Downloaded from ")
+    pdf.text(238, LETTER_H - 30, "oss.sagepub.com")
+    pdf.text(276, LETTER_H - 30, " at SAGE Publications on December 7, 2012")
+    pdf.text(14, LETTER_H - 16, "from the SAGE Social Science Collections. All Rights Reserved.")
     pdf.out("provenance_pages.pdf")
 
 
