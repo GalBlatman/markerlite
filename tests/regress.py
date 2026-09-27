@@ -37,7 +37,7 @@ FIXTURES = ROOT / "tests" / "fixtures"
 EXPECTED = ROOT / "tests" / "expected"
 
 # Fixtures with no text layer: their output depends on the OCR engine.
-NEEDS_TESSERACT = {"scanned", "isolated_ocr_page", "scanned_with_stamp"}
+NEEDS_TESSERACT = {"scanned", "isolated_ocr_page", "scanned_with_stamp", "justified_scan"}
 
 
 def convert_to_string(pdf: pathlib.Path, workdir: pathlib.Path) -> str:
@@ -59,6 +59,40 @@ def check_ocr_markers(pdf: pathlib.Path, workdir: pathlib.Path, plain: str) -> i
         print("ok    ocr-provenance   isolated OCR markers with and without page markers")
         return 0
     print("FAIL  ocr-provenance   missing, duplicated, or misplaced page markers")
+    return 1
+
+
+def check_proposal_guard(pdf: pathlib.Path, workdir: pathlib.Path, guarded: str) -> int:
+    """justified_scan: with the proposal-path text-loss guard the justified
+    prose stays prose with every word, and the control page's real table is
+    still detected; with the guard disabled the prose becomes a pseudo-table
+    that drops rows. Both halves are asserted so CI notices if either changes."""
+    import re as _re
+    from unittest.mock import patch
+
+    def per_page(md):
+        parts = _re.split(r"<!-- page (\d+) -->", md)
+        return {int(parts[i]): (markerlite.content_words(parts[i + 1]),
+                                parts[i + 1].count("\n|"))
+                for i in range(1, len(parts), 2)}
+
+    for sub in ("guard", "noguard"):
+        (workdir / sub).mkdir(parents=True, exist_ok=True)
+    out, _ = markerlite.convert(pdf, workdir / "guard", page_markers=True)
+    with_guard = per_page(out.read_text(encoding="utf-8"))
+    with patch.object(markerlite, "TABLE_FALLBACK_MIN_KEEP", 0.0):
+        out2, _ = markerlite.convert(pdf, workdir / "noguard", page_markers=True)
+    without = per_page(out2.read_text(encoding="utf-8"))
+    ok = (with_guard[1][1] == 0                      # prose page: no table lines
+          and with_guard[2][1] >= 6                  # control page: header, rule, 4 rows
+          and without[1][1] > 0                      # unguarded: pseudo-table appears
+          and without[1][0] < with_guard[1][0]       # ... and drops words
+          and with_guard[1][0] >= 300)               # every word kept (308 on record)
+    if ok:
+        print(f"ok    {'proposal-guard':16s} prose kept ({with_guard[1][0]} w), control table found, "
+              f"unguarded loses {with_guard[1][0] - without[1][0]} w")
+        return 0
+    print(f"FAIL  {'proposal-guard':16s} guarded={with_guard} unguarded={without}")
     return 1
 
 
@@ -133,6 +167,8 @@ def main(argv=None) -> int:
                 print(f"SKIP  {stem:16s} needs tesseract on PATH")
                 continue
             got = convert_to_string(pdf, workdir)
+            if stem == "justified_scan":
+                failures += check_proposal_guard(pdf, workdir, got)
             if stem == "isolated_ocr_page":
                 failures += check_ocr_markers(pdf, workdir, got)
             if args.update:

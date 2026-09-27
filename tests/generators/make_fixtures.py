@@ -952,6 +952,55 @@ def make_provenance_pages():
     pdf.out("provenance_pages.pdf")
 
 
+def _justified_source(with_table: bool):
+    """A two-column page of JUSTIFIED prose (fpdf2 multi_cell align="J"),
+    optionally followed by a genuine two-column numeric table."""
+    pdf = Doc()
+    pdf.add_page()
+    margin, gutter = 72.0, 24.0
+    col_w = (LETTER_W - 2 * margin - gutter) / 2
+    pdf.text_at(margin, 60, "3 Results", style="B", size=14)
+    paras = paragraphs(4, start=25, step=4, width=5)
+    pdf.set_font("Times", "", 10)
+    bottom = 430 if with_table else 720
+    for ci, x in enumerate((margin, margin + col_w + gutter)):
+        pdf.set_xy(x, 90)
+        for para in paras[2 * ci: 2 * ci + 2]:
+            pdf.set_x(x)
+            pdf.multi_cell(col_w, 12.5, para, align="J")
+            pdf.ln(4)
+            if pdf.get_y() > bottom:
+                break
+    if with_table:
+        pdf.text_at(margin, 470, "Table 2. Throughput by condition (a real table).", style="I", size=9)
+        rows = [["Condition", "N", "Mean", "SD"],
+                ["Baseline", "120", "41.2", "3.4"],
+                ["Treatment A", "118", "52.7", "4.1"],
+                ["Treatment B", "121", "48.9", "3.9"],
+                ["Pooled", "359", "47.6", "6.2"]]
+        ruled_table(pdf, margin, 490, [130, 60, 70, 60], rows, size=10, row_h=20)
+    return pdf
+
+
+def make_justified_scan():
+    """Two rasters (as scanned.pdf is made) of a two-column page of justified
+    prose; the second page adds a genuine ruled numeric table below the prose.
+
+    Bug: Tesseract's justified word gaps let propose_tables_from_text fire on
+    the prose and _columns_align pass, and the reconstruction dropped rows.
+    With the text-loss guard the prose stays prose with every word; the
+    control page's real table must still be detected.
+    """
+    pdf = Doc()
+    for with_table in (False, True):
+        src = _justified_source(with_table)
+        with pymupdf.open(stream=bytes(src.output()), filetype="pdf") as doc:
+            pix = doc[0].get_pixmap(dpi=150, colorspace=pymupdf.csGRAY, alpha=False)
+        pdf.add_page()
+        pdf.image(io.BytesIO(pix.tobytes("png")), x=0, y=0, w=LETTER_W, h=LETTER_H)
+    pdf.out("justified_scan.pdf")
+
+
 def make_watermark():
     """Two pages of prose with a large diagonal "RETIRED" drawn across each
     page as real text at 45 degrees (a Word/Acrobat watermark), plus a small
@@ -1269,6 +1318,7 @@ MAKERS = {
     "all_text_wrapped": make_all_text_wrapped,
     "scanned": make_scanned,      # last: depends on hard.pdf
     "scanned_with_stamp": make_scanned_with_stamp,
+    "justified_scan": make_justified_scan,
 }
 
 
