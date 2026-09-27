@@ -4,7 +4,7 @@
 
 ### Ada Lovelace and Charles Babbage Analytical Engine Laboratory, London
 
-Abstract
+#### Abstract
 
 Reading order is the first thing a converter gets wrong and the last thing a reader forgives. The character stream of a well-formed PDF already encodes the order in which the author expected the text to be read. Geometric sorting of blocks discards that signal
 

@@ -935,8 +935,6 @@ def classify(pages: List[Page], body_size: float) -> None:
             if not text:
                 blk.ignore_for_output = True
                 continue
-            if BIB_HINT.match(text):
-                in_refs = True
 
             first = blk.lines[0].text.strip()
 
@@ -952,8 +950,13 @@ def classify(pages: List[Page], body_size: float) -> None:
                 continue
             # Headings are tested BEFORE lists: "2. Method" satisfies the list
             # pattern too, and a numbered heading must not become a bullet.
-            if _is_heading(blk, body_size, text, first, ocr=page.ocr_used,
-                           in_refs=in_refs):
+            is_head = _is_heading(blk, body_size, text, first, ocr=page.ocr_used,
+                                  in_refs=in_refs)
+            # The references keyword itself is still a heading; the list
+            # starts after it.
+            if BIB_HINT.match(text):
+                in_refs = True
+            if is_head:
                 blk.btype = "SectionHeader"
                 continue
             # Footnotes before lists: "1. Smith and Lee..." at the foot of the
