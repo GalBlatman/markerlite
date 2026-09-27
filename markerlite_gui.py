@@ -14,6 +14,7 @@ from __future__ import annotations
 import os
 import pathlib
 import queue
+import shutil
 import subprocess
 import sys
 import threading
@@ -83,6 +84,7 @@ class App:
         self._set_icon()
         self._enable_drop()
         self._fit_to_screen()
+        self._check_tesseract()
         self.root.after(80, self._drain)
 
     def _work_area(self):
@@ -135,6 +137,29 @@ class App:
             self.root.geometry(f"{w}x{h}+{x}+{y}")
         self.root.minsize(min(560, w), min(420, h))
 
+    def _check_tesseract(self) -> bool:
+        """Show Tesseract's version in the status bar, or a warning when it
+        is not on PATH. Called at startup and again when Convert is pressed,
+        because the user may install it while the window is open."""
+        exe = shutil.which("tesseract")
+        version = ""
+        if exe:
+            try:
+                flags = {"creationflags": subprocess.CREATE_NO_WINDOW} if sys.platform == "win32" else {}
+                proc = subprocess.run([exe, "--version"], capture_output=True, text=True,
+                                      timeout=5, **flags)
+                first = (proc.stdout or proc.stderr).strip().splitlines()
+                version = first[0].strip() if first else "tesseract"
+            except Exception:
+                version = "tesseract (version unknown)"
+        if version:
+            self.tess_label.configure(text=f"OCR: {version}", style="Ok.TLabel")
+            return True
+        self.tess_label.configure(
+            text="Tesseract not found \u2014 scanned PDFs will produce no text",
+            style="Warn.TLabel")
+        return False
+
     def _enable_drop(self):
         """Drag-and-drop comes from tkinterdnd2; without it, say so plainly."""
         self.drop_backend = "tkdnd" if HAVE_DND else None
@@ -172,6 +197,8 @@ class App:
         s.configure("Card.TFrame", background=CARD, relief="flat")
         s.configure("TLabel", background=BG, foreground=INK)
         s.configure("Muted.TLabel", background=BG, foreground=MUTED)
+        s.configure("Warn.TLabel", background=BG, foreground=BAD)
+        s.configure("Ok.TLabel", background=BG, foreground=OK)
         s.configure("CardMuted.TLabel", background=CARD, foreground=MUTED)
         s.configure("Head.TLabel", background=BG, foreground=INK,
                     font=("Segoe UI Semibold", 10))
@@ -335,6 +362,10 @@ class App:
 
         self.status = ttk.Label(statusbar, text="No files yet", style="Muted.TLabel")
         self.status.pack(side="left")
+        # Tesseract state, right-aligned: scanned PDFs silently produce no
+        # text without it, and that was only discoverable from the output.
+        self.tess_label = ttk.Label(statusbar, text="", style="Muted.TLabel")
+        self.tess_label.pack(side="right")
 
 
     # ---------------------------------------------------------------- files
@@ -408,6 +439,7 @@ class App:
             if not self.files:
                 self.status.configure(text="Add some PDFs first")
             return
+        self._check_tesseract()
         self.running = True
         self.go.configure(state="disabled")
         self.bar.pack(side="bottom", fill="x", padx=PAD, pady=(0, 6), before=self._opts_ref[0])
