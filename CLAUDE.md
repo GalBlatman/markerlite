@@ -124,6 +124,9 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
   of another task. Tags are `vX.Y.Z`, patch bump per release; the tag push
   builds and publishes the Release. Never force-move a published tag; if a
   tag exists, bump.
+- A fix motivated by a real document is verified on that document, not only
+  its fixture. Every commit that claims to fix a real-document defect reports
+  the before/after on that file.
 - After editing markerlite_gui.py: `python check_gui.py`. After editing
   markerlite.py: `python tests/regress.py`; if the diff is intended,
   `--update` and commit the expected files with the change.
