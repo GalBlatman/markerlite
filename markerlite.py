@@ -1157,6 +1157,14 @@ def _is_heading(blk: Block, body_size: float, text: str, first: str,
         return True
     # Bold-only: demand a heading shape (numbered, title case, or all caps).
     words = stripped.split()
+    # "Abstract", "Introduction", "References", "Note": a heading that is one
+    # word fails the title-case test (it needs two words). On a recognised
+    # page Tesseract gives such a heading its own one-line block, so accept
+    # a lone capitalised word of four letters or more there.
+    if ocr and len(words) == 1 and len(blk.lines) == 1:
+        w = words[0]
+        if w.isalpha() and w[0].isupper() and len(w) >= 4:
+            return True
     if NUMBERED_HEADING.match(first) or BIB_HINT.match(stripped):
         # A recognised footnote opens "1 Currently, the most accepted
         # definition ..." and matches the numbered pattern; a numbered

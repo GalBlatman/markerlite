@@ -806,10 +806,45 @@ def make_scanned_with_stamp():
     repetition test then missed it, so the head survived as a heading.
     """
     src = pymupdf.open(FIXTURES / "hard.pdf")
-    heads = ["1995 Suchman 579", "1995 Suchman S81"]
+    # page 3: a references page in the Organization Studies style - a
+    # one-word "References" label, then author lines in title case each
+    # followed by the entry. Bugs: the one-word heading was missed and every
+    # author line became a heading on the recognised page.
+    refs = src.new_page(width=LETTER_W, height=LETTER_H)
+    refs.insert_text((72, 40), "1995 Suchman 583", fontsize=10, fontname="tiro")
+    # one-word headings that the title-case test cannot see
+    refs.insert_text((72, 80), "Abstract", fontsize=11, fontname="tibo")
+    refs.insert_textbox(pymupdf.Rect(72, 90, 540, 150), SENTENCES[0] + " " + SENTENCES[1],
+                        fontsize=10, fontname="tiro")
+    refs.insert_text((72, 170), "Introduction", fontsize=11, fontname="tibo")
+    refs.insert_textbox(pymupdf.Rect(72, 180, 540, 240), SENTENCES[2] + " " + SENTENCES[3],
+                        fontsize=10, fontname="tiro")
+    refs.insert_text((72, 270), "References", fontsize=11, fontname="tibo")
+    y = 300
+    for author, entry in [
+        ("Abbot, Andrew", "1988 The system of professions: An essay on the division of expert labour. Chicago: University of Chicago Press."),
+        ("Abrahamson, Eric", "1991 Managerial fads and fashions: The diffusion and rejection of innovations. Academy of Management Review 16/3: 586-612."),
+        ("Ackroyd, Stephen", "1995 The new public management and the professionals. Working Paper No. 24, Stockholm University."),
+        ("Barley, Stephen, and Pamela Tolbert", "1997 Institutionalization and structuration: Studying the links between action and institution. Organization Studies 18/1: 93-117."),
+    ]:
+        # author on its own line, the entry hanging-indented below it with a
+        # year in the margin, as Organization Studies sets its references
+        refs.insert_text((72, y), author, fontsize=10, fontname="tibo")
+        refs.insert_text((72, y + 16), entry[:4], fontsize=10, fontname="tiro")
+        refs.insert_textbox(pymupdf.Rect(110, y + 6, 540, y + 60), entry[5:], fontsize=10, fontname="tiro")
+        y += 74
+    heads = ["1995 Suchman 579", "1995 Suchman S81", None]
     pdf = Doc()
     for i, head in enumerate(heads):
         page = src[i]
+        if head is None:
+            pix = page.get_pixmap(dpi=150, colorspace=pymupdf.csGRAY, alpha=False)
+            pdf.add_page()
+            pdf.image(io.BytesIO(pix.tobytes("png")), x=0, y=0, w=LETTER_W, h=LETTER_H)
+            pdf.set_font("Helvetica", "", 8)
+            pdf.text(40, LETTER_H - 14, "Reproduced with permission of the copyright owner. "
+                     "Further reproduction prohibited without permission.")
+            continue
         # replace hard.pdf's running head with a Suchman-style one
         shape = page.new_shape()
         shape.draw_rect(pymupdf.Rect(0, 20, LETTER_W, 46))

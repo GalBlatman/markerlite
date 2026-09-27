@@ -65,3 +65,29 @@ Books, slides and forms have layouts these heuristics were never shown and would
 A second reviewer asked for timings; conversion runs at a few pages per second on a laptop. Most of that time is spent in the table detector, which is invoked on every page. Skipping it on pages with no ruling lines would halve the runtime at no cost to accuracy. We leave that optimisation for a later release and note it here for completeness.
 
 [^3]: The generators and the fixtures ship in the repository under an Apache-2.0 licence.
+
+<!-- ocr page 3 -->
+
+#### Abstract
+
+Reading order is the first thing a converter gets wrong and the last thing a reader forgives. The character stream of a well-formed PDF already encodes the order in which the author expected the text to be read.
+
+#### Introduction
+
+Geometric sorting of blocks discards that signal and replaces it with a guess about columns. On two-column pages the guess fails at every figure, every table, and every footnote.
+
+#### References
+
+#### Abbot, Andrew
+
+1988 The system of professions: An essay on the division of expert labour. Chicago: University of Chicago Press.
+
+### Abrahamson, Eric
+
+1991 Managerial fads and fashions: The diffusion and rejection of innovations. Academy of Management Review 16/3: 586-612.
+
+Ackroyd, Stephen 1995 The new public management and the professionals. Working Paper No. 24, Stockholm University.
+
+### Barley, Stephen, and Pamela Tolbert
+
+1997 Institutionalization and structuration: Studying the links between action and institution. Organization Studies 18/1: 93-117.
