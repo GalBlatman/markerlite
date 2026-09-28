@@ -620,6 +620,17 @@ def _make_repro(name: str, top: float, header_y: float, header_size=9.0,
                       ("Times", " y"), ("Times", "i"), ("Times", ",   i = 1, …, n")])
     f.y += 26
     f.paragraph(paras[8], space_after=6)
+    # an equation set as a picture, as word processors export them: no text
+    # layer, its number drawn as text at the right margin
+    f.paragraph("The pooled variance follows from the same sums:", space_after=8)
+    eq = pymupdf.open()
+    ep = eq.new_page(width=260, height=44)
+    ep.insert_text((6, 29), "s2 = (1/(n - 1)) S (yi - m)2", fontsize=15, fontname="tiro")
+    eq_png = ep.get_pixmap(dpi=144, alpha=False).tobytes("png")
+    eq.close()
+    pdf.image(io.BytesIO(eq_png), x=(LETTER_W - 260) / 2, y=f.y, w=260, h=44)
+    pdf.right(f.y + 16, "(3)", size=10, margin=margin)
+    f.y += 44 + 10
     f.paragraph(paras[9], space_after=6)
     folio(3)
     pdf.out(name)

@@ -52,4 +52,8 @@ $$
 
 Reviewers asked whether the approach generalises beyond journal articles; we make no such claim. Books, slides and forms have layouts these heuristics were never shown and would misread. The scope is deliberately narrow: articles with a text layer, converted for reading by a language model. Within that scope the results are stable across the publishers we tried.
 
+The pooled variance follows from the same sums:
+
+<!-- equation: p. 3; set as an image; number (3) -->
+
 Outside it, users should expect to check the output before trusting it. A second reviewer asked for timings; conversion runs at a few pages per second on a laptop. Most of that time is spent in the table detector, which is invoked on every page. Skipping it on pages with no ruling lines would halve the runtime at no cost to accuracy.

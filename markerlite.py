@@ -214,6 +214,11 @@ class Block:
     eq_id: Optional[str] = None
     # The block stands inside a recognised reference list (classify).
     in_reference_list: bool = False
+    # How a Figure block was found: "img" (embedded raster), "vec" (cluster
+    # of paths) or "cap" (a caption no region claimed).
+    figure_kind: str = ""
+    # An equation that the source sets as a picture: it has no text layer.
+    raster_equation: bool = False
     # A caption that detect_tables split off the top of its table: it is
     # emitted before the table, where the source has it.
     leads: bool = False
@@ -2849,7 +2854,18 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                 out.append("```\n" + (blk.code or blk.text) + "\n```")
             elif t == "Equation":
                 body = block_text(blk, plain=True)
-                if body:
+                if blk.raster_equation:
+                    # No text layer to show. The comment keeps the place;
+                    # --apply-math replaces it with the transcription.
+                    number = " ".join(c.text.strip() for c in blk.children)
+                    number = f"; number {number}" if number else ""
+                    out.append(f"<!-- equation: p. {blk.page_idx + 1}; "
+                               f"set as an image{number} -->")
+                    if blk.image_path:
+                        out.append(f"![]({blk.image_path})")
+                    if blk.eq_id:
+                        out.append(f"<!-- markerlite:eq {blk.eq_id} -->")
+                elif body:
                     out.append(f"$$\n{body}\n$$")
                     if blk.eq_id:
                         # Anchor for --apply-math: a vision transcription of the
@@ -3107,10 +3123,96 @@ def _figures_from_captions(pages: List[Page]) -> int:
                 continue
             i = page.blocks.index(blk)
             fig = Block(lines=[], bbox=blk.bbox, page_idx=page.page_idx,
-                        char_pos=blk.char_pos - 0.5, btype="Figure")
+                        char_pos=blk.char_pos - 0.5, btype="Figure", figure_kind="cap")
             fig.children.append(blk)
             blk.ignore_for_output = True
             page.blocks.insert(i, fig)
+            count += 1
+    return count
+
+
+# --------------------------------------------------------------------------- #
+# equations set as pictures
+# --------------------------------------------------------------------------- #
+
+# The sentence before a displayed formula says so: "as shown by the formula
+# below", "described by the following formula:".
+EQ_LEADIN = re.compile(
+    r"\b(formula|equation|expression)s?\s+(below|that\s+follows)\b"
+    r"|\b(following|below)\s+(formula|equation|expression)s?\b", re.I)
+# What follows one: "Where:", "where n is ...", or a definition "RTD = ...".
+EQ_WHERE = re.compile(r"^\s*where\b", re.I)
+EQ_DEFINITION = re.compile(r"^\s*[A-Za-z][\w\u0080-\uffff]{0,12}\s*=\s+\S")
+# The number of a displayed equation, alone on its line: "(3)", "(4a)".
+EQ_NUMBER_ALONE = re.compile(r"^\s*\(\d{1,3}[a-z]?\)\s*$")
+# A picture taller than this share of the page is not a displayed formula.
+RASTER_EQ_MAX_HEIGHT = 0.2
+# How far, as a share of page height, the sentence before or the line after
+# may stand from the picture.
+RASTER_EQ_REACH = 0.06
+
+
+def _equation_neighbourhood(fig: Block, page: Page) -> Tuple[bool, Optional[Block]]:
+    """(is an equation, the text block above) for a raster without caption.
+
+    A picture has no glyphs, so the evidence is around it: an equation number
+    alone at the right margin beside it, a "Where:" or a definition line
+    under it, or a sentence above it that announces a formula.
+    """
+    h = page.height or 1.0
+    reach = RASTER_EQ_REACH * h
+    x0, y0, x1, y1 = fig.bbox
+    mid = (y0 + y1) / 2
+    texts = [b for b in page.blocks
+             if b.lines and not b.ignore_for_output and b.btype not in ("Table", "Figure")
+             and b.text.strip()]
+    above = [b for b in texts if b.y_start < y0 and b.y_end <= mid and y0 - b.y_end <= reach]
+    below = [b for b in texts if b.y_start >= mid and b.y_start - y1 <= reach]
+    upper = max(above, key=lambda b: b.y_end) if above else None
+    lower = min(below, key=lambda b: b.y_start) if below else None
+
+    numbered = False
+    for b in texts:
+        for ln in b.lines:
+            cy = (ln.bbox[1] + ln.bbox[3]) / 2
+            if y0 - 2 <= cy <= y1 + 2 and EQ_NUMBER_ALONE.match(ln.text) \
+                    and ln.bbox[0] >= (x0 + x1) / 2:
+                numbered = True
+                if len(b.lines) == 1:
+                    # the number belongs to the equation, not to the prose
+                    fig.children.append(b)
+    after = bool(lower) and bool(EQ_WHERE.match(lower.text) or EQ_DEFINITION.match(lower.text))
+    before = bool(upper) and bool(EQ_LEADIN.search(upper.text[-600:]))
+    return (numbered or after or before), upper
+
+
+def _route_raster_equations(pages: List[Page]) -> int:
+    """Turn a caption-less picture of a formula from a Figure into an
+    Equation, so that it is cropped by --flag-math and not described as a
+    figure. It is placed after the sentence that announces it."""
+    count = 0
+    for page in pages:
+        for blk in list(page.blocks):
+            if blk.btype != "Figure" or blk.figure_kind != "img" or blk.ignore_for_output:
+                continue
+            if any(c.btype == "Caption" for c in blk.children):
+                continue
+            if blk.height > RASTER_EQ_MAX_HEIGHT * (page.height or 1.0):
+                continue
+            is_eq, upper = _equation_neighbourhood(blk, page)
+            if not is_eq:
+                blk.children = [c for c in blk.children if c.btype == "Caption"]
+                continue
+            blk.btype = "Equation"
+            blk.needs_vision = True
+            blk.raster_equation = True
+            for child in blk.children:
+                child.ignore_for_output = True
+            if upper is not None and any(upper is b for b in page.blocks):
+                page.blocks = [b for b in page.blocks if b is not blk]
+                at = next(i for i, b in enumerate(page.blocks) if b is upper)
+                blk.char_pos = upper.char_pos + 0.5
+                page.blocks.insert(at + 1, blk)
             count += 1
     return count
 
@@ -3154,6 +3256,7 @@ def place_figures(doc, pages: List[Page], outdir: Optional[pathlib.Path] = None,
             _insert_block(page, Block(
                 lines=[], bbox=bbox, page_idx=page.page_idx,
                 char_pos=_insert_pos(page, bbox[1]), btype="Figure", image_path=path,
+                figure_kind=kind,
             ))
             count += 1
     return count
@@ -3216,6 +3319,13 @@ def apply_math(md_path: pathlib.Path, manifest_path: pathlib.Path) -> int:
             r"\$\$\n(?:(?!\$\$).)*\n\$\$\n\n" + anchor, re.DOTALL
         )
         new, n = pattern.subn(lambda _m: f"$$\n{latex}\n$$", md, count=1)
+        if not n:
+            # An equation set as a picture has a comment where the text-layer
+            # approximation would be, and perhaps a link to the saved image.
+            pictured = re.compile(
+                r"<!-- equation: p\. \d+; set as an image(?:; number [^>\n]*?)? -->\n\n"
+                r"(?:!\[\]\([^)\n]*\)\n\n)?" + anchor)
+            new, n = pictured.subn(lambda _m: f"$$\n{latex}\n$$", md, count=1)
         if n:
             md, applied = new, applied + 1
     md_path.write_text(md, encoding="utf-8")
@@ -3452,6 +3562,7 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
     _promote_figure_captions(pages)
     proc_captions(pages)
     n_figures += _figures_from_captions(pages)
+    n_figures -= _route_raster_equations(pages)
 
     manifest = {}
     if do_flag_math:
