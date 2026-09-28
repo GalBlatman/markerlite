@@ -692,6 +692,51 @@ def make_footnote_repro(name="footnote_repro.pdf", big_label=False):
     pdf.out(name)
 
 
+def make_footnote_bold_wrapped():
+    """Bold numbered notes over several lines and blocks, an italic
+    continuation, and a genuine star note (PLAN-tables item 8).
+
+    Bug: the renderer re-read each formatted note line for a label, and the
+    "**" that opens a bold line is indistinguishable from a two-star symbol
+    marker, so every bold line became its own "[^**]:" definition.
+    """
+    pdf = Doc()
+    margin = 72.0
+    width = LETTER_W - 2 * margin
+    pdf.add_page()
+    pdf.centered(80, "Bold Footnotes Across Lines and Blocks", style="B", size=16)
+    f = Flow(pdf, [(margin, 130, width, 600)], size=11, leading=14)
+    paras = paragraphs(4, start=8, step=5)
+    f.paragraph(paras[0], space_after=8, sup_refs={"copyright": "3"})
+    f.paragraph(paras[1], space_after=8, sup_refs={"column": "4"})
+    f.paragraph(paras[2], space_after=8, sup_refs={"project": "*"})
+
+    y = 630
+    pdf.set_line_width(0.4)
+    pdf.line(margin, y - 6, margin + 90, y - 6)
+
+    def note_line(y, text, style="B", x=margin):
+        pdf.set_font("Times", style, 8.5)
+        pdf.set_xy(x, y)
+        pdf.cell(width, 10, text)
+
+    # note 3: bold, label run on ("3During"), three lines in one block,
+    # the second line ending in a hyphenated word
+    note_line(y, "3During the 1960s and early 1970s a number of laws were passed and executive orders")
+    note_line(y + 10, "issued to address the civil rights of various groups, including the Readjustment Assis-")
+    note_line(y + 20, "tance Act of 1974 and 12 related statutes.")
+    # note 4: bold first block, then a gap and an ITALIC continuation block
+    # whose first line begins with a number that is not a label
+    note_line(y + 34, "4The sample covers every firm that reported in the period; firms that reported in")
+    note_line(y + 44, "only one year are excluded from the panel and listed in the appendix.")
+    note_line(y + 62, "2 of them were later restored after the audit, as the appendix explains in detail;", style="I")
+    note_line(y + 72, "the restoration does not change any estimate reported here.", style="I")
+    # a genuine star note in regular type
+    note_line(y + 90, "* Corresponding author. The order of authors is alphabetical.", style="")
+    pdf.centered(752, "1", size=9)
+    pdf.out("footnote_bold_wrapped.pdf")
+
+
 def make_manuscript(name="manuscript.pdf", number_column=False):
     """Double-spaced submission manuscript: margin line numbers on every line,
     first-line indents, unnumbered centred headings, and a running head with
@@ -1308,6 +1353,7 @@ MAKERS = {
     "hard_footer_first": make_hard_footer_first,
     "manuscript_numcol": make_manuscript_numcol,
     "footnote_biglabel": make_footnote_biglabel,
+    "footnote_bold_wrapped": make_footnote_bold_wrapped,
     "watermark": make_watermark,
     "bold_bullets": make_bold_bullets,
     "images_inline": make_images_inline,

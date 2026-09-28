@@ -35,7 +35,7 @@ import re
 import sys
 import warnings
 from collections import Counter, defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from html import unescape
 from html.parser import HTMLParser
 from itertools import groupby
@@ -1566,8 +1566,17 @@ def proc_footnotes(pages: List[Page]) -> None:
         # without a marker, in the same small type, is the tail of a wrapped
         # note, not a new one.
         merged: List[Block] = []
+        prev_num = None
         for blk in notes:
             label, _ = footnote_label(blk.text.strip())
+            # Notes on a page are numbered upward. A block that opens with a
+            # number no larger than the previous note's is a continuation
+            # whose first word happens to be a number ("2 of them were ...").
+            if label is not None and label.isdigit():
+                if prev_num is not None and int(label) <= prev_num:
+                    label = None
+                else:
+                    prev_num = int(label)
             if merged and label is None:
                 prev = merged[-1]
                 prev.lines.extend(blk.lines)
@@ -2016,6 +2025,76 @@ def _inline(spans: List[Span], fn_labels=frozenset()) -> str:
     return "".join(parts)
 
 
+def _strip_source_label(spans: List[Span], raw: str) -> List[Span]:
+    """The line's spans without the footnote label that opens ``raw``.
+
+    Only the characters FOOTNOTE_MARKER matched in the SOURCE text are
+    removed; nothing is inferred from formatted Markdown, where the ``**`` of
+    a bold note looks exactly like a two-star symbol marker.
+    """
+    m = FOOTNOTE_MARKER.match(raw)
+    n = m.end() if m else 0
+    out: List[Span] = []
+    for sp in spans:
+        if n <= 0:
+            out.append(sp)
+        elif len(sp.text) <= n:
+            n -= len(sp.text)
+        else:
+            out.append(replace(sp, text=sp.text[n:], chars=list(sp.chars[n:]) if sp.chars else []))
+            n = 0
+    return out
+
+
+def _footnote_groups(blk: Block, fn_labels=frozenset()) -> List[Tuple[Optional[str], str]]:
+    """(label, formatted body) for every note in a Footnote block.
+
+    Labels and continuation boundaries come from the raw line text. A line
+    opens a new note when it starts with a source marker; a numeric marker on
+    a later line must also be larger than the previous note's number, so a
+    wrapped line that happens to begin "12 firms ..." stays a continuation.
+    The label is removed from the spans, the note's lines are merged (soft
+    breaks unwrapped, line-end hyphens closed), and only then is the body
+    formatted, so emphasis runs across lines without seams.
+    """
+    groups: List[list] = []
+    prev_num: Optional[int] = None
+    for ln in blk.lines:
+        raw = ln.text
+        if not raw.strip():
+            continue
+        label, _body = footnote_label(raw)
+        if label is not None and label.isdigit() and groups and prev_num is not None \
+                and int(label) <= prev_num:
+            label = None
+        if label is not None or not groups:
+            spans = _strip_source_label(ln.spans, raw) if label is not None else list(ln.spans)
+            groups.append([label, [spans]])
+            if label is not None and label.isdigit():
+                prev_num = int(label)
+        else:
+            groups[-1][1].append(list(ln.spans))
+
+    out: List[Tuple[Optional[str], str]] = []
+    for label, lines in groups:
+        merged: List[Span] = []
+        for spans in lines:
+            if not spans:
+                continue
+            if merged:
+                tail = "".join(sp.text for sp in merged).rstrip()
+                last = merged[-1]
+                if HYPHEN_END.match(tail):
+                    merged[-1] = replace(last, text=re.sub(r"[-\u2014\u00ac]\s*$", "", last.text))
+                    spans = [replace(spans[0], text=spans[0].text.lstrip())] + list(spans[1:])
+                elif not last.text.endswith((" ", "\t")):
+                    merged[-1] = replace(last, text=last.text + " ")
+            merged.extend(spans)
+        body = re.sub(r"[ \t]+", " ", _inline(merged, fn_labels)).strip()
+        out.append((label, body))
+    return out
+
+
 _FN_LABELS: set = set()
 
 
@@ -2149,20 +2228,10 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                         out.append(f"<!-- markerlite:eq {blk.eq_id} -->")
             elif t == "Footnote":
                 if keep_footnotes:
-                    notes = [
-                        _inline(ln.spans, fn_labels).strip() for ln in blk.lines
-                        if ln.text.strip()
-                    ]
-                    merged = []
-                    for n in notes:
-                        # A new note starts with its own marker; anything else
-                        # is a wrapped continuation of the note above.
-                        if footnote_label(n)[0] is not None or not merged:
-                            merged.append(n)
-                        else:
-                            merged[-1] += " " + n
-                    for n in merged:
-                        label, body = footnote_label(n)
+                    # Labels are read from the source spans, never from the
+                    # formatted string: "**3During ...**" reparsed as Markdown
+                    # gave every bold line the label "**".
+                    for label, body in _footnote_groups(blk, fn_labels):
                         if label is None:
                             anon_counter[0] += 1
                             label = f"n{anon_counter[0]}"
