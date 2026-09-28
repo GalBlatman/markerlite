@@ -524,7 +524,10 @@ def content_words(md: str) -> int:
     tags, heading hashes, pipes, emphasis stars and $$ fences, NFKC-normalised.
     tests/audit_table_recovery.py and the GUI both use this."""
     import unicodedata
-    text = re.sub(r"<!--.*?-->", " ", md, flags=re.S)
+    # A description spliced in by --apply-figures is not the document's
+    # text: the whole block quote goes, before its opening comment does.
+    text = _FIGURE_DESCRIPTION_BLOCK.sub(" ", md)
+    text = re.sub(r"<!--.*?-->", " ", text, flags=re.S)
     text = re.sub(r"(?m)^\s*\|(?:\s*:?-+:?\s*\|)+\s*$", " ", text)
     # Real tags only (<sup>, </sup>, <br>): a bare "<" is content ("p < .05")
     # and must not swallow everything up to the next ">".
@@ -3402,6 +3405,54 @@ def flag_figures(doc, pages: List[Page], outdir: pathlib.Path, stem: str, dpi=20
     return manifest
 
 
+# The first line of a spliced description. It says who wrote what follows:
+# not the authors of the document.
+FIGURE_DESCRIPTION_MARK = "<!-- figure description: model-transcribed -->"
+_FIGURE_DESCRIPTION_BLOCK = re.compile(
+    r"\n\n> " + re.escape(FIGURE_DESCRIPTION_MARK) + r"(?:\n>[^\n]*)*")
+
+
+def apply_figures(md_path: pathlib.Path, manifest_path: pathlib.Path) -> int:
+    """Put the descriptions of a filled-in figure manifest under the
+    placeholders of the matching figures.
+
+    Each description becomes a block quote that opens with
+    FIGURE_DESCRIPTION_MARK, so that a reader can tell it from the text of
+    the document. Entries without a description are skipped. Applying the
+    same manifest again replaces the descriptions, it does not add them a
+    second time. Entry ``fig_p<N>_<M>`` belongs to the M-th figure
+    placeholder of page N.
+    """
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    entries = manifest.get("regions", []) if isinstance(manifest, dict) else manifest
+    md = md_path.read_text(encoding="utf-8")
+    applied = 0
+    seen: dict = {}
+    for entry in entries:
+        page = entry.get("page")
+        m = re.match(r"^fig_p(\d+)_(\d+)$", str(entry.get("id") or ""))
+        if m:
+            page, nth = int(m.group(1)), int(m.group(2))
+        else:
+            seen[page] = nth = seen.get(page, 0) + 1
+        text = (entry.get("description") or "").strip()
+        if not text or page is None:
+            continue
+        holders = list(re.finditer(
+            r"<!-- figure: p\. " + str(int(page)) + r"; caption: .*? -->", md, re.S))
+        if nth > len(holders):
+            continue
+        end = holders[nth - 1].end()
+        old = _FIGURE_DESCRIPTION_BLOCK.match(md, end)
+        tail = md[old.end():] if old else md[end:]
+        quoted = "\n".join((">" + (" " + ln if ln.strip() else "")).rstrip()
+                           for ln in text.splitlines())
+        md = md[:end] + "\n\n> " + FIGURE_DESCRIPTION_MARK + "\n" + quoted + tail
+        applied += 1
+    md_path.write_text(md, encoding="utf-8")
+    return applied
+
+
 def flag_math(doc, pages: List[Page], outdir: pathlib.Path, stem: str, dpi=200) -> dict:
     """Render regions no weight-free heuristic can read, for visual transcription.
 
@@ -3805,9 +3856,20 @@ def main() -> None:
     ap.add_argument("--apply-math", metavar="JSON",
                     help="splice transcribed LaTeX from a filled-in manifest "
                          "back into the matching .md, then exit")
+    ap.add_argument("--apply-figures", metavar="JSON",
+                    help="put the descriptions of a filled-in figure manifest "
+                         "under the matching placeholders in the .md, then exit")
     args = ap.parse_args()
 
     outdir = pathlib.Path(args.outdir)
+    if args.apply_figures:
+        mpath = pathlib.Path(args.apply_figures)
+        manifest = json.loads(mpath.read_text(encoding="utf-8"))
+        stem = manifest["stem"] if isinstance(manifest, dict) and manifest.get("stem") \
+            else re.sub(r"_figures$", "", mpath.stem)
+        md = outdir / (stem + ".md")
+        print(f"applied {apply_figures(md, mpath)} figure description(s) to {md}")
+        return
     if args.apply_math:
         mpath = pathlib.Path(args.apply_math)
         md = outdir / (json.loads(mpath.read_text())["stem"] + ".md")
