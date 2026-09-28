@@ -211,6 +211,69 @@ def check_cell_matrix(workdir: pathlib.Path) -> int:
     return 0
 
 
+FIGURES_FILLED = FIXTURES / "repro_figures_filled.json"
+FIGURES_EXPECTED = EXPECTED / "repro_described.md"
+
+
+def check_flag_figures(workdir: pathlib.Path, update: bool = False) -> int:
+    """repro with --flag-figures: the manifest holds exactly the entries of
+    the placeholders (the raster and the vector chart, not the equation set
+    as a picture), every crop exists, and the Markdown is what it is
+    without the flag. Applying tests/fixtures/repro_figures_filled.json
+    gives tests/expected/repro_described.md, twice over."""
+    import json
+    plain_dir, flag_dir = workdir / "fig-plain", workdir / "fig-flag"
+    for d in (plain_dir, flag_dir):
+        d.mkdir(parents=True, exist_ok=True)
+    plain_md, _i = markerlite.convert(FIXTURES / "repro.pdf", plain_dir)
+    md, info = markerlite.convert(FIXTURES / "repro.pdf", flag_dir, do_flag_figures=True)
+    text = md.read_text(encoding="utf-8")
+    manifest = json.loads((flag_dir / "repro_figures.json").read_text(encoding="utf-8"))
+    entries = manifest["regions"]
+    holders = re.findall(r"<!-- figure: p\. (\d+); caption: (.*?) -->", text, re.S)
+    problems = []
+    if text != plain_md.read_text(encoding="utf-8"):
+        problems.append("Markdown differs with the flag")
+    if [(str(e["page"]), e["caption"]) for e in entries] != holders:
+        problems.append(f"manifest {[(e['page'], e['caption'][:20]) for e in entries]!r} "
+                        f"vs placeholders {[(h[0], h[1][:20]) for h in holders]!r}")
+    if [e["id"] for e in entries] != ["fig_p1_1", "fig_p2_1"]:
+        problems.append(f"ids {[e['id'] for e in entries]!r}")
+    for e in entries:
+        if set(e) != {"id", "page", "bbox", "caption", "file", "description"}:
+            problems.append(f"keys {sorted(e)!r}")
+        if e["description"] != "" or not (flag_dir / e["file"]).is_file():
+            problems.append(f"entry {e['id']}: description or file")
+    crops = sorted(f.name for f in (flag_dir / "repro_figures").glob("*.png"))
+    if crops != ["fig_p1_1.png", "fig_p2_1.png"]:
+        problems.append(f"crops {crops!r}")
+
+    filled = json.loads(FIGURES_FILLED.read_text(encoding="utf-8"))
+    (flag_dir / "filled.json").write_text(json.dumps(filled), encoding="utf-8")
+    first = markerlite.apply_figures(md, flag_dir / "filled.json")
+    once = md.read_text(encoding="utf-8")
+    second = markerlite.apply_figures(md, flag_dir / "filled.json")
+    twice = md.read_text(encoding="utf-8")
+    if (first, second) != (1, 1):
+        problems.append(f"applied {first} then {second}, expected 1 and 1")
+    if once != twice:
+        problems.append("a second apply changed the file")
+    if markerlite.content_words(once) != markerlite.content_words(text):
+        problems.append("content words changed by the description")
+    if update:
+        with open(FIGURES_EXPECTED, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(once)
+        print(f"{'written':9s} {'repro_described':16s} -> {FIGURES_EXPECTED.relative_to(ROOT)}")
+    elif not FIGURES_EXPECTED.exists() or FIGURES_EXPECTED.read_text(encoding="utf-8") != once:
+        problems.append("output differs from expected/repro_described.md")
+    if problems:
+        print(f"FAIL  {'flag-figures':16s} " + "; ".join(problems))
+        return 1
+    print(f"ok    {'flag-figures':16s} 2 crops for 2 placeholders; description applied "
+          f"once, unchanged on re-apply")
+    return 0
+
+
 def check_low_yield(workdir: pathlib.Path) -> int:
     """With OCR unavailable, every raster page of scanned_with_stamp is reported
     as low-yield and the summary says so. Runs without Tesseract by design."""
@@ -321,6 +384,7 @@ def main(argv=None) -> int:
             failures += check_conservation(pathlib.Path(td))
             failures += check_garbled(pathlib.Path(td))
             failures += check_cell_matrix(pathlib.Path(td))
+            failures += check_flag_figures(pathlib.Path(td), update=args.update)
 
     if not args.names or "all_text_wrapped" in args.names:
         import unittest

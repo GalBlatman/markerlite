@@ -1,0 +1,31 @@
+{
+  "stem": "repro",
+  "regions": [
+    {
+      "id": "fig_p1_1",
+      "page": 1,
+      "bbox": [
+        156.0,
+        270.0,
+        456.0,
+        470.0
+      ],
+      "caption": "Figure 1. A raster image embedded as an XObject: gradient background with two filled shapes. The caption sits directly under the image.",
+      "file": "repro_figures/fig_p1_1.png",
+      "description": "A gradient from blue on the left to green on the right.\nA yellow circle stands left of centre and a red rectangle right of it.\n\nThe image contains no text."
+    },
+    {
+      "id": "fig_p2_1",
+      "page": 2,
+      "bbox": [
+        109.0,
+        262.5,
+        378.0,
+        412.5
+      ],
+      "caption": "Figure 2. A vector chart drawn with path operators: five conditions, response in percent. No image object is involved.",
+      "file": "repro_figures/fig_p2_1.png",
+      "description": ""
+    }
+  ]
+}
