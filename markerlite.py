@@ -286,6 +286,8 @@ class Page:
     # A raster covers the page (whatever the native layer holds): with OCR
     # unavailable such a page can emit almost nothing, see LOW_YIELD_WORDS.
     raster_covered: bool = False
+    # The page was stored rotated or printed sideways and was turned upright.
+    derotated: bool = False
 
 
 # --------------------------------------------------------------------------- #
@@ -314,6 +316,46 @@ def _bbox_of(items) -> Tuple[float, float, float, float]:
 OCR_MAX_NATIVE_CHARS = 500
 OCR_RASTER_MIN_FRAC = 0.8
 OCR_STAMP_MARGIN = 0.15   # native text must lie in the top/bottom 15% to be a stamp
+# A page is "sideways" when at least this share of its characters runs
+# vertically: a landscape table set on a portrait page, or a page stored with
+# /Rotate. Such a page is turned upright before extraction. Below the share,
+# vertical lines are axis labels or a watermark and are dropped as before.
+ROTATED_PAGE_MIN_FRAC = 0.8
+
+
+def _normalise_rotation(page: pymupdf.Page) -> Tuple[pymupdf.Page, bool]:
+    """Return the page with its text upright, and whether it was turned.
+
+    The tilt filter in extract_page drops every line that is not horizontal.
+    That is right for a diagonal watermark and wrong for two real layouts,
+    which it deleted whole: a page stored with /Rotate 90 (its text is
+    vertical in unrotated coordinates although it displays upright), and a
+    landscape table printed sideways on a portrait page.
+    """
+    doc, number = page.parent, page.number
+    turned = False
+    if page.rotation:
+        page.remove_rotation()
+        page = doc[number]
+        turned = True
+    up = down = total = 0
+    for b in page.get_text("rawdict").get("blocks", []):
+        if b.get("type") != 0:
+            continue
+        for ln in b.get("lines", []):
+            n = sum(len(sp.get("chars", [])) for sp in ln.get("spans", []))
+            total += n
+            dx, dy = ln.get("dir", (1.0, 0.0))
+            if abs(dx) < 0.1 and dy < -0.9:
+                up += n
+            elif abs(dx) < 0.1 and dy > 0.9:
+                down += n
+    if total >= 100 and max(up, down) >= ROTATED_PAGE_MIN_FRAC * total:
+        page.set_rotation(90 if up >= down else 270)
+        page.remove_rotation()
+        page = doc[number]
+        turned = True
+    return page, turned
 # A page covered by a raster that emits fewer words than this is "low yield":
 # the reader is looking at a page of text and the Markdown has a stamp or
 # nothing. Without Tesseract every scanned page is one; with it, a page whose
@@ -502,6 +544,7 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
     direct equivalent of pdftext's ``span.minimum_position``.
     """
     ocr_used = False
+    page, derotated = _normalise_rotation(page)
     raw = page.get_text("rawdict")
     text_len = sum(
         len(c.get("c", ""))
@@ -519,6 +562,7 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
         if ocr_page is not None:
             ocr_page.image_only = image_only
             ocr_page.raster_covered = raster_covered
+            ocr_page.derotated = derotated
             return ocr_page
 
     counter = 0
@@ -582,6 +626,7 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
         ocr_used=ocr_used,
         image_only=image_only,
         raster_covered=raster_covered,
+        derotated=derotated,
     )
 
 
@@ -2661,7 +2706,7 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
             pages.append(Page(page_idx=i, width=doc[i].rect.width,
                               height=doc[i].rect.height, blocks=[]))
             continue
-        p = extract_page(doc[i], i)
+        p = extract_page(doc[i], i)   # may turn a sideways page upright, in memory
         # On an OCR'd page the native layer is gone, but Tesseract reads the
         # stamp off the rendered page, so the same texts are dropped there.
         _drop_provenance_lines(p, drop_lines)
@@ -2714,6 +2759,7 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         "bytes": len(md.encode("utf-8")),
         "words": content_words(md),
         "low_yield_pages": low_yield,
+        "rotated_pages": [p.page_idx + 1 for p in pages if p.derotated],
         "figures": n_figures,
         "equations": len(manifest.get("regions", [])),
         "ocr_pages": sum(1 for p in pages if p.ocr_used),

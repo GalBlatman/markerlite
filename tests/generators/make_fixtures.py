@@ -1046,6 +1046,51 @@ def make_justified_scan():
     pdf.out("justified_scan.pdf")
 
 
+def make_rotated_pages():
+    """Three pages: upright prose; a table drawn sideways on a page stored
+    with /Rotate (it displays upright); a table printed sideways on a
+    portrait page.
+
+    Bug: extract_page drops every non-horizontal line (the watermark fix), so
+    both table pages converted to nothing at all, silently.
+    """
+    pdf = Doc()
+    margin, width = 72.0, LETTER_W - 144
+    paras = paragraphs(3, start=29, step=4, width=4)
+    pdf.add_page()
+    pdf.text_at(margin, 60, "5 Results", style="B", size=14)
+    f = Flow(pdf, [(margin, 86, width, 740)], size=10, leading=13)
+    f.paragraph(paras[0], space_after=8)
+    f.paragraph(paras[1], space_after=8)
+    rows = [["Variable", "Mean", "SD", "VIF"],
+            ["Certified buildings", "3.77", "11.84", "2.21"],
+            ["Population density", "0.27", "0.31", "1.66"],
+            ["Income per capita", "0.04", "0.01", "1.35"],
+            ["Housing starts", "0.48", "0.24", "1.44"]]
+    for label in ("Table 1. Descriptive statistics (stored rotated)",
+                  "Table 2. Descriptive statistics (printed sideways)"):
+        pdf.add_page()
+        cx, cy = LETTER_W / 2, LETTER_H / 2
+        with pdf.rotation(90, cx, cy):
+            # inside the rotation the usable frame is the landscape page
+            # keep to a square about the centre, which lies on the page in
+            # both the drawn and the turned orientation
+            x0, y0 = cx - 180, cy - 110
+            pdf.set_font("Times", "B", 11)
+            pdf.text(x0, y0, label)
+            ruled_table(pdf, x0, y0 + 14, [150, 70, 70, 70], rows, size=10, row_h=22)
+            pdf.set_font("Times", "", 9)
+            pdf.text(x0, y0 + 144, "Notes: N = 5,110 observations. All values are synthetic.")
+    raw = bytes(pdf.output())
+    doc = pymupdf.open(stream=raw, filetype="pdf")
+    doc[1].set_rotation(90)          # page 2: /Rotate makes the sideways table display upright
+    FIXTURES.mkdir(parents=True, exist_ok=True)
+    path = FIXTURES / "rotated_pages.pdf"
+    doc.save(str(path), garbage=0, deflate=True, no_new_id=True)
+    doc.close()
+    print(f"wrote {path.relative_to(HERE.parent.parent)}  ({path.stat().st_size} bytes)")
+
+
 def make_watermark():
     """Two pages of prose with a large diagonal "RETIRED" drawn across each
     page as real text at 45 degrees (a Word/Acrobat watermark), plus a small
@@ -1357,6 +1402,7 @@ MAKERS = {
     "watermark": make_watermark,
     "bold_bullets": make_bold_bullets,
     "images_inline": make_images_inline,
+    "rotated_pages": make_rotated_pages,
     "provenance_pages": make_provenance_pages,
     "tall_cell": make_tall_cell,
     "table_only_footer": make_table_only_footer,
