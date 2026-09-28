@@ -2175,6 +2175,10 @@ def proc_captions(pages: List[Page], gap_threshold=0.05) -> None:
                 continue
             for j in (i - 1, i + 1):
                 if 0 <= j < len(blocks) and blocks[j].btype == "Caption":
+                    # a table does not own a figure's caption: the figure
+                    # would then go unmarked (Peng 2009 p. 2)
+                    if blk.btype == "Table" and FIGURE_CAPTION.match(blocks[j].text.strip()):
+                        continue
                     gap = max(
                         0.0,
                         max(blocks[j].y_start, blk.y_start) - min(blocks[j].y_end, blk.y_end),
@@ -2694,6 +2698,11 @@ def _promote_figure_captions(pages: List[Page], max_words: int = 60) -> int:
     return count
 
 
+# How far, as a share of page height, a figure caption may stand from an
+# uncaptioned figure region on the same page and still belong to it.
+FIGURE_CAPTION_REACH = 0.25
+
+
 def _figures_from_captions(pages: List[Page]) -> int:
     """A figure caption that no detected region claimed still marks a figure.
 
@@ -2701,14 +2710,35 @@ def _figures_from_captions(pages: List[Page]) -> int:
     figures are too sparse to cluster; in both cases the caption is the only
     evidence. The placeholder is put where the caption stands, and the
     caption becomes its child like any other.
+
+    A detected region that is still without a caption comes first: axis
+    labels and legend text often stand between a chart and its caption in
+    the stream, so proc_captions, which looks only at neighbours, misses
+    the pair and the figure would be marked twice.
     """
     count = 0
     for page in pages:
-        for i, blk in enumerate(page.blocks):
+        reach = FIGURE_CAPTION_REACH * page.height
+        for i, blk in enumerate(list(page.blocks)):
             if blk.btype != "Caption" or blk.ignore_for_output:
                 continue
             if not FIGURE_CAPTION.match(blk.text.strip()):
                 continue
+            best, best_gap = None, reach
+            for other in page.blocks:
+                if other.btype != "Figure" or other.ignore_for_output:
+                    continue
+                if any(c.btype == "Caption" for c in other.children):
+                    continue
+                gap = max(0.0, max(other.y_start, blk.y_start)
+                          - min(other.y_end, blk.y_end))
+                if gap < best_gap:
+                    best, best_gap = other, gap
+            if best is not None:
+                best.children.append(blk)
+                blk.ignore_for_output = True
+                continue
+            i = page.blocks.index(blk)
             fig = Block(lines=[], bbox=blk.bbox, page_idx=page.page_idx,
                         char_pos=blk.char_pos - 0.5, btype="Figure")
             fig.children.append(blk)
