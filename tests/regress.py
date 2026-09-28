@@ -97,6 +97,31 @@ def check_proposal_guard(pdf: pathlib.Path, workdir: pathlib.Path, guarded: str)
     return 1
 
 
+def check_conservation(workdir: pathlib.Path) -> int:
+    """Per-page conservation: with the sideways-page fix switched off, the two
+    table pages of rotated_pages hold words and emit none, and are reported
+    as lossy with both numbers; with it on, no page of the fixture is."""
+    from unittest.mock import patch
+    pdf = FIXTURES / "rotated_pages.pdf"
+    for sub in ("on", "off"):
+        (workdir / sub).mkdir(parents=True, exist_ok=True)
+    _o, info = markerlite.convert(pdf, workdir / "on")
+    clean = info["stats"].get("lossy_pages")
+    with patch.object(markerlite, "_normalise_rotation", lambda page: (page, False)):
+        _o, info = markerlite.convert(pdf, workdir / "off")
+    lossy = info["stats"].get("lossy_pages") or []
+    line = markerlite.summarize(info["stats"])
+    ok = (clean == [] and [d["page"] for d in lossy] == [2, 3]
+          and all(d["emitted"] == 0 and d["source"] >= 20 for d in lossy)
+          and "2 lossy pages" in line)
+    if ok:
+        print(f"ok    {'conservation':16s} sideways pages flagged when the fix is off "
+              f"({lossy[0]['emitted']}/{lossy[0]['source']}), none when on")
+        return 0
+    print(f"FAIL  {'conservation':16s} on={clean!r} off={lossy!r} summary={line!r}")
+    return 1
+
+
 def check_low_yield(workdir: pathlib.Path) -> int:
     """With OCR unavailable, every raster page of scanned_with_stamp is reported
     as low-yield and the summary says so. Runs without Tesseract by design."""
@@ -204,6 +229,7 @@ def main(argv=None) -> int:
         failures += check_cli_console(sorted(FIXTURES.glob("*.pdf"))[0])
         with tempfile.TemporaryDirectory(prefix="markerlite-lowyield-") as td:
             failures += check_low_yield(pathlib.Path(td))
+            failures += check_conservation(pathlib.Path(td))
 
     if not args.names or "all_text_wrapped" in args.names:
         import unittest

@@ -118,6 +118,14 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
   provenance citation. Every batch appends to `markerlite-run.log` in each
   output folder ("Open log"). Warning text comes from markerlite.stat_warnings
   so CLI, GUI and log agree; do not phrase warnings in the GUI.
+- Per-page conservation: every page's emitted words are compared with its
+  source words (native layer, or Tesseract's at every confidence). Below
+  `CONSERVATION_MIN` (0.5), with at least `CONSERVATION_MIN_SOURCE` (20)
+  source words, the page is listed in stats["lossy_pages"] with both numbers
+  and shows in summarize(), the GUI glyph and the run log. regress.py's
+  `conservation` check switches the sideways-page fix off and expects
+  rotated_pages pp. 2-3 flagged. Closest clean page in the reference set:
+  Ragins p. 2 at 0.57 (its line numbers are 40% of the page's words).
 - Low-yield pages: a raster-covered page emitting < `LOW_YIELD_WORDS` (15)
   words. A report cover with a full-page picture and a short title trips it
   (SBTi p1); that is a known false positive, not a bug in the count.

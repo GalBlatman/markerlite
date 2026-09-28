@@ -288,6 +288,11 @@ class Page:
     raster_covered: bool = False
     # The page was stored rotated or printed sideways and was turned upright.
     derotated: bool = False
+    # Words the source holds for this page: the native text layer's, or
+    # Tesseract's (every confidence) when the page was recognised. 0 for a
+    # page dropped as provenance. Compared with the words emitted; see
+    # CONSERVATION_MIN.
+    source_words: int = 0
 
 
 # --------------------------------------------------------------------------- #
@@ -362,6 +367,17 @@ def _normalise_rotation(page: pymupdf.Page) -> Tuple[pymupdf.Page, bool]:
 # recognition failed. stats["low_yield_pages"] lists them so the GUI and the
 # run log can say so instead of reporting a tiny file in silence.
 LOW_YIELD_WORDS = 15
+# Per-page conservation. A page whose emitted words are fewer than this share
+# of the words its source holds is "lossy" and is reported with both numbers.
+# It generalises the low-yield rule from raster pages to every page: the
+# sideways table pages that a filter once deleted whole had a full native
+# layer and converted to nothing without a word of warning. 0.5 is loose on
+# purpose - furniture removal, dehyphenation and table reconstruction all
+# cost a few percent - so a flag means a large part of the page is missing.
+CONSERVATION_MIN = 0.5
+# Pages holding fewer source words than this are not judged: a page that is
+# only a running head and a number loses 100% of nothing.
+CONSERVATION_MIN_SOURCE = 20
 
 
 def _page_raster_covered(page: pymupdf.Page) -> bool:
@@ -429,6 +445,23 @@ def _remap_pi_fonts(pages: List[Page]) -> int:
     return changed
 
 
+def _emitted_words(page: Page) -> int:
+    """Words this page contributes to the Markdown: the text of every block
+    that is rendered, and for a table the words of the HTML it renders from
+    (its grid may hold fewer words than the blocks it consumed)."""
+    total = 0
+    for blk in page.blocks:
+        if blk.ignore_for_output or blk.btype in ("PageHeader", "PageFooter", "ImageMarker"):
+            continue
+        if blk.btype == "Table":
+            total += _html_word_count(blk.html or "")
+        else:
+            total += len(blk.text.split())
+        for child in blk.children:
+            total += len(child.text.split())
+    return total
+
+
 def content_words(md: str) -> int:
     """The project's one word metric ("content words"): whitespace tokens of
     the Markdown after removing HTML comments, table separator rows, HTML
@@ -456,6 +489,11 @@ def stat_warnings(stats: dict) -> List[str]:
     if low:
         shown = ", ".join(str(n) for n in low[:8]) + (", \u2026" if len(low) > 8 else "")
         out.append(f"{len(low)} low-yield page{'s' * (len(low) != 1)} ({shown})")
+    lossy = stats.get("lossy_pages") or []
+    if lossy:
+        shown = ", ".join(f"p{d['page']} {d['emitted']}/{d['source']}" for d in lossy[:6])
+        shown += ", \u2026" if len(lossy) > 6 else ""
+        out.append(f"{len(lossy)} lossy page{'s' * (len(lossy) != 1)} ({shown})")
     if stats.get("tables_fallback"):
         n = stats["tables_fallback"]
         out.append(f"{n} of {stats.get('tables', n)} table{'s' * (n != 1)} fell back to cell text")
@@ -531,6 +569,7 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = 300) -> Optional[Pag
     rows = [r.split("\t") for r in proc.stdout.splitlines()[1:] if r.strip()]
     grouped: dict = defaultdict(list)
     order: List[tuple] = []
+    recognised = 0
     for r in rows:
         if len(r) < 12 or r[0] != "5":  # level 5 = word
             continue
@@ -539,6 +578,8 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = 300) -> Optional[Pag
         except ValueError:
             continue
         text = r[11]
+        if text.strip():
+            recognised += 1
         if conf < 30 or not text.strip():
             continue
         # TSV level-5 columns are level,page,block,par,line,word - group by
@@ -579,7 +620,7 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = 300) -> Optional[Pag
         )
 
     return Page(page_idx=page_idx, width=page.rect.width, height=page.rect.height,
-                blocks=blocks, ocr_used=True)
+                blocks=blocks, ocr_used=True, source_words=recognised)
 
 
 def _attach_drop_caps(blocks: List[Block]) -> int:
@@ -724,6 +765,7 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
         image_only=image_only,
         raster_covered=raster_covered,
         derotated=derotated,
+        source_words=len(page.get_text().split()),
     )
 
 
@@ -2821,6 +2863,7 @@ def _drop_ocr_notice(page: Page, provenance: List[str]) -> None:
         for blk in page.blocks:
             blk.ignore_for_output = True
         page.raster_covered = False     # nothing to yield: not a low-yield page
+        page.source_words = 0           # dropped on purpose: not a lossy page
         comment = _ebsco_comment(flat)
         if not any(c.startswith("<!-- source: EBSCOhost") for c in provenance):
             provenance.append(comment)
@@ -2908,18 +2951,21 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
     out = outdir / f"{path.stem}.md"
     out.write_text(md, encoding="utf-8")
     low_yield = []
+    lossy = []
     for p in pages:
-        if not p.raster_covered:
-            continue
-        emitted = sum(len(b.text.split()) for b in p.blocks
-                      if not b.ignore_for_output and b.btype not in ("PageHeader", "PageFooter"))
-        if emitted < LOW_YIELD_WORDS:
+        emitted = _emitted_words(p)
+        if p.raster_covered and emitted < LOW_YIELD_WORDS:
             low_yield.append(p.page_idx + 1)
+        if (p.source_words >= CONSERVATION_MIN_SOURCE
+                and emitted < CONSERVATION_MIN * p.source_words):
+            lossy.append({"page": p.page_idx + 1, "source": p.source_words,
+                          "emitted": emitted})
     manifest["stats"] = {
         "pages": len(pages),
         "bytes": len(md.encode("utf-8")),
         "words": content_words(md),
         "low_yield_pages": low_yield,
+        "lossy_pages": lossy,
         "rotated_pages": [p.page_idx + 1 for p in pages if p.derotated],
         "pi_glyphs_repaired": pi_spans,
         "figures": n_figures,
