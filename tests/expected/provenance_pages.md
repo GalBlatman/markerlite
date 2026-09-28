@@ -3,6 +3,7 @@
 <!-- source: ProQuest; Institutional distance and legitimacy; Lovelace, Ada; Academy of Synthetic Studies. The Journal of Synthetic Studies; Jul 2026; 12, 3; ABI/INFORM Global; pg. 571 -->
 <!-- source: SAGE Journals (oss.sagepub.com); downloaded at SAGE Publications on December 7, 2012 -->
 <!-- source: EBSCOhost; Copyright of Journal of Synthetic Studies is the property of Academy of Synthetic Studies -->
+<!-- source: WRAP (University of Warwick); Manuscript version: Author's Accepted Manuscript; Persistent WRAP URL: http://wrap.warwick.ac.uk/147367; CC BY-NC-ND 4.0 -->
 
 ## Institutional Distance and Legitimacy
 

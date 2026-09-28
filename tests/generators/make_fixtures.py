@@ -1003,6 +1003,35 @@ def make_provenance_pages():
                 "sites or posted to a listserv without the copyright holder's express written "
                 "permission. However, users may print, download, or email articles for "
                 "individual use.", hyphenate=False)
+
+    # p7: WRAP (Warwick) repository cover sheet
+    pdf.add_page(format="a4")
+    y = 80
+    for line, style in [
+        ("warwick.ac.uk/lib-publications", "B"),
+        ("", ""),
+        ("Manuscript version: Author's Accepted Manuscript", "B"),
+        ("The version presented in WRAP is the author's accepted manuscript and may differ from the", ""),
+        ("published version or, Version of Record.", ""),
+        ("", ""),
+        ("Persistent WRAP URL:", "B"),
+        ("http://wrap.warwick.ac.uk/147367", ""),
+        ("", ""),
+        ("How to cite:", "B"),
+        ("Please refer to published version for the most recent bibliographic citation information.", ""),
+        ("", ""),
+        ("Copyright and reuse:", "B"),
+        ("The Warwick Research Archive Portal (WRAP) makes this work of researchers of the", ""),
+        ("University of Warwick available open access under the following conditions.", ""),
+        ("This article is made available under the Creative Commons Attribution-NonCommercial-", ""),
+        ("NoDerivatives 4.0 International (CC BY-NC-ND 4.0) and may be reused according to the", ""),
+        ("conditions of the license.", ""),
+        ("", ""),
+        ("For more information, please contact the WRAP Team at: wrap@warwick.ac.uk.", ""),
+    ]:
+        if line:
+            pdf.text_at(90, y, line, font="Helvetica", style=style, size=10)
+        y += 15
     pdf.out("provenance_pages.pdf")
 
 

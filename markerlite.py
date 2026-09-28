@@ -2801,6 +2801,10 @@ _RG_FOOTER = "View publication stats"
 # copied or emailed to multiple sites or posted to a listserv ...".
 _EBSCO_PHRASE = "may not be copied or emailed to multiple sites or posted to a listserv"
 _EBSCO_CITE = re.compile(r"Copyright of (.+?) is the property of (.+?) and its content", re.S)
+# WRAP (Warwick Research Archive Portal) puts a cover sheet in front of the
+# author's accepted manuscript.
+_WRAP_PHRASES = ("warwick.ac.uk/lib-publications", "Persistent WRAP URL",
+                 "Warwick Research Archive Portal")
 _SAGE_HOST = re.compile(r"\b[\w.-]*sagepub\.com\b", re.I)
 _SAGE_DOWNLOADED = "Downloaded from"
 _SAGE_COLLECTIONS = "SAGE Social Science Collections"
@@ -2833,6 +2837,18 @@ def detect_provenance(doc) -> Tuple[dict, set, List[str]]:
         if _EBSCO_PHRASE in flat and len(flat) < 700:
             comments.append(_ebsco_comment(flat))
             drop_pages[idx] = "EBSCOhost"
+            continue
+        if sum(ph in flat for ph in _WRAP_PHRASES) >= 2:
+            cite = [ln for ln in lines if ln.startswith("Manuscript version")]
+            for i, ln in enumerate(lines):
+                if ln.startswith("Persistent WRAP URL"):
+                    url = ln.split(":", 1)[1].strip() or (lines[i + 1] if i + 1 < len(lines) else "")
+                    cite.append("Persistent WRAP URL: " + url.strip())
+            licence = re.search(r"\(CC [A-Z-]+ [\d.]+\)", flat)
+            if licence:
+                cite.append(licence.group(0).strip("()"))
+            comments.append(f"<!-- source: WRAP (University of Warwick); {'; '.join(cite)} -->")
+            drop_pages[idx] = "WRAP"
             continue
         if any(ph in text for ph in _JSTOR_PHRASES):
             # Title is the first line; the citation is the labelled lines.
