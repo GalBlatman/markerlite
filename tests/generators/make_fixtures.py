@@ -1128,6 +1128,41 @@ def make_ebsco_notice_scan():
     pdf.out("ebsco_notice_scan.pdf")
 
 
+def make_table_legend():
+    """A regression table at the foot of the page with its significance
+    legend in small type, and one genuine numbered footnote below it.
+
+    Bug: the legend lines ("* p < .05") open with the symbols of a symbol
+    footnote and sit in the footnote zone, so they were emitted as the notes
+    [^*], [^**], [^***] and moved to the end of the page.
+    """
+    pdf = Doc()
+    margin, width = 72.0, LETTER_W - 144
+    pdf.add_page()
+    pdf.text_at(margin, 60, "4 Estimates", style="B", size=14)
+    f = Flow(pdf, [(margin, 86, width, 520)], size=10, leading=13)
+    paras = paragraphs(3, start=37, step=3, width=4)
+    f.paragraph(paras[0], space_after=8, sup_refs={"source": "1"})
+    f.paragraph(paras[1], space_after=8)
+    y = 560
+    pdf.text_at(margin, y - 18, "Table 3. Negative binomial estimates", style="I", size=9)
+    rows = [["Variable", "(1)", "(2)", "(3)"],
+            ["Population density", "0.55***", "0.49***", "0.50***"],
+            ["Income per capita", "0.10*", "0.09", "0.11*"],
+            ["Housing starts", "0.04", "0.06**", "0.05"]]
+    y = ruled_table(pdf, margin, y, [200, 80, 80, 80], rows, size=9, row_h=16)
+    for k, line in enumerate(["* p < .05", "** p < .01", "*** p < .001 (two-tailed tests)"]):
+        pdf.text_at(margin, y + 6 + 11 * k, line, size=8)
+    y += 56
+    pdf.set_line_width(0.4)
+    pdf.line(margin, y - 4, margin + 90, y - 4)
+    pdf.note_label(margin, y, "1", 8.5, 10)
+    Flow(pdf, [(margin, y, width, y + 30)], size=8.5, leading=10).paragraph(
+        "The model is nonlinear, so interaction coefficients are interpreted graphically.",
+        indent=7, hyphenate=False)
+    pdf.out("table_legend.pdf")
+
+
 def make_watermark():
     """Two pages of prose with a large diagonal "RETIRED" drawn across each
     page as real text at 45 degrees (a Word/Acrobat watermark), plus a small
@@ -1439,6 +1474,7 @@ MAKERS = {
     "watermark": make_watermark,
     "bold_bullets": make_bold_bullets,
     "images_inline": make_images_inline,
+    "table_legend": make_table_legend,
     "ebsco_notice_scan": make_ebsco_notice_scan,
     "rotated_pages": make_rotated_pages,
     "provenance_pages": make_provenance_pages,

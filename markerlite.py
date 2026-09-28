@@ -1208,6 +1208,14 @@ FOOTNOTE_MARKER = re.compile(
 )
 
 
+# "* p < .05", "** p < .01", "† p < .10": the significance legend under a
+# regression table opens with the same symbols as a symbol footnote. It
+# belongs to its table, not to the page's notes. Some fonts map "<" to ","
+# so both are accepted.
+SIGNIFICANCE_LEGEND = re.compile(
+    r"^\s*[*†‡+]{1,3}\s*p\s*[<≤,]\s*0?\.\d", re.I)
+
+
 def footnote_label(text: str):
     """(label, body) for a note that starts with a marker, else (None, text)."""
     m = FOOTNOTE_MARKER.match(text)
@@ -1238,6 +1246,8 @@ def _is_footnote(blk: Block, page: Page, body_size: float, first: str) -> bool:
     if blk.y_start / h < 0.70:
         return False
     if body_size and note_text_size(blk) >= body_size * 0.95:
+        return False
+    if SIGNIFICANCE_LEGEND.match(first):
         return False
     return bool(FOOTNOTE_MARKER.match(first))
 
@@ -1579,6 +1589,8 @@ def proc_footnotes(pages: List[Page]) -> None:
             if body and note_text_size(blk) >= body * 0.95:
                 continue
             if not FOOTNOTE_MARKER.match(blk.text.strip()):
+                continue
+            if SIGNIFICANCE_LEGEND.match(blk.text.strip()):
                 continue
             blk.btype = "Footnote"
 
