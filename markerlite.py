@@ -288,6 +288,9 @@ class Page:
     raster_covered: bool = False
     # The page was stored rotated or printed sideways and was turned upright.
     derotated: bool = False
+    # The native layer extracts as nonsense (readable share under GARBLE_MIN).
+    garbled: bool = False
+    readable: float = 1.0
     # Words the source holds for this page: the native text layer's, or
     # Tesseract's (every confidence) when the page was recognised. 0 for a
     # page dropped as provenance. Compared with the words emitted; see
@@ -321,6 +324,42 @@ def _bbox_of(items) -> Tuple[float, float, float, float]:
 OCR_MAX_NATIVE_CHARS = 500
 OCR_RASTER_MIN_FRAC = 0.8
 OCR_STAMP_MARGIN = 0.15   # native text must lie in the top/bottom 15% to be a stamp
+# Garbled text layers. A font whose ToUnicode map is wrong renders a clean
+# page and extracts as nonsense ("Wkh txlfn eurzq ira"). Running text in any
+# of the languages below is 25-60% function words and numerals, reference
+# lists included; nonsense is near 0. A page with enough tokens whose share
+# falls under GARBLE_MIN is treated like an image-only page: it is OCR'd and
+# its native layer discarded. The measure is deliberately coarse - it finds a
+# page that cannot be read, not a page with a few wrong characters.
+GARBLE_MIN = 0.10
+GARBLE_MIN_TOKENS = 50
+_COMMON_WORDS = frozenset("""
+the of and to in a is that for it as was with be by on not he this are or his from at which but
+have an had they you were their one all we can her has there been if more when will would who so
+no out up into than them only its some could these two may then do first any my now such like our
+over man me even most made after also did many before must through back years where much your way
+well down should because each just those people how too little state good very make world still
+own see men work long get here between both life being under never day same another know while
+last might us great old year off come since against go came right used take three
+de la le les des et en un une du que qui dans pour pas au sur est par plus ne se ce il elle sont avec
+der die das und den von zu mit sich auf ist nicht ein eine im dem des für als auch es an werden aus
+er hat dass sie nach bei
+el los las del y una por con para su al lo como más pero sus ya o este
+di che per non sono da della si nel alla più anche
+het een van dat op te zijn voor met niet aan ook bij door
+""".split())
+_WORD_TOKEN = re.compile(r"[^\W_]+(?:['\u2019-][^\W_]+)*")
+
+
+def readable_ratio(text: str) -> Tuple[int, float]:
+    """(tokens, share of them that are common words or numerals)."""
+    tokens = _WORD_TOKEN.findall(text)
+    if not tokens:
+        return 0, 0.0
+    hits = sum(1 for tok in tokens if tok.isdigit() or tok.lower() in _COMMON_WORDS)
+    return len(tokens), hits / len(tokens)
+
+
 # A page is "sideways" when at least this share of its characters runs
 # vertically: a landscape table set on a portrait page, or a page stored with
 # /Rotate. Such a page is turned upright before extraction. Below the share,
@@ -489,6 +528,13 @@ def stat_warnings(stats: dict) -> List[str]:
     if low:
         shown = ", ".join(str(n) for n in low[:8]) + (", \u2026" if len(low) > 8 else "")
         out.append(f"{len(low)} low-yield page{'s' * (len(low) != 1)} ({shown})")
+    garbled = stats.get("garbled_pages") or []
+    if garbled:
+        shown = ", ".join(str(n) for n in garbled[:8]) + (", \u2026" if len(garbled) > 8 else "")
+        fate = ("OCR'd instead" if stats.get("garbled_ocr") == len(garbled)
+                else "OCR unavailable \u2014 check Tesseract")
+        out.append(f"{len(garbled)} garbled page{'s' * (len(garbled) != 1)} ({shown}): "
+                   f"text layer unreadable, {fate}")
     lossy = stats.get("lossy_pages") or []
     if lossy:
         shown = ", ".join(f"p{d['page']} {d['emitted']}/{d['source']}" for d in lossy[:6])
@@ -694,9 +740,13 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
                     for ln in b.get("lines", [])]
     image_only = _page_is_image_only(page, text_len, native_lines)
     raster_covered = image_only or _page_raster_covered(page)
-    if ocr_if_empty and (text_len < 20 or image_only):
+    n_tokens, readable = readable_ratio(page.get_text())
+    garbled = n_tokens >= GARBLE_MIN_TOKENS and readable < GARBLE_MIN
+    if ocr_if_empty and (text_len < 20 or image_only or garbled):
         ocr_page = _ocr_page(page, page_idx)
         if ocr_page is not None:
+            ocr_page.garbled = garbled
+            ocr_page.readable = readable
             ocr_page.image_only = image_only
             ocr_page.raster_covered = raster_covered
             ocr_page.derotated = derotated
@@ -766,6 +816,8 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
         raster_covered=raster_covered,
         derotated=derotated,
         source_words=len(page.get_text().split()),
+        garbled=garbled,
+        readable=readable if n_tokens >= GARBLE_MIN_TOKENS else 1.0,
     )
 
 
@@ -2966,6 +3018,8 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         "words": content_words(md),
         "low_yield_pages": low_yield,
         "lossy_pages": lossy,
+        "garbled_pages": [p.page_idx + 1 for p in pages if p.garbled],
+        "garbled_ocr": sum(1 for p in pages if p.garbled and p.ocr_used),
         "rotated_pages": [p.page_idx + 1 for p in pages if p.derotated],
         "pi_glyphs_repaired": pi_spans,
         "figures": n_figures,

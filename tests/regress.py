@@ -38,7 +38,7 @@ EXPECTED = ROOT / "tests" / "expected"
 
 # Fixtures with no text layer: their output depends on the OCR engine.
 NEEDS_TESSERACT = {"scanned", "isolated_ocr_page", "scanned_with_stamp", "justified_scan",
-                   "ebsco_notice_scan"}
+                   "ebsco_notice_scan", "garbled_font"}
 
 
 def convert_to_string(pdf: pathlib.Path, workdir: pathlib.Path) -> str:
@@ -119,6 +119,27 @@ def check_conservation(workdir: pathlib.Path) -> int:
               f"({lossy[0]['emitted']}/{lossy[0]['source']}), none when on")
         return 0
     print(f"FAIL  {'conservation':16s} on={clean!r} off={lossy!r} summary={line!r}")
+    return 1
+
+
+def check_garbled(workdir: pathlib.Path) -> int:
+    """garbled_font: the scrambled text layer is detected whether or not OCR is
+    available (this half runs without Tesseract), and no page of an ordinary
+    fixture trips the detector."""
+    from unittest.mock import patch
+    (workdir / "garbled").mkdir(parents=True, exist_ok=True)
+    with patch.object(markerlite, "_ocr_page", lambda page, idx, dpi=300: None):
+        _o, info = markerlite.convert(FIXTURES / "garbled_font.pdf", workdir / "garbled")
+        _o, clean = markerlite.convert(FIXTURES / "hard.pdf", workdir / "garbled")
+        _o, refs = markerlite.convert(FIXTURES / "paper.pdf", workdir / "garbled")
+    line = markerlite.summarize(info["stats"])
+    ok = (info["stats"].get("garbled_pages") == [1] and "1 garbled page (1)" in line
+          and "check Tesseract" in line
+          and clean["stats"].get("garbled_pages") == [] and refs["stats"].get("garbled_pages") == [])
+    if ok:
+        print(f"ok    {'garbled':16s} scrambled text layer flagged; hard and paper clean")
+        return 0
+    print(f"FAIL  {'garbled':16s} stats={info['stats'].get('garbled_pages')!r} summary={line!r}")
     return 1
 
 
@@ -230,6 +251,7 @@ def main(argv=None) -> int:
         with tempfile.TemporaryDirectory(prefix="markerlite-lowyield-") as td:
             failures += check_low_yield(pathlib.Path(td))
             failures += check_conservation(pathlib.Path(td))
+            failures += check_garbled(pathlib.Path(td))
 
     if not args.names or "all_text_wrapped" in args.names:
         import unittest

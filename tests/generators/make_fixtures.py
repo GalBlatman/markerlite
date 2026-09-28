@@ -1286,6 +1286,48 @@ def make_panel_letters():
     pdf.out("panel_letters.pdf")
 
 
+def make_garbled_font():
+    """A page of ordinary prose whose fonts carry a scrambled ToUnicode map:
+    it renders cleanly and extracts as nonsense. Built with fpdf2, then each
+    font is given a CMap that sends every letter to a different letter.
+
+    Bug: the nonsense was emitted as the page's text.
+    """
+    pdf = Doc()
+    margin, width = 72.0, LETTER_W - 144
+    pdf.add_page()
+    pdf.text_at(margin, 60, "2 Theory", style="B", size=14)
+    f = Flow(pdf, [(margin, 86, width, 740)], size=11, leading=14)
+    for para in paragraphs(3, start=0, step=6, width=4):
+        f.paragraph(para, space_after=8, hyphenate=False)
+    doc = pymupdf.open(stream=bytes(pdf.output()), filetype="pdf")
+    import string
+    lower, upper = string.ascii_lowercase, string.ascii_uppercase
+    pairs = []
+    for alphabet in (lower, upper):
+        for i, ch in enumerate(alphabet):
+            pairs.append((ord(ch), ord(alphabet[(i * 7 + 11) % 26])))
+    body = "\n".join(f"<{src:02X}> <{dst:04X}>" for src, dst in pairs)
+    cmap = (
+        "/CIDInit /ProcSet findresource begin\n12 dict begin\nbegincmap\n"
+        "/CIDSystemInfo << /Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def\n"
+        "/CMapName /Adobe-Identity-UCS def\n/CMapType 2 def\n"
+        "1 begincodespacerange\n<00> <FF>\nendcodespacerange\n"
+        f"{len(pairs)} beginbfchar\n{body}\nendbfchar\n"
+        "endcmap\nCMapName currentdict /CMap defineresource pop\nend\nend\n"
+    ).encode("ascii")
+    for font in doc[0].get_fonts():
+        xref = doc.get_new_xref()
+        doc.update_object(xref, "<<>>")
+        doc.update_stream(xref, cmap)
+        doc.xref_set_key(font[0], "ToUnicode", f"{xref} 0 R")
+    FIXTURES.mkdir(parents=True, exist_ok=True)
+    path = FIXTURES / "garbled_font.pdf"
+    doc.save(str(path), garbage=0, deflate=True, no_new_id=True)
+    doc.close()
+    print(f"wrote {path.relative_to(HERE.parent.parent)}  ({path.stat().st_size} bytes)")
+
+
 def make_watermark():
     """Two pages of prose with a large diagonal "RETIRED" drawn across each
     page as real text at 45 degrees (a Word/Acrobat watermark), plus a small
@@ -1597,6 +1639,7 @@ MAKERS = {
     "watermark": make_watermark,
     "bold_bullets": make_bold_bullets,
     "images_inline": make_images_inline,
+    "garbled_font": make_garbled_font,
     "panel_letters": make_panel_letters,
     "dropcap": make_dropcap,
     "pi_minus": make_pi_minus,
