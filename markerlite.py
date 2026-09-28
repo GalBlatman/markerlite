@@ -212,6 +212,8 @@ class Block:
     image_path: Optional[str] = None
     needs_vision: bool = False
     eq_id: Optional[str] = None
+    # The block stands inside a recognised reference list (classify).
+    in_reference_list: bool = False
     # A caption that detect_tables split off the top of its table: it is
     # emitted before the table, where the source has it.
     leads: bool = False
@@ -1493,6 +1495,9 @@ def classify(pages: List[Page], body_size: float) -> None:
     # Set once a "References" line has been seen: past it, an OCR page's
     # title-case lines are author names, not headings.
     in_refs = False
+    # A reference list is open from its heading to the next heading. Inside
+    # it a leading star or dagger marks the entry, it does not open a note.
+    list_open = False
     for page in pages:
         for blk in page.blocks:
             if blk.btype == "Table":
@@ -1505,6 +1510,10 @@ def classify(pages: List[Page], body_size: float) -> None:
                 continue
 
             first = blk.lines[0].text.strip()
+            if REF_LIST_HEAD.match(text) and len(blk.lines) == 1:
+                list_open = True
+            else:
+                blk.in_reference_list = list_open
 
             if _is_equation(blk, page, text):
                 blk.btype = "Equation"
@@ -1526,6 +1535,9 @@ def classify(pages: List[Page], body_size: float) -> None:
                 in_refs = True
             if is_head:
                 blk.btype = "SectionHeader"
+                if not REF_LIST_HEAD.match(text):
+                    list_open = False
+                    blk.in_reference_list = False
                 continue
             # Footnotes before lists: "1. Smith and Lee..." at the foot of the
             # page in small type is a note, but it also matches the list-item
@@ -1672,6 +1684,67 @@ SIGNIFICANCE_LEGEND = re.compile(
     r"^\s*[*†‡+]{1,3}\s*p\s*[<≤,]\s*0?\.\d", re.I)
 
 
+# The same legend when the relation glyph did not survive extraction: a pi
+# font with no Unicode mapping leaves "* p  .05", or a control character
+# where the "<" was (R00315 p. 15 has U+0007 there).
+SIGNIFICANCE_LEGEND_BARE = re.compile(
+    r"^\s*[*\u2020\u2021+]{1,3}\s*p[\s\x00-\x1f]{1,4}0?\.\d", re.I)
+
+# Symbols that open a symbol footnote - and a starred reference, a legend, a
+# membership mark. Which of these a line is, only its context can say.
+SYMBOL_LED = re.compile(r"^\s*([*\u2020\u2021\u00a7\u00b6]{1,3})")
+# The heading of a reference list, which may carry a note mark of its own
+# ("REFERENCES" with a raised "a" that explains the stars).
+REF_LIST_HEAD = re.compile(
+    r"^\s*(references|bibliography|works cited|literature cited)\s*[a-z*\u2020\u2021]?\s*$",
+    re.I)
+# "Surname, I." or "Surname, I. J." after the marks: how a reference opens.
+REF_ENTRY_SHAPE = re.compile(
+    r"^\s*[*\u2020\u2021\u00a7\u00b6]{0,3}\s*[A-Z][\w\u00a8\u2019' .\-]{1,40},\s+(?:[A-Z]\.\s*){1,4}")
+# A line that says what the marks mean: "Studies marked with an asterisk were
+# included in ...; those with a dagger, in ...".
+MARK_LEGEND = re.compile(
+    r"\b(marked|denoted|indicated|preceded|identified)\b.{0,40}\b(asterisks?|daggers?|stars?)\b"
+    r"|\b(asterisks?|daggers?)\b.{0,60}\b(indicates?|denotes?|marks?|(?:were|are) included)\b",
+    re.I | re.S)
+
+
+def _symbol_is_notation(blk: Block, page: Page) -> bool:
+    """True when a block that opens with a footnote symbol is NOT a note.
+
+    The glyphs are not banned: a star footnote is a real thing. The decision
+    is taken from context. The block is notation when
+      - it is a line of a significance legend, with or without its relation
+        glyph, or carries three or more runs of marks on its first line;
+      - it stands inside a recognised reference list;
+      - it opens like a reference ("* Surname, I.") and the page either
+        explains its marks in a legend line or holds several such entries.
+    """
+    if not blk.lines:
+        return False
+    first = blk.lines[0].text.strip()
+    if not SYMBOL_LED.match(first):
+        return False
+    if SIGNIFICANCE_LEGEND.match(first) or SIGNIFICANCE_LEGEND_BARE.match(first):
+        return True
+    if len(re.findall(r"[*\u2020\u2021]+", first)) >= 3:
+        return True
+    if blk.in_reference_list:
+        return True
+    if REF_ENTRY_SHAPE.match(first):
+        entries, legend = 0, False
+        for other in page.blocks:
+            if not other.lines or other.btype == "Table":
+                continue
+            head = other.lines[0].text.strip()
+            if SYMBOL_LED.match(head) and REF_ENTRY_SHAPE.match(head):
+                entries += 1
+            if MARK_LEGEND.search(other.text):
+                legend = True
+        return legend or entries >= 2
+    return False
+
+
 def footnote_label(text: str):
     """(label, body) for a note that starts with a marker, else (None, text)."""
     m = FOOTNOTE_MARKER.match(text)
@@ -1704,6 +1777,8 @@ def _is_footnote(blk: Block, page: Page, body_size: float, first: str) -> bool:
     if body_size and note_text_size(blk) >= body_size * 0.95:
         return False
     if SIGNIFICANCE_LEGEND.match(first):
+        return False
+    if _symbol_is_notation(blk, page):
         return False
     return bool(FOOTNOTE_MARKER.match(first))
 
@@ -2057,6 +2132,8 @@ def proc_footnotes(pages: List[Page]) -> None:
             if not FOOTNOTE_MARKER.match(blk.text.strip()):
                 continue
             if SIGNIFICANCE_LEGEND.match(blk.text.strip()):
+                continue
+            if _symbol_is_notation(blk, page):
                 continue
             blk.btype = "Footnote"
 

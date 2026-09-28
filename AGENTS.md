@@ -283,6 +283,14 @@ parentheses fails if the fix is undone):
   words are counted apart: stats `table_captions_isolated`,
   `table_caption_words`, `table_lines_excluded`. The isolated caption is
   emitted before its table (`Block.leads`); other captions stay after.
+- a star or dagger is a footnote marker only where context allows
+  (`bibliography_symbols`; `_symbol_is_notation`). Not a note: a block inside
+  a recognised reference list (heading to next heading; the heading may carry
+  a raised note letter, "REFERENCESa"); a reference-shaped entry on a page
+  that explains its marks or holds several such entries; a significance
+  legend, also when its "<" extracted as nothing or as a control character.
+  The glyphs are not banned: the star footnote on the fixture's page 2 must
+  survive. R00315 emitted 36 references and 4 legend lines as notes.
 - text-loss guard in `detect_tables`: a reconstruction that keeps fewer than
   `TABLE_FALLBACK_MIN_KEEP` (0.9) of the words in PyMuPDF's geometric cells
   loses to those cells (`tall_cell`). The geometric grid is filled from the

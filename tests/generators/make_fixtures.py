@@ -1634,6 +1634,103 @@ def make_caption_inside_table():
     pdf.out("caption_inside_table.pdf")
 
 
+BIB_ENTRIES = [
+    ("* ", "Alder, J. A., & Succi, M. J. 1996. Determinants of profound change:",
+     "Choice of conversion or closure. Fixture Quarterly, 41: 507-529."),
+    ("", "Ames, P. M. 1955. The dynamics of bureaucracy: A study of two",
+     "agencies. Chicago: Fixture Press."),
+    ("*\u2020 ", "Barre, I., & Fuller, C. 2006. To conform or to perform? Mimetic",
+     "behaviour and performance. Journal of Fixtures, 43: 1559-1581."),
+    ("\u2020 ", "Baum, J. A. C. 1997. Competitive and institutional isomorphism in",
+     "populations. Working paper, Fixture School of Management."),
+    ("", "Bijl, T. H. A., & Pieters, R. G. M. 2001. Meta-analysis when studies",
+     "contain multiple measurements. Fixture Letters, 12: 157-169."),
+    ("* ", "Chuang, Y., & Thomson, K. 2004. Diversity and similarity of form in",
+     "nursing homes. Fixture Science, 15: 120-135."),
+    ("*\u2020 ", "Deep, D. L., & Carter, S. M. 2005. An examination of differences",
+     "between legitimacy and reputation. Journal of Fixtures, 42: 329-360."),
+    ("\u2020 ", "Edel, L. B. 1992. Legal ambiguity and symbolic structures.",
+     "American Journal of Fixtures, 97: 1531-1576."),
+    ("", "Frank, D. J. 2000. The nation-state and the natural environment.",
+     "Fixture Review, 65: 96-116."),
+    ("*\u2020 ", "Glynn, M. A., & Abzug, R. 2002. Institutionalizing identity:",
+     "Symbolic isomorphism and names. Fixture Journal, 45: 267-280."),
+    ("* ", "Goes, J. B., & Park, S. H. 1997. Interorganizational links and",
+     "innovation: The case of hospital services. Fixture Journal, 40: 673-696."),
+    ("\u2020 ", "Han, S. 1994. Mimetic isomorphism and its effect on the audit",
+     "services market. Social Fixtures, 73: 637-664."),
+    ("", "Hunt, J. E. 2004. Methods of meta-analysis: Correcting error and bias",
+     "in research findings. Thousand Oaks: Fixture."),
+    ("*\u2020 ", "Korn, H. J., & Baum, J. A. C. 1999. Chance, imitative, and",
+     "strategic antecedents of competition. Fixture Journal, 42: 171-193."),
+    ("* ", "Kraatz, M. S., & Moore, J. H. 2002. Executive migration and",
+     "institutional change. Fixture Journal, 45: 120-143."),
+    ("\u2020 ", "Lu, J. W. 2002. Intra- and inter-organizational imitative behaviour.",
+     "Journal of Fixture Studies, 33: 19-37."),
+    ("*\u2020 ", "Oliver, C. 1997. The influence of institutional and task environment",
+     "relationships on performance. Journal of Fixtures, 34: 99-124."),
+    ("* ", "Rao, H., Greve, H. R., & Davis, G. F. 2001. Fool's gold: Social proof",
+     "in the initiation of coverage. Fixture Quarterly, 46: 502-526."),
+    ("\u2020 ", "Zajac, E. J., & Kraatz, M. S. 1993. A diametric forces model of",
+     "strategic change. Fixture Journal, 14: 83-102."),
+]
+
+
+def make_bibliography_symbols():
+    """Page 1: prose with a genuine star footnote. Page 2: a reference list
+    whose heading carries a raised "a", entries marked with stars and
+    daggers down to the foot of the page, and the legend that explains the
+    marks.
+
+    Bug (R00315 pp. 18-25): every marked entry in the lower part of a page
+    is in small type, in the footnote zone, and opens with a footnote
+    symbol. 36 references were emitted as the notes [^*], [^\u2020] and
+    [^*\u2020] and moved to the end of their page. The star footnote on
+    page 1 must survive.
+    """
+    pdf = Doc()
+    margin = 72.0
+    width = LETTER_W - 2 * margin
+    paras = paragraphs(4, start=41, step=3, width=4)
+    # a page of body text first: the reference list is long, and without it
+    # the document's body size would be the size of its references
+    pdf.add_page()
+    pdf.text_at(margin, 60, "1 Scope", style="B", size=14)
+    f = Flow(pdf, [(margin, 86, width, 720)], size=10, leading=13)
+    for para in paragraphs(9, start=5, step=2, width=4):
+        f.paragraph(para, space_after=8)
+    pdf.add_page()
+    pdf.text_at(margin, 60, "2 Sample", style="B", size=14)
+    f = Flow(pdf, [(margin, 86, width, 640)], size=10, leading=13)
+    f.paragraph(paras[0], space_after=8)
+    f.paragraph("The sample was drawn from both collections and coded twice. "
+                + paras[1], space_after=8, sup_refs={"twice": "*"})
+    f.paragraph(paras[2], space_after=8)
+    y = 690
+    pdf.set_line_width(0.4)
+    pdf.line(margin, y - 6, margin + 90, y - 6)
+    pdf.note_label(margin, y, "*", 8.5, 10)
+    Flow(pdf, [(margin, y, width, y + 30)], size=8.5, leading=10).paragraph(
+        "We thank the editor and two reviewers for their comments on the coding.",
+        indent=7, hyphenate=False)
+
+    pdf.add_page()
+    pdf.set_font("Times", "B", 10)
+    w = pdf.get_string_width("REFERENCES")
+    x = (LETTER_W - w) / 2
+    pdf.text_at(x, 60, "REFERENCES", style="B", size=10)
+    pdf.sup(x + w, 60, "a", size=10)
+    y = 84
+    for marks, first, second in BIB_ENTRIES:
+        pdf.text_at(margin, y, marks + first, size=9)
+        pdf.text_at(margin + 18, y + 11, second, size=9)
+        y += 11 * 2 + 9
+    pdf.note_label(margin + 10, 706, "a", 8.5, 10)
+    pdf.text_at(margin + 16, 706, "Studies marked with an asterisk were included in the first "
+                "sample; those with a dagger, in the second.", size=8.5)
+    pdf.out("bibliography_symbols.pdf")
+
+
 def make_manuscript_numcol():
     make_manuscript("manuscript_numcol.pdf", number_column=True)
 
@@ -1795,6 +1892,7 @@ MAKERS = {
     "watermark": make_watermark,
     "bold_bullets": make_bold_bullets,
     "images_inline": make_images_inline,
+    "bibliography_symbols": make_bibliography_symbols,
     "figure_dedup": make_figure_dedup,
     "caption_inside_table": make_caption_inside_table,
     "garbled_font": make_garbled_font,
