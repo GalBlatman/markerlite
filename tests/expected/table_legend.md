@@ -12,6 +12,6 @@ Books, slides and forms have layouts these heuristics were never shown and would
 
 *Table 3. Negative binomial estimates*
 
-* p < .05 ** p < .01 *** p < .001 (two-tailed tests)
+\* p < .05 ** p < .01 *** p < .001 (two-tailed tests)
 
 [^1]: The model is nonlinear, so interaction coefficients are interpreted graphically.

@@ -30,7 +30,7 @@ We leave that optimisation for a later release and note it here for completeness
 
 ## REFERENCESa
 
-* Alder, J. A., & Succi, M. J. 1996. Determinants of profound change: Choice of conversion or closure. Fixture Quarterly, 41: 507-529.
+\* Alder, J. A., & Succi, M. J. 1996. Determinants of profound change: Choice of conversion or closure. Fixture Quarterly, 41: 507-529.
 
 Ames, P. M. 1955. The dynamics of bureaucracy: A study of two
 
@@ -46,7 +46,7 @@ Bijl, T. H. A., & Pieters, R. G. M. 2001. Meta-analysis when studies
 
 contain multiple measurements. Fixture Letters, 12: 157-169.
 
-* Chuang, Y., & Thomson, K. 2004. Diversity and similarity of form in nursing homes. Fixture Science, 15: 120-135.
+\* Chuang, Y., & Thomson, K. 2004. Diversity and similarity of form in nursing homes. Fixture Science, 15: 120-135.
 
 *† Deep, D. L., & Carter, S. M. 2005. An examination of differences between legitimacy and reputation. Journal of Fixtures, 42: 329-360.
 
@@ -60,7 +60,7 @@ Fixture Review, 65: 96-116.
 
 *† Glynn, M. A., & Abzug, R. 2002. Institutionalizing identity: Symbolic isomorphism and names. Fixture Journal, 45: 267-280.
 
-* Goes, J. B., & Park, S. H. 1997. Interorganizational links and innovation: The case of hospital services. Fixture Journal, 40: 673-696.
+\* Goes, J. B., & Park, S. H. 1997. Interorganizational links and innovation: The case of hospital services. Fixture Journal, 40: 673-696.
 
 † Han, S. 1994. Mimetic isomorphism and its effect on the audit
 
@@ -72,7 +72,7 @@ in research findings. Thousand Oaks: Fixture.
 
 *† Korn, H. J., & Baum, J. A. C. 1999. Chance, imitative, and strategic antecedents of competition. Fixture Journal, 42: 171-193.
 
-* Kraatz, M. S., & Moore, J. H. 2002. Executive migration and institutional change. Fixture Journal, 45: 120-143.
+\* Kraatz, M. S., & Moore, J. H. 2002. Executive migration and institutional change. Fixture Journal, 45: 120-143.
 
 † Lu, J. W. 2002. Intra- and inter-organizational imitative behaviour.
 
@@ -80,7 +80,7 @@ Journal of Fixture Studies, 33: 19-37.
 
 *† Oliver, C. 1997. The influence of institutional and task environment relationships on performance. Journal of Fixtures, 34: 99-124.
 
-* Rao, H., Greve, H. R., & Davis, G. F. 2001. Fool's gold: Social proof in the initiation of coverage. Fixture Quarterly, 46: 502-526.
+\* Rao, H., Greve, H. R., & Davis, G. F. 2001. Fool's gold: Social proof in the initiation of coverage. Fixture Quarterly, 46: 502-526.
 
 † Zajac, E. J., & Kraatz, M. S. 1993. A diametric forces model of
 

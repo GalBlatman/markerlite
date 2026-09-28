@@ -1731,6 +1731,39 @@ def make_bibliography_symbols():
     pdf.out("bibliography_symbols.pdf")
 
 
+def make_list_lookalikes():
+    """Paragraphs that open like a Markdown list item and are not one, and
+    a list that is one.
+
+    Bug (R00315): a starred reference entry, "* Alexander, J. A. ...", was
+    emitted as it stands, and a Markdown renderer shows it as a bullet. A
+    paragraph that opens with a year and a period becomes item 1995 of a
+    numbered list.
+    """
+    pdf = Doc()
+    margin = 72.0
+    width = LETTER_W - 2 * margin
+    paras = paragraphs(3, start=51, step=3, width=4)
+    pdf.add_page()
+    pdf.text_at(margin, 60, "3 Sources", style="B", size=14)
+    f = Flow(pdf, [(margin, 86, width, 740)], size=10, leading=13)
+    f.paragraph(paras[0], space_after=8)
+    f.paragraph("1995. The first survey was run in that year and covered "
+                "forty firms in two regions.", space_after=8, hyphenate=False)
+    f.paragraph("The checks were the following:", space_after=4)
+    for item in ("coverage of both regions", "a second coder for every file",
+                 "a record of each exclusion"):
+        f.line("\u2022 " + item, indent=12)
+    f.skip(8)
+    f.paragraph(paras[1], space_after=8)
+    f.paragraph("- 4 is the change in the index after the second survey, "
+                "a fall and not a range.", space_after=8, hyphenate=False)
+    f.paragraph("* Alder, J. A., & Succi, M. J. 1996. Determinants of profound "
+                "change. Fixture Quarterly, 41: 507-529.", space_after=8, hyphenate=False)
+    f.paragraph(paras[2], space_after=8)
+    pdf.out("list_lookalikes.pdf")
+
+
 def make_manuscript_numcol():
     make_manuscript("manuscript_numcol.pdf", number_column=True)
 
@@ -1893,6 +1926,7 @@ MAKERS = {
     "bold_bullets": make_bold_bullets,
     "images_inline": make_images_inline,
     "bibliography_symbols": make_bibliography_symbols,
+    "list_lookalikes": make_list_lookalikes,
     "figure_dedup": make_figure_dedup,
     "caption_inside_table": make_caption_inside_table,
     "garbled_font": make_garbled_font,

@@ -525,6 +525,10 @@ def content_words(md: str) -> int:
     # and must not swallow everything up to the next ">".
     text = re.sub(r"</?[A-Za-z][A-Za-z0-9]*(?:\s[^<>]*)?>", " ", text)
     text = re.sub(r"(?m)^#{1,6}\s+", "", text)
+    # The escape render puts before a list-like paragraph start is markup,
+    # not content: "\\* Alexander" and "1995\\. The" count as before.
+    text = re.sub(r"(?m)^(\s*(?:>\s*)*)\\([*+-])(?=\s)", r"\1\2", text)
+    text = re.sub(r"(?m)^(\s*(?:>\s*)*\d{1,9})\\([.)])(?=\s)", r"\1\2", text)
     text = text.replace("|", " ").replace("*", "").replace("$$", "")
     return len(unicodedata.normalize("NFKC", unescape(text)).split())
 
@@ -2724,6 +2728,23 @@ def block_text(blk: Block, plain: bool = False) -> str:
     return re.sub(r"[ \t]+", " ", "".join(pieces)).strip()
 
 
+# How a Markdown list item opens: a bullet or a number with "." or ")",
+# then white space. A paragraph that merely begins that way - a starred
+# reference ("* Alexander, J. A. ..."), a sentence that opens with a year
+# ("1995. The ...") - would be shown as a list by any renderer.
+LIST_LOOKALIKE = re.compile(r"^(\s*)(?:([*+-])|(\d{1,9})([.)]))(?=\s)")
+
+
+def _escape_list_start(text: str) -> str:
+    """Escape the marker of a paragraph that is not a list item."""
+    m = LIST_LOOKALIKE.match(text)
+    if not m:
+        return text
+    if m.group(2):
+        return m.group(1) + "\\" + text[m.end(1):]
+    return m.group(1) + m.group(3) + "\\" + text[m.end(3):]
+
+
 def _is_list_line(chunk: str) -> bool:
     last = chunk.rsplit("\n", 1)[-1].lstrip()
     return bool(re.match(r"^(-|\d{1,3}\.)\s", last))
@@ -2750,7 +2771,7 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
     def flush():
         nonlocal pending_paragraph
         if pending_paragraph.strip():
-            out.append(pending_paragraph.strip())
+            out.append(_escape_list_start(pending_paragraph.strip()))
         pending_paragraph = ""
 
     for page in pages:
