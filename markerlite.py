@@ -3267,6 +3267,141 @@ def place_figures(doc, pages: List[Page], outdir: Optional[pathlib.Path] = None,
 # --------------------------------------------------------------------------- #
 
 
+# How far, as a share of page height, one drawing of a figure may stand from
+# the next, or the first from the caption, and still be the same figure.
+FIGURE_GROW_GAP = 0.04
+
+
+def _locate_caption_figure(pm: pymupdf.Page, page: Page, caption) -> Optional[tuple]:
+    """The region of a figure that is known from its caption only.
+
+    A diagram of a few boxes and arrows is too sparse to be found as a
+    cluster of paths, so its placeholder stands on the caption alone. For a
+    crop the region is needed: starting at the caption, the drawings and
+    rasters that follow one another closely on one side of it are collected,
+    and the side that holds more is the figure. Page frames, rules and
+    anything inside a table are left out. None when nothing is there, as on
+    a scanned page, where the figure is part of the page image.
+    """
+    prect = pm.rect
+    gap = FIGURE_GROW_GAP * prect.height
+    rects = []
+    try:
+        drawings = pm.get_drawings()
+    except Exception:
+        drawings = []
+    tables = [b.bbox for b in page.blocks if b.btype == "Table"]
+    for d in drawings:
+        r = d.get("rect")
+        if not r:
+            continue
+        r = pymupdf.Rect(r)
+        if r.width >= 0.9 * prect.width or r.height >= 0.9 * prect.height:
+            continue                    # a page frame
+        if r.height < 1.5 and r.width > 0.25 * prect.width:
+            continue                    # a rule
+        if r.width < 1.5 and r.height > 0.25 * prect.height:
+            continue
+        # Inside a table region only its ruling is left out: strokes made of
+        # straight lines. A curve or a filled shape there is a diagram that
+        # the table detector took for a grid (Peng 2009 p. 2).
+        ruling = d.get("type") == "s" and all(
+            it[0] in ("l", "re") for it in d.get("items", []))
+        if ruling and any(_overlap_frac(tuple(r), t) > 0.4 for t in tables):
+            continue
+        rects.append(tuple(r))
+    rects += [bbox for _n, _x, bbox in _content_images(pm)]
+    if not rects:
+        return None
+    cx0, cy0, cx1, cy1 = caption
+
+    def grow(below: bool):
+        edge = cy1 if below else cy0
+        taken, lo, hi = [], edge, edge
+        pending = list(rects)
+        changed = True
+        while changed:
+            changed = False
+            for r in list(pending):
+                if below and r[1] >= cy0 - 1 and r[1] - hi <= gap:
+                    pass
+                elif not below and r[3] <= cy1 + 1 and lo - r[3] <= gap:
+                    pass
+                else:
+                    continue
+                pending.remove(r)
+                taken.append(r)
+                lo, hi = min(lo, r[1]), max(hi, r[3])
+                changed = True
+        return taken
+
+    best = max((grow(True), grow(False)),
+               key=lambda t: sum((r[2] - r[0]) * (r[3] - r[1]) for r in t))
+    if len(best) < 2 and not any(r in [b for _n, _x, b in _content_images(pm)] for r in best):
+        return None
+    box = _bbox_of(best)
+    # the labels of the diagram: text that stands inside the region
+    inside = [b.bbox for b in page.blocks
+              if b.lines and _overlap_frac(b.bbox, box) > 0.5 and b.btype != "Caption"]
+    box = _bbox_of([box] + inside)
+    if (box[2] - box[0]) < 40 or (box[3] - box[1]) < 30:
+        return None
+    return box
+
+
+def flag_figures(doc, pages: List[Page], outdir: pathlib.Path, stem: str, dpi=200,
+                 link: bool = False) -> dict:
+    """Crop every figure for a description by something that can see.
+
+    markerlite does not read figures. It knows where they are and what their
+    captions say; this writes each one as an image with a manifest beside
+    it, the way flag_math does for equations. One entry per figure
+    placeholder, in the order of the placeholders. With ``link`` (--images
+    given as well) the Markdown links to the same crops, so that nothing is
+    saved twice.
+    """
+    figdir = outdir / f"{stem}_figures"
+    regions = []
+    for page in pages:
+        figs = [b for b in page.blocks if b.btype == "Figure" and not b.ignore_for_output]
+        if not figs:
+            continue
+        pm = doc[page.page_idx]
+        for n, blk in enumerate(figs, 1):
+            fig_id = f"fig_p{page.page_idx + 1}_{n}"
+            caption = " ".join(block_text(c, plain=True) for c in blk.children
+                               if c.btype == "Caption").strip()
+            bbox = blk.bbox
+            if blk.figure_kind == "cap":
+                bbox = _locate_caption_figure(pm, page, blk.bbox)
+            entry = {
+                "id": fig_id,
+                "page": page.page_idx + 1,
+                "bbox": [round(v, 1) for v in bbox] if bbox else None,
+                "caption": caption,
+                "file": "",
+                "description": "",  # fill in from the crop, then run --apply-figures
+            }
+            if bbox:
+                figdir.mkdir(parents=True, exist_ok=True)
+                # Pad: a region hugs path bounds and clips stroke width and
+                # the labels just outside.
+                clip = (pymupdf.Rect(bbox) + (-5, -5, 5, 5)) & pm.rect
+                name = f"{fig_id}.png"
+                pm.get_pixmap(clip=clip, dpi=dpi).save(figdir / name)
+                entry["file"] = f"{figdir.name}/{name}"
+                if link:
+                    blk.image_path = entry["file"]
+            else:
+                entry["note"] = "region not located: the figure is known from its caption only"
+            regions.append(entry)
+    manifest = {"stem": stem, "regions": regions}
+    if regions:
+        (outdir / f"{stem}_figures.json").write_text(
+            json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
+    return manifest
+
+
 def flag_math(doc, pages: List[Page], outdir: pathlib.Path, stem: str, dpi=200) -> dict:
     """Render regions no weight-free heuristic can read, for visual transcription.
 
@@ -3512,7 +3647,8 @@ def _drop_provenance_lines(page: Page, drop_lines: set) -> None:
 
 
 def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
-            do_flag_math=False, page_markers=False) -> Tuple[pathlib.Path, dict]:
+            do_flag_math=False, page_markers=False,
+            do_flag_figures=False) -> Tuple[pathlib.Path, dict]:
     """Convert one PDF. Returns (markdown path, info).
 
     ``info`` carries ``regions`` (equation crops, when --flag-math ran) and
@@ -3558,7 +3694,10 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
     proc_blockquote(pages)
     proc_list_indent(pages)
     proc_code(pages)
-    n_figures = place_figures(doc, pages, outdir if images else None, path.stem)
+    # With --flag-figures the crops are the saved figures: --images then
+    # links to them instead of saving every figure a second time.
+    save_here = outdir if (images and not do_flag_figures) else None
+    n_figures = place_figures(doc, pages, save_here, path.stem)
     _promote_figure_captions(pages)
     proc_captions(pages)
     n_figures += _figures_from_captions(pages)
@@ -3567,6 +3706,9 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
     manifest = {}
     if do_flag_math:
         manifest = flag_math(doc, pages, outdir, path.stem)
+    if do_flag_figures:
+        manifest["figures"] = flag_figures(doc, pages, outdir, path.stem,
+                                           link=images)["regions"]
 
     md = render(pages, page_markers=page_markers)
     if provenance:
@@ -3594,6 +3736,7 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         "rotated_pages": [p.page_idx + 1 for p in pages if p.derotated],
         "pi_glyphs_repaired": pi_spans,
         "figures": n_figures,
+        "figure_crops": sum(1 for f in manifest.get("figures", []) if f.get("file")),
         "figures_saved": sum(1 for p in pages for b in p.blocks
                              if b.btype == "Figure" and b.image_path),
         "equations": len(manifest.get("regions", [])),
@@ -3654,6 +3797,9 @@ def main() -> None:
                     help="extract figures (embedded rasters and vector drawings)")
     ap.add_argument("--flag-math", action="store_true",
                     help="crop equation regions for visual transcription")
+    ap.add_argument("--flag-figures", action="store_true",
+                    help="crop every figure to <stem>_figures/ with a manifest, "
+                         "for description by a vision model")
     ap.add_argument("--page-markers", action="store_true",
                     help="emit <!-- page N --> markers at each page boundary")
     ap.add_argument("--apply-math", metavar="JSON",
@@ -3672,7 +3818,7 @@ def main() -> None:
     for p in args.pdfs:
         path = pathlib.Path(p)
         out, manifest = convert(path, outdir, args.images, args.flag_math,
-                                args.page_markers)
+                                args.page_markers, args.flag_figures)
         print(f"{path.name} -> {out}")
         print(f"   {summarize(manifest.get('stats', {}))}")
 
