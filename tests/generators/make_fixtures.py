@@ -1500,7 +1500,13 @@ def make_images_inline():
     png = ep.get_pixmap(dpi=144, alpha=False).tobytes("png")
     eq.close()
     pdf.image(io.BytesIO(png), x=(LETTER_W - 240) / 2, y=f.y, w=240, h=44)
-    f.y += 44 + 10
+    f.y += 44 + 8
+    # the journal's caption style: label in capitals on its own line, the
+    # title below it, no punctuation after the number
+    pdf.centered(f.y, "FIGURE 1", style="B", size=9)
+    pdf.centered(f.y + 11, "Forward-Looking Adjustment as Printed", style="B", size=9)
+    f.y += 34
+    f.paragraph("Figure 1 shows the adjustment as the source printed it.", space_after=6)
     f.paragraph("Where A0 is the minimum ambition before adjustment.", space_after=6)
     f.paragraph(paras[1], space_after=6)
     f.paragraph(paras[2], space_after=6)

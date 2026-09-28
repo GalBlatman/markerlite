@@ -6,7 +6,7 @@ A converter that joins lines with a space will emit a broken word at every such 
 
 The abstract runs across the full measure while the body is set in two columns, which is the arrangement most journals use. The manuscripts we care about in practice are less tidy than this, and we return to them in the discussion. The text-layer path handles digital publications; a raster copy of the same file drives the recognition path. Both paths converge on the same block structure before any processor runs.
 
-<!-- image omitted: 300x200 pt at page 1; run --images -->
+<!-- figure: p. 1; caption: Figure 1. A raster image embedded as an XObject: gradient background with two filled shapes. The caption sits directly under the image. -->
 
 *Figure 1. A raster image embedded as an XObject: gradient background with two filled shapes. The caption sits directly under the image.*
 
@@ -33,6 +33,8 @@ C1 C2 C3 C4 C5 0
 75
 
 100
+
+<!-- figure: p. 2; caption: Figure 2. A vector chart drawn with path operators: five conditions, response in percent. No image object is involved. -->
 
 *Figure 2. A vector chart drawn with path operators: five conditions, response in percent. No image object is involved.*
 

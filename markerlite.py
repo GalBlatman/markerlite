@@ -2498,15 +2498,16 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                         # which lines belonged to which note.
                         out.append(f"[^{label}]: {body.strip()}")
             elif t == "Figure":
+                # Always a placeholder at the figure's reading position; the
+                # link follows when --images saved the figure. "--" cannot
+                # appear inside an HTML comment.
+                caption = " ".join(block_text(cap, plain=True) for cap in blk.children)
+                caption = caption.replace("--", "\u2013").strip() or "none found"
+                out.append(f"<!-- figure: p. {blk.page_idx + 1}; caption: {caption} -->")
                 if blk.image_path:
                     out.append(f"![]({blk.image_path})")
                 for cap in blk.children:
                     out.append("*" + block_text(cap, plain=True) + "*")
-            elif t == "ImageMarker":
-                w = round(blk.width)
-                h = round(blk.height)
-                out.append(f"<!-- image omitted: {w}x{h} pt at page "
-                           f"{blk.page_idx + 1}; run --images -->")
     flush()
 
     text = "\n\n".join(x for x in out if x is not None and x.strip())
@@ -2633,81 +2634,129 @@ def _insert_block(page: Page, blk: Block) -> None:
     page.blocks.append(blk)
 
 
-def mark_images(doc, pages: List[Page]) -> int:
-    """Without --images, leave a trace where a content image was.
+def _figure_regions(pm: pymupdf.Page, page: Page) -> List[Tuple[str, int, int, tuple]]:
+    """(kind, index, xref, bbox) of every figure on the page: embedded rasters
+    that are content, then clusters of vector paths that are neither a table
+    nor mostly text."""
+    found: List[Tuple[str, int, int, tuple]] = [
+        ("img", n, xref, bbox) for n, xref, bbox in _content_images(pm)]
+    taken = [f[3] for f in found]
+    for n, box in enumerate(_vector_regions(pm)):
+        bt = tuple(box)
+        if any(_overlap_frac(bt, tk) > 0.5 for tk in taken):
+            continue  # already captured as a raster
+        # A ruled table is also "a pile of path operators". Two tells: it
+        # overlaps a detected Table, or the region is mostly text.
+        if any(b.btype == "Table" and _overlap_frac(b.bbox, bt) > 0.4 for b in page.blocks):
+            continue
+        area = max((bt[2] - bt[0]) * (bt[3] - bt[1]), 1.0)
+        text_area = sum(_overlap_frac(b.bbox, bt) * b.width * b.height
+                        for b in page.blocks if b.lines)
+        if text_area / area > 0.35:
+            continue
+        found.append(("vec", n, 0, bt))
+    return found
 
-    An equation pasted as a picture used to vanish with nothing in the
-    output; the sentence "as shown by the formula below" was followed by the
-    next paragraph. The marker names the size and page so a reader knows
-    something is missing and how to get it.
+
+FIGURE_CAPTION = re.compile(r"^\s*(figure|fig\.?)\s*[\dIVXA-Z]+", re.I)
+
+
+# Journals that set the label on its own line or in capitals put no
+# punctuation after the number: "FIGURE 1 / A Process Model of ...",
+# "Figure 1 Institutional Complexity and Organizational Responses". The
+# general caption pattern demands a delimiter so that a sentence opening
+# "Figure 1 shows ..." stays prose; for figures the same safety comes from
+# what follows the number: nothing, or a capitalised word.
+FIGURE_LABEL = re.compile(r"^\s*(figure|fig\.?)\s*(\d{1,3}|[IVX]{1,4})[a-z]?\b\s*(.*)$", re.I | re.S)
+
+
+def _promote_figure_captions(pages: List[Page], max_words: int = 60) -> int:
+    """Relabel a short text block that is a figure caption without a
+    delimiter, so it can be attached to its figure or mark one."""
+    count = 0
+    for page in pages:
+        for blk in page.blocks:
+            # A bold caption in capitals has usually been taken for a heading.
+            if blk.btype not in ("Text", "SectionHeader") or blk.ignore_for_output                     or not blk.lines:
+                continue
+            text = blk.text.strip()
+            if len(text.split()) > max_words:
+                continue
+            m = FIGURE_LABEL.match(text)
+            if not m:
+                continue
+            rest = m.group(3).lstrip()
+            first_line_is_label = FIGURE_LABEL.match(blk.lines[0].text.strip()) is not None \
+                and not FIGURE_LABEL.match(blk.lines[0].text.strip()).group(3).strip()
+            if first_line_is_label or not rest or rest[:1].isupper():
+                blk.btype = "Caption"
+                count += 1
+    return count
+
+
+def _figures_from_captions(pages: List[Page]) -> int:
+    """A figure caption that no detected region claimed still marks a figure.
+
+    On a scanned page the figure is part of the page image, and some drawn
+    figures are too sparse to cluster; in both cases the caption is the only
+    evidence. The placeholder is put where the caption stands, and the
+    caption becomes its child like any other.
     """
     count = 0
     for page in pages:
-        pm = doc[page.page_idx]
-        for _n, _xref, bbox in _content_images(pm):
-            _insert_block(page, Block(
-                lines=[], bbox=bbox, page_idx=page.page_idx,
-                char_pos=_insert_pos(page, bbox[1]), btype="ImageMarker",
-            ))
+        for i, blk in enumerate(page.blocks):
+            if blk.btype != "Caption" or blk.ignore_for_output:
+                continue
+            if not FIGURE_CAPTION.match(blk.text.strip()):
+                continue
+            fig = Block(lines=[], bbox=blk.bbox, page_idx=page.page_idx,
+                        char_pos=blk.char_pos - 0.5, btype="Figure")
+            fig.children.append(blk)
+            blk.ignore_for_output = True
+            page.blocks.insert(i, fig)
             count += 1
     return count
 
 
-def extract_images(doc, pages: List[Page], outdir: pathlib.Path, stem: str,
-                   vectors: bool = True) -> int:
-    """Extract raster images and (optionally) vector drawings as figures."""
-    imgdir = outdir / f"{stem}_images"
+def place_figures(doc, pages: List[Page], outdir: Optional[pathlib.Path] = None,
+                  stem: str = "") -> int:
+    """Put a Figure block at the reading position of every figure.
+
+    This runs whether or not --images was given: a figure that leaves no
+    trace reads as if the page had none, and the sentence "as Figure 2
+    shows" points at nothing. With ``outdir`` the figure is also saved and
+    linked; without it only the placeholder is emitted. Figure interiors are
+    never recognised as text.
+    """
+    imgdir = outdir / f"{stem}_images" if outdir is not None else None
     count = 0
     for page in pages:
+        if not page.blocks and not page.source_words:
+            continue        # a page dropped as provenance
         pm = doc[page.page_idx]
-        found: List[Tuple[str, tuple]] = []
-
-        for n, xref, bbox in _content_images(pm):
-            try:
-                pix = pymupdf.Pixmap(doc, xref)
-                if pix.n - pix.alpha >= 4:
-                    pix = pymupdf.Pixmap(pymupdf.csRGB, pix)
-                imgdir.mkdir(parents=True, exist_ok=True)
-                name = f"page{page.page_idx + 1}_img{n}.png"
-                pix.save(imgdir / name)
-            except Exception:
-                continue
-            found.append((name, tuple(bbox)))
-
-        if vectors:
-            taken = [b for _n, b in found]
-            for n, box in enumerate(_vector_regions(pm)):
-                bt = tuple(box)
-                if any(_overlap_frac(bt, t) > 0.5 for t in taken):
-                    continue  # already captured as a raster
-                # A ruled table is also "a pile of path operators". Two tells:
-                # it overlaps a detected Table, or the region is mostly text.
-                if any(b.btype == "Table" and _overlap_frac(b.bbox, bt) > 0.4
-                       for b in page.blocks):
-                    continue
-                area = max((bt[2] - bt[0]) * (bt[3] - bt[1]), 1.0)
-                text_area = sum(
-                    _overlap_frac(b.bbox, bt) * b.width * b.height
-                    for b in page.blocks if b.lines
-                )
-                if text_area / area > 0.35:
-                    continue
+        for kind, n, xref, bbox in _figure_regions(pm, page):
+            path = None
+            if imgdir is not None:
                 try:
                     imgdir.mkdir(parents=True, exist_ok=True)
-                    name = f"page{page.page_idx + 1}_vec{n}.png"
-                    # Pad: the cluster box hugs the path bounds and clips
-                    # stroke width and any tick labels sitting just outside.
-                    clip = (box + (-5, -5, 5, 5)) & pm.rect
-                    pm.get_pixmap(clip=clip, dpi=200).save(imgdir / name)
+                    if kind == "img":
+                        pix = pymupdf.Pixmap(doc, xref)
+                        if pix.n - pix.alpha >= 4:
+                            pix = pymupdf.Pixmap(pymupdf.csRGB, pix)
+                        name = f"page{page.page_idx + 1}_img{n}.png"
+                        pix.save(imgdir / name)
+                    else:
+                        name = f"page{page.page_idx + 1}_vec{n}.png"
+                        # Pad: the cluster box hugs the path bounds and clips
+                        # stroke width and tick labels just outside.
+                        clip = (pymupdf.Rect(bbox) + (-5, -5, 5, 5)) & pm.rect
+                        pm.get_pixmap(clip=clip, dpi=200).save(imgdir / name)
+                    path = f"{imgdir.name}/{name}"
                 except Exception:
-                    continue
-                found.append((name, tuple(box)))
-
-        for name, bbox in found:
+                    path = None
             _insert_block(page, Block(
                 lines=[], bbox=bbox, page_idx=page.page_idx,
-                char_pos=_insert_pos(page, bbox[1]), btype="Figure",
-                image_path=f"{imgdir.name}/{name}",
+                char_pos=_insert_pos(page, bbox[1]), btype="Figure", image_path=path,
             ))
             count += 1
     return count
@@ -3002,12 +3051,10 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
     proc_blockquote(pages)
     proc_list_indent(pages)
     proc_code(pages)
-    n_figures = 0
-    if images:
-        n_figures = extract_images(doc, pages, outdir, path.stem)
-    else:
-        mark_images(doc, pages)
+    n_figures = place_figures(doc, pages, outdir if images else None, path.stem)
+    _promote_figure_captions(pages)
     proc_captions(pages)
+    n_figures += _figures_from_captions(pages)
 
     manifest = {}
     if do_flag_math:
@@ -3039,6 +3086,8 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         "rotated_pages": [p.page_idx + 1 for p in pages if p.derotated],
         "pi_glyphs_repaired": pi_spans,
         "figures": n_figures,
+        "figures_saved": sum(1 for p in pages for b in p.blocks
+                             if b.btype == "Figure" and b.image_path),
         "equations": len(manifest.get("regions", [])),
         "ocr_pages": sum(1 for p in pages if p.ocr_used),
         "image_only_pages": sum(1 for p in pages if p.image_only),
@@ -3060,7 +3109,10 @@ def summarize(stats: dict) -> str:
     # and a cp1252 console cannot encode U+2192.
     parts = [f"{stats.get('pages', 0)} pages -> {size} Markdown"]
     if stats.get("figures"):
-        parts.append(f"{stats['figures']} figure{'s' * (stats['figures'] != 1)}")
+        n = stats["figures"]
+        saved = stats.get("figures_saved", 0)
+        note = "" if saved == n else (f" ({saved} saved)" if saved else " (placeholders)")
+        parts.append(f"{n} figure{'s' * (n != 1)}{note}")
     if stats.get("equations"):
         n = stats["equations"]
         parts.append(f"{n} equation crop{'s' * (n != 1)}")

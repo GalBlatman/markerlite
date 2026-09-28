@@ -4,7 +4,11 @@ Footnotes were set two points smaller than the body and anchored in the bottom f
 
 The forward-looking adjustment is given by the following formula:
 
-<!-- image omitted: 240x44 pt at page 1; run --images -->
+<!-- figure: p. 1; caption: FIGURE 1 Forward-Looking Adjustment as Printed -->
+
+*FIGURE 1 Forward-Looking Adjustment as Printed*
+
+Figure 1 shows the adjustment as the source printed it.
 
 Where A0 is the minimum ambition before adjustment.
 

@@ -50,6 +50,8 @@ C1 C2 C3 C4 C5 0
 
 100
 
+<!-- figure: p. 1; caption: Figure 2. Predicted adoption by condition, four panels. -->
+
 *Figure 2. Predicted adoption by condition, four panels.*
 
 We leave that optimisation for a later release and note it here for completeness. Reading order is the first thing a converter gets wrong and the last thing a reader forgives. The character stream of a well-formed PDF already encodes the order in which the author expected the text to be read. Geometric sorting of blocks discards that signal and replaces it with a guess about columns.

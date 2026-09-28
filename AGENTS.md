@@ -217,8 +217,12 @@ parentheses fails if the fix is undone):
 - a footnote is sized by its text, not its label (`footnote_biglabel`; Word
   labels are body-size glyphs).
 - a bulleted line is never a heading, whatever its weight (`bold_bullets`).
-- without --images, a content image leaves `<!-- image omitted: ... -->`;
-  page-sized rasters are ignored in both modes (`images_inline`).
+- every figure leaves `<!-- figure: p. N; caption: ... -->` at its reading
+  position, with or without --images (the link follows it when saved):
+  rasters that are content, vector clusters, and any figure caption no region
+  claimed, which is the only evidence on a scanned page (`repro`,
+  `images_inline`). Figure interiors are never OCR'd. Page-sized rasters are
+  ignored. This replaced the `<!-- image omitted ... -->` marker.
 - the CLI reconfigures stdout/stderr with errors="replace" and prints an
   ASCII arrow; regress.py's `cli-cp1252` check runs it under a cp1252 console.
 - aggregator scans with a native copyright stamp are OCR'd (`scanned_with_stamp`;
