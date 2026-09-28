@@ -1513,6 +1513,71 @@ def make_images_inline():
     pdf.out("images_inline.pdf")
 
 
+def make_figure_dedup():
+    """Two figures that were each marked wrongly before 1e7af01.
+
+    Page 1: a chart drawn as paths over its own raster export (a plotting
+    library's fallback image), with an axis title and a legend line standing
+    between the chart and its caption in the stream. Bug: one placeholder
+    for the region with "caption: none found" and a second for the caption.
+
+    Page 2: a ruled table directly above a figure caption, the figure itself
+    a diagram of text boxes. Bug: the table took the caption and the figure
+    had no placeholder at all.
+    """
+    pdf = Doc()
+    margin = 72.0
+    width = LETTER_W - 2 * margin
+    paras = paragraphs(4, start=23, step=3, width=4)
+    pdf.add_page()
+    pdf.text_at(margin, 60, "3 Results", style="B", size=14)
+    f = Flow(pdf, [(margin, 86, width, 740)], size=10, leading=13)
+    f.paragraph(paras[0], space_after=10)
+    cx, cy, cw, ch = margin + 90, f.y + 10, 260, 150
+    # the raster export first, the paths on top of it
+    exp = pymupdf.open()
+    ep = exp.new_page(width=cw, height=ch)
+    sh = ep.new_shape()
+    for i, v in enumerate((0.35, 0.62, 0.48, 0.81, 0.57)):
+        bw = cw / 10
+        sh.draw_rect(pymupdf.Rect(bw * (2 * i + 0.6), ch - ch * v, bw * (2 * i + 1.5), ch))
+        sh.finish(color=None, fill=(0.8, 0.85, 0.95))
+    sh.commit()
+    pdf.image(io.BytesIO(ep.get_pixmap(dpi=72, alpha=False).tobytes("png")),
+              x=cx, y=cy, w=cw, h=ch)
+    exp.close()
+    vector_chart(pdf, cx, cy, w=cw, h=ch)
+    pdf.centered(cy + ch + 16, "Condition", size=8)
+    pdf.centered(cy + ch + 30, "Bars show means; whiskers omitted", size=8)
+    pdf.centered(cy + ch + 52, "Figure 1 Adoption by Condition", style="B", size=9)
+    f.y = cy + ch + 80
+    f.paragraph("Figure 1 shows adoption rising with each condition.", space_after=6)
+    f.paragraph(paras[1], space_after=6)
+
+    pdf.add_page()
+    pdf.text_at(margin, 60, "4 Process", style="B", size=14)
+    f = Flow(pdf, [(margin, 86, width, 740)], size=10, leading=13)
+    f.paragraph(paras[2], space_after=10)
+    rows = [["Stage", "Actors", "Outcome"],
+            ["Entry", "Founders", "Charter"],
+            ["Growth", "Managers", "Routines"],
+            ["Reform", "Boards", "Audit"]]
+    y = ruled_table(pdf, margin + 60, f.y, [110, 110, 110], rows)
+    pdf.centered(y + 14, "Figure 2 Process Model of Adoption", style="B", size=9)
+    by = y + 40
+    pdf.set_line_width(0.6)
+    for i, label in enumerate(("Entry pressures", "Internal debate", "Adopted practice")):
+        bx = margin + 20 + i * 150
+        pdf.rect(bx, by, 120, 34, style="D")
+        pdf.text_at(bx + 14, by + 12, label, size=9)
+        if i < 2:
+            pdf.line(bx + 120, by + 17, bx + 150, by + 17)
+    pdf.set_line_width(0.2)
+    f.y = by + 60
+    f.paragraph(paras[3], space_after=6)
+    pdf.out("figure_dedup.pdf")
+
+
 def make_manuscript_numcol():
     make_manuscript("manuscript_numcol.pdf", number_column=True)
 
@@ -1674,6 +1739,7 @@ MAKERS = {
     "watermark": make_watermark,
     "bold_bullets": make_bold_bullets,
     "images_inline": make_images_inline,
+    "figure_dedup": make_figure_dedup,
     "garbled_font": make_garbled_font,
     "panel_letters": make_panel_letters,
     "dropcap": make_dropcap,
