@@ -1363,6 +1363,10 @@ def _is_heading(blk: Block, body_size: float, text: str, first: str,
     # (table-dominated) body median, and each one became a heading.
     if BULLET_START.match(first):
         return False
+    # "A", "B D": the panel letters of a multi-panel figure are bold and
+    # short, which is a heading's shape, but a heading has a word in it.
+    if all(len(w.strip(".,:;()[]")) <= 1 for w in text.split()):
+        return False
     size = blk.max_size()
     bold = blk.font_ratio("bold") > 0.6
     bigger = size > body_size * 1.06

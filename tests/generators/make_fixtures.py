@@ -1260,6 +1260,32 @@ def make_dropcap():
     pdf.out("dropcap.pdf")
 
 
+def make_panel_letters():
+    """A four-panel figure whose panels are labelled with bold capitals, on
+    their own lines, between two paragraphs.
+
+    Bug: "A", "B D" and "C" were emitted as section headings.
+    """
+    pdf = Doc()
+    margin, width = 72.0, LETTER_W - 144
+    pdf.add_page()
+    pdf.text_at(margin, 60, "5 Interaction Effects", style="B", size=14)
+    f = Flow(pdf, [(margin, 86, width, 300)], size=10, leading=13)
+    paras = paragraphs(2, start=44, step=3, width=4)
+    f.paragraph(paras[0], space_after=8)
+    y = f.y + 20
+    for row, letters in enumerate((("A", "B"), ("C", "D"))):
+        for col, letter in enumerate(letters):
+            x = margin + 40 + col * 220
+            yy = y + row * 150
+            pdf.text_at(x + 80, yy - 14, letter, style="B", size=11)
+            vector_chart(pdf, x, yy + 18, w=160, h=100)
+    pdf.text_at(margin + 20, y + 310, "Figure 2. Predicted adoption by condition, four panels.", size=9)
+    f2 = Flow(pdf, [(margin, y + 336, width, 760)], size=10, leading=13)
+    f2.paragraph(paras[1], space_after=8)
+    pdf.out("panel_letters.pdf")
+
+
 def make_watermark():
     """Two pages of prose with a large diagonal "RETIRED" drawn across each
     page as real text at 45 degrees (a Word/Acrobat watermark), plus a small
@@ -1571,6 +1597,7 @@ MAKERS = {
     "watermark": make_watermark,
     "bold_bullets": make_bold_bullets,
     "images_inline": make_images_inline,
+    "panel_letters": make_panel_letters,
     "dropcap": make_dropcap,
     "pi_minus": make_pi_minus,
     "table_legend": make_table_legend,
