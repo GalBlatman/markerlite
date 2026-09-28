@@ -1221,6 +1221,45 @@ def make_pi_minus():
     pdf.out("pi_minus.pdf")
 
 
+def make_dropcap():
+    """Two sections that open with a three-line drop capital, drawn after
+    the section heading as a separate text object (the AMP house style).
+
+    Bug: the capital joined the heading ("Two Core Propositions T") and the
+    paragraph began "he first proposition ...".
+    """
+    pdf = Doc()
+    margin, width = 72.0, LETTER_W - 144
+    pdf.add_page()
+    paras = paragraphs(4, start=2, step=5, width=4)
+    y = 72
+    for head, cap, para, follow in (
+            ("Strategy Tripod", "T", "he first " + paras[0][0].lower() + paras[0][1:], paras[1]),
+            ("Two Core Propositions", "A", "s part of " + paras[2][0].lower() + paras[2][1:], paras[3])):
+        pdf.text_at(margin, y, head, style="B", size=14)
+        pdf.set_font("Times", "", 40)
+        pdf.text(margin, y + 58, cap)
+        capw = pdf.get_string_width(cap) + 3
+        pdf.set_font("Times", "", 10)
+        words = para.split()
+        yy = y + 28
+        line_no = 0
+        cur = []
+        while words:
+            x = margin + (capw if line_no < 3 else 0)
+            w = width - (capw if line_no < 3 else 0)
+            cur = []
+            while words and pdf.get_string_width(" ".join(cur + [words[0]])) <= w:
+                cur.append(words.pop(0))
+            pdf.text(x, yy + 9, " ".join(cur))
+            yy += 12.5
+            line_no += 1
+        f = Flow(pdf, [(margin, yy + 6, width, 740)], size=10, leading=12.5)
+        f.paragraph(follow, space_after=8)
+        y = f.y + 20
+    pdf.out("dropcap.pdf")
+
+
 def make_watermark():
     """Two pages of prose with a large diagonal "RETIRED" drawn across each
     page as real text at 45 degrees (a Word/Acrobat watermark), plus a small
@@ -1532,6 +1571,7 @@ MAKERS = {
     "watermark": make_watermark,
     "bold_bullets": make_bold_bullets,
     "images_inline": make_images_inline,
+    "dropcap": make_dropcap,
     "pi_minus": make_pi_minus,
     "table_legend": make_table_legend,
     "ebsco_notice_scan": make_ebsco_notice_scan,

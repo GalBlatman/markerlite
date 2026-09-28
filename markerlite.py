@@ -582,6 +582,52 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = 300) -> Optional[Pag
                 blocks=blocks, ocr_used=True)
 
 
+def _attach_drop_caps(blocks: List[Block]) -> int:
+    """Put a drop capital back on the front of its paragraph.
+
+    A drop cap is one capital letter set two or three lines tall beside the
+    paragraph's opening lines. In the stream it is its own line, often ahead
+    of the paragraph or after the heading above, so the heading gained a stray
+    letter ("Strategy T") and the paragraph lost its first ("s part of a
+    broader movement"). The cap is attached to the line that starts beside
+    it, at its top, with a lowercase letter; without such a line it is left
+    alone (the spaced letters of "A R T I C L E" are not drop caps).
+    """
+    sizes = [sp.size for b in blocks for ln in b.lines for sp in ln.spans if sp.text.strip()]
+    if not sizes:
+        return 0
+    body = median(sizes)
+    attached = 0
+    for blk in list(blocks):
+        for ln in list(blk.lines):
+            text = ln.text.strip()
+            if len(text) != 1 or not text.isalpha() or not text.isupper():
+                continue
+            if max(sp.size for sp in ln.spans) < 2.0 * body:
+                continue
+            x0, y0, x1, y1 = ln.bbox
+            best = None
+            for other in blocks:
+                for cand in other.lines:
+                    if cand is ln or not cand.spans:
+                        continue
+                    cx0, cy0, _cx1, cy1 = cand.bbox
+                    ctext = cand.text.lstrip()
+                    if (ctext[:1].islower() and y0 - 4 <= cy0 <= y1
+                            and x1 - 3 <= cx0 <= x1 + 40
+                            and (best is None or cy0 < best.bbox[1])):
+                        best = cand
+            if best is None:
+                continue
+            first = best.spans[0]
+            best.spans[0] = replace(first, text=text + first.text.lstrip())
+            blk.lines.remove(ln)
+            attached += 1
+        if not blk.lines and blk in blocks:
+            blocks.remove(blk)
+    return attached
+
+
 def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
                  max_line_tilt: float = 0.1) -> Page:
     """Blocks in PDF character-stream order.
@@ -668,6 +714,7 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
             )
         )
 
+    _attach_drop_caps(blocks)
     return Page(
         page_idx=page_idx,
         width=page.rect.width,
@@ -1342,6 +1389,12 @@ def _is_heading(blk: Block, body_size: float, text: str, first: str,
                 return True
     if not (bigger or bold):
         return False
+    # A heading of one word ("Conclusion", "Contributions") fails the
+    # title-case test, which needs two. With real weight or size evidence, a
+    # lone capitalised word in its own one-line block is a heading.
+    if (not ocr and len(blk.lines) == 1 and len(words) == 1 and words[0].isalpha()
+            and words[0][0].isupper() and len(words[0]) >= 4):
+        return True
     # Body paragraphs end in sentence punctuation; headings almost never do.
     if stripped.endswith((".", ";", ",")) and not NUMBERED_HEADING.match(first):
         return False

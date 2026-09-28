@@ -1,4 +1,4 @@
-## Structure Without Weights: Recovering Document Layout
+# Structure Without Weights: Recovering Document Layout
 
 **from the Text Layer Alone**
 
@@ -6,7 +6,7 @@ Ada Lovelace
 
 Analytical Engine Laboratory
 
-## Author Note
+# Author Note
 
 Correspondence concerning this article should be addressed to Ada Lovelace, Analytical Engine Laboratory, London. This manuscript is a synthetic fixture and describes no real study.
 
@@ -14,7 +14,7 @@ Correspondence concerning this article should be addressed to Ada Lovelace, Anal
 
 2
 
-**Introduction**
+# Introduction
 
 A converter that joins lines with a space will emit a broken word at every such break. Tables were drawn with visible ruling lines so that the vector-based detector fires before the text-alignment fallback. Footnotes were set two points smaller than the body and anchored in the bottom fifth of the column. Their labels are superscript digits, and matching digits appear in the body at the point of reference.
 
@@ -22,7 +22,7 @@ The abstract runs across the full measure while the body is set in two columns, 
 
 Nothing in the pipeline depends on a downloaded model, which is the constraint that motivated the project. Line heights are clustered to recover heading levels when a document has no section numbers. When numbers are present they win, because a numbered heading states its own depth. Captions are recognised by their leading label and attached to the nearest figure or table above them.
 
-## Theory and Hypotheses
+# Theory and Hypotheses
 
 Equations are left as images for a later pass rather than transcribed into notation that would be wrong half the time. The remaining processors are direct ports and are documented against the source files they come from. Every threshold in the code was set by looking at a failure, not by tuning against a corpus. That makes the thresholds easy to defend and easy to revise when a new failure appears.
 
@@ -32,7 +32,7 @@ Hypothesis 1: Documents converted with stream order will show fewer reading-orde
 
 None of these failures corrupts the surrounding text; they degrade the structure rather than the content. The synthetic set is regenerated from scripts, so a fixture can be changed and the change reviewed. Expected outputs are committed beside the fixtures and compared byte for byte. A behaviour change that is intended is recorded by rewriting the expected files in the same commit.
 
-**Method**
+# Method
 
 An unintended change fails the build before it reaches a release. The vendored table code is treated as third-party and is not edited locally. Where the original relied on a learned layout model, a font-size rule stands in for it. The rule is coarse, but it is inspectable, and a wrong answer can be traced to a number in the source.
 
