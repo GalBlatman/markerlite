@@ -221,6 +221,11 @@ stacked in one cell), pp. 22-23 (Table 3, same shape); Jay 2013 p. 6 (Table 1
 split in two, header row lost). These are ruled or booktabs tables in
 two-column journal pages, not compliance tables: batch C starts with both kinds.
 
+**Evidence added by batch 3 (tests/REPORT-batch3.md, pipeline documents read
+in place):** R00030 Dacin et al. 2019 p. 70 (Word manuscript, a ruled region of
+29 tokens: the reconstruction returns 0 tokens, the region falls back, and the
+fallback output still lacks 2 of the 29).
+
 ### 3. Keep criterion lead-ins with the following bullets
 
 **Observed mechanism:** SBTi p. 10 places “Criterion not met if:” at the end of
@@ -254,6 +259,15 @@ alignment check is satisfied by a bibliography, and this path has no geometric
 fallback. SBTi p. 26's left reconstruction retains 112/120 member words, enough
 to pass 0.9, but omits “lead to at least a 7% physical intensity”. R05732 p. 6
 illustrates why similar aggregate counts cannot establish correct membership.
+
+**Evidence added by batch 3 (tests/REPORT-batch3.md):** R00030 p. 75 (landscape
+table, 261 source tokens): the reconstruction keeps 245, which is 0.94 and
+passes the 0.9 decision, so 16 tokens are dropped without a fallback and
+without a warning. Same shape as SBTi p. 26. R00077 Bromley & Powell 2012 is
+listed by the pipeline under table token loss, but its two detected regions
+(pp. 8 and 32, 153 and 183 tokens) conserve every token; its two text-table
+proposals are kept as prose, so the words survive and the structure does not.
+It is evidence for the proposal path's accounting, not for loss inside a grid.
 
 **Proposed fix:** track token identities across both detection paths, including
 candidate membership and rejected captions. For accepted grids, recover leftover

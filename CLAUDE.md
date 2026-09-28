@@ -222,6 +222,18 @@ parentheses fails if the fix is undone):
   claimed, which is the only evidence on a scanned page (`repro`,
   `images_inline`). Figure interiors are never OCR'd. Page-sized rasters are
   ignored. This replaced the `<!-- image omitted ... -->` marker.
+  An unclaimed figure caption first goes to an uncaptioned region within
+  `FIGURE_CAPTION_REACH` (0.25 of page height), so a chart is marked once; a
+  table never claims a caption that opens with a figure label. A caption
+  without a delimiter ("FIGURE 1" alone, or followed by a capitalised title)
+  is a caption even when its weight made it a heading.
+- a text layer that extracts as nonsense is OCR'd instead (`garbled_font`;
+  `readable_ratio` under `GARBLE_MIN` 0.10 on >= `GARBLE_MIN_TOKENS` 50
+  tokens). This catches a broken ToUnicode map. It does NOT catch a scan whose
+  hidden OCR layer has scattered character errors (R00443: lowest page 0.26,
+  about 1.4% of tokens wrong); that needs a different trigger.
+- the WRAP (Warwick) repository cover sheet is dropped and recorded
+  (`provenance_pages` p. 7); two of its phrases must be present.
 - the CLI reconfigures stdout/stderr with errors="replace" and prints an
   ASCII arrow; regress.py's `cli-cp1252` check runs it under a cp1252 console.
 - aggregator scans with a native copyright stamp are OCR'd (`scanned_with_stamp`;
@@ -268,6 +280,10 @@ parentheses fails if the fix is undone):
 - Table work follows tests/PLAN-tables.md; items 0, 1, 8, 11b done;
   5,6,2,3,4 then 7,9,10,11a,11c pending review. Items 2 and 5 carry extra
   evidence from five journal articles (tests/REPORT-batch2.md).
+- Pipeline documents (R00443, R00030, R00087, R00639, R00077) are read in
+  place from /home/galbl/unknown-knowns/ in WSL and never copied here. Four of
+  the five are under stack/pdf/ or autonomous/run-002/pdf/, not pilot/pdf/.
+  Results: tests/REPORT-batch3.md.
 - Real-document validation: the user's Ragins 2012 (AMR manuscript PDF) and
   SBTi standards PDFs are the reference cases. Ask for them; do not assume
   the synthetic fixtures cover them.
