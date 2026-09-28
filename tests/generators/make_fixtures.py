@@ -1163,6 +1163,64 @@ def make_table_legend():
     pdf.out("table_legend.pdf")
 
 
+def make_pi_minus():
+    """A coefficient table whose minus signs are drawn from a separate font
+    that never draws a letter, glued to the front of the number - the shape a
+    mathematical-pi font without a ToUnicode map has after extraction, where
+    the minus reads "2" and "<" reads ",". The fixture cannot embed a broken
+    map, so the pi glyphs are literally "2" and "," set in Courier.
+
+    Bug: "-0.10" extracted as "20.10", in prose and in table cells.
+    """
+    pdf = Doc()
+    margin, width = 72.0, LETTER_W - 144
+    pdf.add_page()
+    pdf.text_at(margin, 60, "4 Estimates", style="B", size=14)
+    f = Flow(pdf, [(margin, 86, width, 300)], size=10, leading=13)
+    f.paragraph(paragraphs(1, start=41, step=3, width=4)[0], space_after=8)
+
+    def number(x, y, text, size=10.0):
+        """Draw a number; a leading '-' or '<' comes from the pi font."""
+        if text[0] in "-<":
+            pdf.set_font("Courier", "", size)
+            glyph = "2" if text[0] == "-" else ","
+            pdf.text(x, y, glyph)
+            x += pdf.get_string_width(glyph)
+            text = text[1:]
+        pdf.set_font("Times", "", size)
+        pdf.text(x, y, text)
+
+    pdf.set_font("Times", "", 10)
+    pdf.text(margin, 200, "The effect of density is")
+    number(margin + 108, 200, "-0.10")
+    pdf.set_font("Times", "", 10)
+    pdf.text(margin + 140, 200, "and that of income is")
+    number(margin + 232, 200, "-0.09")
+    pdf.set_font("Times", "", 10)
+    pdf.text(margin + 264, 200, "with p")
+    number(margin + 292, 200, "<.05")
+    pdf.set_font("Times", "", 10)
+    pdf.text(margin + 320, 200, "in 2 of the 3 models.")
+    rows = [["Variable", "(1)", "(2)", "(3)"],
+            ["Population density", "-0.10", "-0.09", "-0.11"],
+            ["Income per capita", "0.55", "0.49", "-0.50"],
+            ["Housing starts", "-6.65", "2.10", "-2.46"]]
+    col = [200, 80, 80, 80]
+    y = 240
+    for ri, row in enumerate(rows):
+        x = margin
+        for ci, cell in enumerate(row):
+            pdf.rect(x, y, col[ci], 18)
+            if ci == 0 or ri == 0:
+                pdf.set_font("Times", "B" if ri == 0 else "", 10)
+                pdf.text(x + 4, y + 13, cell)
+            else:
+                number(x + 20, y + 13, cell)
+            x += col[ci]
+        y += 18
+    pdf.out("pi_minus.pdf")
+
+
 def make_watermark():
     """Two pages of prose with a large diagonal "RETIRED" drawn across each
     page as real text at 45 degrees (a Word/Acrobat watermark), plus a small
@@ -1474,6 +1532,7 @@ MAKERS = {
     "watermark": make_watermark,
     "bold_bullets": make_bold_bullets,
     "images_inline": make_images_inline,
+    "pi_minus": make_pi_minus,
     "table_legend": make_table_legend,
     "ebsco_notice_scan": make_ebsco_notice_scan,
     "rotated_pages": make_rotated_pages,

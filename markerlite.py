@@ -381,6 +381,54 @@ def _page_raster_covered(page: pymupdf.Page) -> bool:
     return False
 
 
+# Mathematical-pi fonts carry operators on digit and punctuation codes and
+# ship without a usable ToUnicode map: the minus sign extracts as "2" and
+# "<" as ",". A regression table then reads "20.10" for -0.10. Such a font
+# never draws a letter, and its "2" is always glued to the front of a number
+# set in another font; both are required before anything is remapped.
+PI_FONT_MAP = {"2": "−", ",": "<"}
+
+
+def _remap_pi_fonts(pages: List[Page]) -> int:
+    """Rewrite the glyphs of pi fonts in place; returns the spans changed."""
+    inventory: dict = defaultdict(lambda: [0, 0, 0, 0])   # spans, letters, twos, twos-before-number
+    for page in pages:
+        if page.ocr_used:
+            continue
+        for blk in page.blocks:
+            for ln in blk.lines:
+                for i, sp in enumerate(ln.spans):
+                    text = sp.text.strip()
+                    if not text:
+                        continue
+                    inv = inventory[sp.font]
+                    inv[0] += 1
+                    if any(ch.isalpha() for ch in text):
+                        inv[1] += 1
+                    if text == "2":
+                        inv[2] += 1
+                        nxt = ln.spans[i + 1] if i + 1 < len(ln.spans) else None
+                        if nxt is not None and nxt.font != sp.font \
+                                and re.match(r"\s*\.?\d", nxt.text):
+                            inv[3] += 1
+    pi = {font for font, (n, letters, twos, glued) in inventory.items()
+          if n >= 5 and letters == 0 and twos >= 3 and glued >= 0.8 * twos}
+    changed = 0
+    for page in pages:
+        if page.ocr_used:
+            continue
+        for blk in page.blocks:
+            for ln in blk.lines:
+                for sp in ln.spans:
+                    if sp.font in pi and any(ch in PI_FONT_MAP for ch in sp.text):
+                        sp.text = "".join(PI_FONT_MAP.get(ch, ch) for ch in sp.text)
+                        for c in sp.chars or []:
+                            if c.get("c") in PI_FONT_MAP:
+                                c["c"] = PI_FONT_MAP[c["c"]]
+                        changed += 1
+    return changed
+
+
 def content_words(md: str) -> int:
     """The project's one word metric ("content words"): whitespace tokens of
     the Markdown after removing HTML comments, table separator rows, HTML
@@ -389,7 +437,9 @@ def content_words(md: str) -> int:
     import unicodedata
     text = re.sub(r"<!--.*?-->", " ", md, flags=re.S)
     text = re.sub(r"(?m)^\s*\|(?:\s*:?-+:?\s*\|)+\s*$", " ", text)
-    text = re.sub(r"<[^>]*>", " ", text)
+    # Real tags only (<sup>, </sup>, <br>): a bare "<" is content ("p < .05")
+    # and must not swallow everything up to the next ">".
+    text = re.sub(r"</?[A-Za-z][A-Za-z0-9]*(?:\s[^<>]*)?>", " ", text)
     text = re.sub(r"(?m)^#{1,6}\s+", "", text)
     text = text.replace("|", " ").replace("*", "").replace("$$", "")
     return len(unicodedata.normalize("NFKC", unescape(text)).split())
@@ -2759,8 +2809,13 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         # stamp off the rendered page, so the same texts are dropped there.
         _drop_provenance_lines(p, drop_lines)
         _drop_ocr_notice(p, provenance)
-        detect_tables(doc[i], p)
         pages.append(p)
+    # Glyph repair needs the whole document's font inventory and must happen
+    # before tables are built from the characters, so tables come second.
+    pi_spans = _remap_pi_fonts(pages)
+    for p in pages:
+        if p.blocks:
+            detect_tables(doc[p.page_idx], p)
 
     body = body_font_size(pages)
     classify(pages, body)
@@ -2809,6 +2864,7 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         "words": content_words(md),
         "low_yield_pages": low_yield,
         "rotated_pages": [p.page_idx + 1 for p in pages if p.derotated],
+        "pi_glyphs_repaired": pi_spans,
         "figures": n_figures,
         "equations": len(manifest.get("regions", [])),
         "ocr_pages": sum(1 for p in pages if p.ocr_used),
