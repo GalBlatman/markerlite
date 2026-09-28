@@ -37,6 +37,8 @@ Options:
 | `--page-markers` | emit `<!-- page N -->` at each page boundary |
 | `--flag-math` | crop each equation region to `DIR/<stem>_math/` and write a manifest |
 | `--apply-math JSON` | splice transcribed LaTeX from a filled-in manifest back into the `.md` |
+| `--flag-figures` | crop each figure to `DIR/<stem>_figures/` and write a manifest |
+| `--apply-figures JSON` | put the descriptions from a filled-in figure manifest under their placeholders |
 
 ## 3. The equation pass
 

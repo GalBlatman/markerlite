@@ -69,11 +69,24 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
    `proc_ignore_common`, `proc_footnotes` (must run BEFORE marginalia),
    `proc_marginalia`, `proc_section_levels`, `proc_continuation`,
    `proc_merge_equations`, `proc_blockquote`, `proc_list_indent`, `proc_code`,
-   `extract_images`, `proc_captions`, `flag_math`.
+   `place_figures`, `_promote_figure_captions`, `proc_captions`,
+   `_figures_from_captions`, `_route_raster_equations`, then the hand-offs
+   `flag_math` (--flag-math) and `flag_figures` (--flag-figures).
 6. `render` — Markdown. Footnotes as `[^N]:` with the detected label;
    superscript body refs become `[^N]` only when note N exists (else `<sup>`).
    Pages with `ocr_used` emit `<!-- ocr page N -->` independently of
-   `--page-markers`, so recognized text keeps its provenance.
+   `--page-markers`, so recognized text keeps its provenance. A paragraph
+   that opens like a list item and is not one has its marker escaped.
+7. Hand-offs for a vision pass. markerlite does not read equations or
+   figures; it crops them and takes the answers back. `--flag-math` writes
+   `<stem>_math/` and `<stem>_math.json`, `--apply-math` splices LaTeX.
+   `--flag-figures` writes `<stem>_figures/fig_p<N>_<M>.png` at 200 dpi and
+   `<stem>_figures.json` ({stem, regions: [{id, page, bbox, caption, file,
+   description}]}), one entry per placeholder in placeholder order;
+   `--apply-figures` inserts each non-empty description under the M-th
+   placeholder of page N as a block quote opening with
+   `<!-- figure description: model-transcribed -->`. Both flags are off by
+   default and change nothing in the Markdown when absent.
 
 ### Decisions that look wrong but aren't
 
@@ -291,6 +304,24 @@ parentheses fails if the fix is undone):
   legend, also when its "<" extracted as nothing or as a control character.
   The glyphs are not banned: the star footnote on the fixture's page 2 must
   survive. R00315 emitted 36 references and 4 legend lines as notes.
+- a paragraph that opens with `* `, `+ `, `- ` or `N. ` and is not a ListItem
+  is escaped in render (`list_lookalikes`; R00315's starred references).
+  `content_words` removes the escape, so the metric is unchanged by it.
+- an equation set as a picture is an Equation, not a Figure (`repro` p. 3):
+  a caption-less raster no taller than `RASTER_EQ_MAX_HEIGHT` (0.2 of the
+  page) with an equation number beside it, a "Where:" or definition line
+  under it, or a sentence above it that announces a formula. It leaves
+  `<!-- equation: p. N; set as an image -->` and is cropped by --flag-math.
+  SBTi pp. 40-44: six formulas. The announcing sentence is the only signal
+  on p. 40; do not drop it.
+- --flag-figures / --apply-figures (regress.py `flag-figures`; the filled
+  manifest is tests/fixtures/repro_figures_filled.json, the result
+  tests/expected/repro_described.md). A figure known from its caption only
+  is located for the crop by `_locate_caption_figure`; inside a false table
+  region curves and filled shapes still count as the figure (Peng 2009
+  p. 2). With --images too, the Markdown links to the crops and
+  `<stem>_images/` is not written. `content_words` leaves a spliced
+  description out: it is not the document's text.
 - text-loss guard in `detect_tables`: a reconstruction that keeps fewer than
   `TABLE_FALLBACK_MIN_KEEP` (0.9) of the words in PyMuPDF's geometric cells
   loses to those cells (`tall_cell`). The geometric grid is filled from the
@@ -311,5 +342,7 @@ parentheses fails if the fix is undone):
 - Real-document validation: the user's Ragins 2012 (AMR manuscript PDF) and
   SBTi standards PDFs are the reference cases. Ask for them; do not assume
   the synthetic fixtures cover them.
+- The GUI does not expose --flag-figures or --apply-figures yet (nor the
+  math pair). WINDOWS-GUI.md is unchanged for that reason.
 - Code signing (Azure Trusted Signing) if the blog gets traction —
   SmartScreen warns on every unsigned build.

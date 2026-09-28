@@ -46,11 +46,17 @@ content to the wrong row, which shifts values silently. Sanity checks reject the
 worst reconstructions, but not all of them. **Verify any table you intend to
 read as data.** This is not yet a feature to advertise.
 
-**Figures.** Embedded raster images are extracted reliably. Vector drawings —
-plotted charts, diagrams, flowcharts — are detected heuristically by clustering
-path operators and rendering the region, which works on typical charts but will
-miss some and occasionally capture something that isn't a figure. Figures are
-placed at their position in the page, with adjacent captions attached.
+**Figures.** markerlite does not read figures; it hands them to something that
+can. Every figure it finds leaves a placeholder at its position in the text,
+`<!-- figure: p. N; caption: ... -->`, whether or not images are saved, so a
+sentence that says "as Figure 2 shows" points at something. Embedded raster
+images are found reliably. Vector drawings — plotted charts, diagrams,
+flowcharts — are detected heuristically by clustering path operators, which
+works on typical charts but will miss some and occasionally capture something
+that isn't a figure. A figure inside a scanned page is known from its caption
+only: it gets a placeholder and no image. `--flag-figures` crops each figure
+for a vision model and `--apply-figures` puts the descriptions back, marked as
+not the authors' text.
 
 **Equations.** markerlite does **not** convert formulas. The `$$` blocks hold a
 text-layer approximation — the glyphs in reading order, not LaTeX. What it does
@@ -145,6 +151,8 @@ python3 markerlite.py paper.pdf -o md_out
 python3 markerlite.py *.pdf -o md_out --images --page-markers
 python3 markerlite.py paper.pdf -o md_out --flag-math
 python3 markerlite.py --apply-math md_out/paper_math.json -o md_out
+python3 markerlite.py paper.pdf -o md_out --flag-figures
+python3 markerlite.py --apply-figures md_out/paper_figures.json -o md_out
 ```
 
 | Flag | Effect |
@@ -153,12 +161,28 @@ python3 markerlite.py --apply-math md_out/paper_math.json -o md_out
 | `--images` | extract figures (rasters and vector drawings) and link them |
 | `--flag-math` | crop equation regions and write a JSON manifest |
 | `--apply-math J` | splice transcribed LaTeX from a filled manifest into the `.md` |
+| `--flag-figures` | crop every figure at 200 dpi to `<stem>_figures/` and write `<stem>_figures.json` |
+| `--apply-figures J` | put the descriptions from a filled figure manifest under their placeholders |
 | `--page-markers` | emit `<!-- page N -->` at each page boundary |
 
 Page markers cost almost nothing in context and let you ask an LLM where in the
 source PDF something appeared.
 OCR pages always carry `<!-- ocr page N -->`, even without `--page-markers`,
 so you can distinguish recognized text from the PDF's original text layer.
+
+**Figures: crop, describe, splice.** markerlite does not read figures; it hands
+them to something that can. `--flag-figures` writes one PNG per figure and a
+manifest with one entry per placeholder: `id`, `page`, `bbox`, `caption`,
+`file` and an empty `description`. Fill in the descriptions, by hand or by
+giving the crops to any vision model, and run `--apply-figures` on the
+manifest. Each description is inserted under its figure's placeholder as a
+block quote that opens with `<!-- figure description: model-transcribed -->`,
+so it cannot be mistaken for something the authors wrote. Entries left empty
+are skipped, and applying a manifest twice gives the same file. A figure on a
+scanned page has an entry with no file, because there is no region to crop.
+An equation that the document sets as a picture is not a figure: it goes
+through `--flag-math`. With `--images` as well, the Markdown links to the same
+crops and nothing is saved twice. The app does not offer these two flags yet.
 
 `INSTALL.md` walks through the WSL setup; `WINDOWS-GUI.md` covers the native
 Windows install, the launcher, and building the exe yourself.
@@ -171,7 +195,8 @@ sys.path.insert(0, "/path/to/markerlite")   # it does `from table_recon import .
 from markerlite import convert, summarize
 
 out_path, info = convert(pathlib.Path("in.pdf"), pathlib.Path("outdir"),
-                         images=False, do_flag_math=False, page_markers=False)
+                         images=False, do_flag_math=False, page_markers=False,
+                         do_flag_figures=False)
 print(summarize(info["stats"]))
 # 17 pages → 76 KB Markdown · 3 figures · 2 equation crops
 ```
