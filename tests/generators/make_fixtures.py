@@ -1578,6 +1578,62 @@ def make_figure_dedup():
     pdf.out("figure_dedup.pdf")
 
 
+CAPTION_TABLE_ROWS = [
+    ["Variable", "Hybrid A", "Business", "Hybrid B", "Charity"],
+    ["Intent", "5.16", "4.91", "5.19", "5.40"],
+    ["Cognitive", "4.64", "4.66", "4.43", "4.41"],
+    ["Moral", "5.64", "5.35", "5.62", "5.89"],
+]
+
+
+def make_caption_inside_table():
+    """A booktabs table under a running-head rule, its two-line caption set
+    tight above the header so that both arrive in one extraction block, a
+    note below the bottom rule, and a boxed diagram with labels under that.
+
+    Bug (R02611 p. 18): the candidate ran from the running-head rule to the
+    bottom of the diagram box. The caption became the header row, split over
+    the columns, and the diagram labels became the last rows of the table.
+    The caption has no punctuation after its number.
+    """
+    pdf = Doc()
+    margin = 72.0
+    width = LETTER_W - 2 * margin
+    paras = paragraphs(2, start=31, step=3, width=4)
+    pdf.add_page()
+    pdf.text_at(margin, 40, "412", size=10)
+    pdf.right(40, "Journal of Fixtures 12(3)", size=10)
+    pdf.set_line_width(0.25)
+    pdf.line(margin, 56, margin + width, 56)
+    y = 70
+    pdf.text_at(margin, y, "Table 1 Study 1 Descriptive Statistics of Model Variables by", size=9)
+    pdf.text_at(margin, y + 10, "Experimental Condition", size=9)
+    col_w = [108, 90, 90, 90, 90]
+    bottom = booktabs_table(pdf, margin, y + 22, col_w, CAPTION_TABLE_ROWS, size=9, row_h=11)
+    pdf.text_at(margin, bottom + 4, "Note. Means on a seven-point scale.", size=8)
+    # the diagram: a frame, three nodes, two coefficients
+    top = bottom + 26
+    pdf.set_line_width(0.5)
+    pdf.rect(margin, top, width, 110, style="D")
+    for label, bx, by in (("Hybrid", margin + 30, top + 66), ("Legitimacy", margin + 190, top + 14),
+                          ("Transact", margin + 350, top + 66)):
+        pdf.rect(bx, by, 90, 30, style="D")
+        pdf.text_at(bx + 22, by + 9, label, size=8)
+    pdf.line(margin + 120, top + 72, margin + 190, top + 40)
+    pdf.line(margin + 280, top + 40, margin + 350, top + 72)
+    pdf.line(margin + 120, top + 86, margin + 350, top + 86)
+    pdf.text_at(margin + 130, top + 46, ".003", size=7)
+    pdf.text_at(margin + 320, top + 46, ".087", size=7)
+    pdf.text_at(margin + 222, top + 88, ".019", size=7)
+    pdf.set_line_width(0.2)
+    pdf.text_at(margin, top + 116, "Figure 1. Effects of Hybrid on Intent to Transact.", size=9)
+    f = Flow(pdf, [(margin, top + 140, width, 740)], size=10, leading=13)
+    f.paragraph(paras[0], space_after=6)
+    f.paragraph("Table 1 reports the means by condition.", space_after=6)
+    f.paragraph(paras[1], space_after=6)
+    pdf.out("caption_inside_table.pdf")
+
+
 def make_manuscript_numcol():
     make_manuscript("manuscript_numcol.pdf", number_column=True)
 
@@ -1740,6 +1796,7 @@ MAKERS = {
     "bold_bullets": make_bold_bullets,
     "images_inline": make_images_inline,
     "figure_dedup": make_figure_dedup,
+    "caption_inside_table": make_caption_inside_table,
     "garbled_font": make_garbled_font,
     "panel_letters": make_panel_letters,
     "dropcap": make_dropcap,

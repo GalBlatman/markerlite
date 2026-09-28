@@ -143,6 +143,74 @@ def check_garbled(workdir: pathlib.Path) -> int:
     return 1
 
 
+def table_cells(pdf: pathlib.Path, workdir: pathlib.Path):
+    """(stats, [(page, caption texts, cell matrix)]) for every table emitted."""
+    from unittest.mock import patch
+    seen = []
+    render = markerlite.render
+
+    def spy(pages, **kwargs):
+        for page in pages:
+            for blk in page.blocks:
+                if blk.btype == "Table" and not blk.ignore_for_output:
+                    parser = markerlite._TableParser()
+                    parser.feed(blk.html or "")
+                    seen.append((page.page_idx + 1,
+                                 [" ".join(c.text.split()) for c in blk.children],
+                                 [[" ".join(c.split()) for c in row]
+                                  for row in [parser.header, *parser.rows]]))
+        return render(pages, **kwargs)
+
+    workdir.mkdir(parents=True, exist_ok=True)
+    with patch.object(markerlite, "render", spy):
+        _o, info = markerlite.convert(pdf, workdir)
+    return info["stats"], seen
+
+
+CAPTION_MATRIX = [
+    ["Variable", "Hybrid A", "Business", "Hybrid B", "Charity"],
+    ["Intent", "5.16", "4.91", "5.19", "5.40"],
+    ["Cognitive", "4.64", "4.66", "4.43", "4.41"],
+    ["Moral", "5.64", "5.35", "5.62", "5.89"],
+]
+CAPTION_TEXT = ("Table 1 Study 1 Descriptive Statistics of Model Variables by "
+                "Experimental Condition")
+
+
+def check_cell_matrix(workdir: pathlib.Path) -> int:
+    """caption_inside_table: which token stands in which cell, not how many
+    words survived. The caption is one block with its own word count, the
+    note and the diagram labels are in no cell, and the body sentence that
+    opens "Table 1 reports" stays prose."""
+    stats, tables = table_cells(FIXTURES / "caption_inside_table.pdf", workdir / "matrix")
+    text = (workdir / "matrix" / "caption_inside_table.md").read_text(encoding="utf-8")
+    problems = []
+    if len(tables) != 1:
+        problems.append(f"{len(tables)} tables")
+    else:
+        _page, captions, matrix = tables[0]
+        if matrix != CAPTION_MATRIX:
+            problems.append(f"cell matrix {matrix!r}")
+        if captions != [CAPTION_TEXT]:
+            problems.append(f"caption {captions!r}")
+    if stats.get("table_caption_words") != len(CAPTION_TEXT.split()):
+        problems.append(f"caption words {stats.get('table_caption_words')!r}")
+    if stats.get("table_captions_isolated") != 1:
+        problems.append(f"captions isolated {stats.get('table_captions_isolated')!r}")
+    for phrase in ("Note. Means on a seven-point scale.", "Table 1 reports the means by condition.",
+                   "Legitimacy", ".087"):
+        if text.count(phrase) != 1:
+            problems.append(f"{phrase!r} appears {text.count(phrase)} times")
+    if text.count(CAPTION_TEXT) != 1:
+        problems.append("caption not emitted exactly once")
+    if problems:
+        print(f"FAIL  {'cell-matrix':16s} " + "; ".join(problems))
+        return 1
+    print(f"ok    {'cell-matrix':16s} 4x5 cells in place, caption apart "
+          f"({stats['table_caption_words']} words), note and diagram outside")
+    return 0
+
+
 def check_low_yield(workdir: pathlib.Path) -> int:
     """With OCR unavailable, every raster page of scanned_with_stamp is reported
     as low-yield and the summary says so. Runs without Tesseract by design."""
@@ -252,6 +320,7 @@ def main(argv=None) -> int:
             failures += check_low_yield(pathlib.Path(td))
             failures += check_conservation(pathlib.Path(td))
             failures += check_garbled(pathlib.Path(td))
+            failures += check_cell_matrix(pathlib.Path(td))
 
     if not args.names or "all_text_wrapped" in args.names:
         import unittest

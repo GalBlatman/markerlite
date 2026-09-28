@@ -271,6 +271,17 @@ parentheses fails if the fix is undone):
 - a block of single letters is never a heading (`panel_letters`).
 - `content_words` strips real tags only; a bare "<" is content. The old
   pattern undercounted SBTi by 2,079 words (16,266 vs 18,345).
+- a table candidate gives up its caption and what stands under its bottom
+  rule BEFORE reconstruction (`caption_inside_table`; regress.py's
+  `cell-matrix` check asserts which token is in which cell). Caption: leading
+  line with a table label, alone in its row, one run of text, plus its
+  continuation lines; no punctuation needed after the number. Row extent:
+  only for rule-only (second pass) candidates with no stroke inside the grid
+  other than rules, and only when a note or a diagram stands under the last
+  rule. Boxed tables are never cut (SBTi lost rows when they were). Caption
+  words are counted apart: stats `table_captions_isolated`,
+  `table_caption_words`, `table_lines_excluded`. The isolated caption is
+  emitted before its table (`Block.leads`); other captions stay after.
 - text-loss guard in `detect_tables`: a reconstruction that keeps fewer than
   `TABLE_FALLBACK_MIN_KEEP` (0.9) of the words in PyMuPDF's geometric cells
   loses to those cells (`tall_cell`). The geometric grid is filled from the
@@ -281,8 +292,8 @@ parentheses fails if the fix is undone):
 
 ## Open items
 
-- Table work follows tests/PLAN-tables.md; items 0, 1, 8, 11b done;
-  5,6,2,3,4 then 7,9,10,11a,11c pending review. Items 2 and 5 carry extra
+- Table work follows tests/PLAN-tables.md; items 0, 1, 7, 8, 11b done;
+  5,6,2,3,4 then 9,10,11a,11c pending review; 12 is evidence only. Items 2 and 5 carry extra
   evidence from five journal articles (tests/REPORT-batch2.md).
 - Pipeline documents (R00443, R00030, R00087, R00639, R00077) are read in
   place from /home/galbl/unknown-knowns/ in WSL and never copied here. Four of

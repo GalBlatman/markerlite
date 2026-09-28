@@ -348,7 +348,12 @@ pages of Peng 2009, Greenwood & Suddaby 2006, Wry et al. 2013, Jay 2013 and
 York et al. 2018 all stay prose; none is captured as a table. Recorded as a
 negative result so the item is not assumed to affect every journal.
 
-### 7. Isolate captions and constrain membership before reconstruction (report 3)
+### 7. Isolate captions and constrain membership before reconstruction (report 3) - DONE in v0.1.12
+
+Implemented in `_isolate_table` / `_split_members` (markerlite.py). Row bounding
+is limited to rule-only candidates without strokes inside the grid; boxed
+tables are untouched. Verified on R02611 p. 18 by cell matrix
+(tests/REPORT-v0.1.12.md). Not done: a wrapped header stays one row per line.
 
 **Observed mechanism:** R02611 p. 18's two-line caption becomes a seven-column
 header; diagram labels below the table also enter the candidate. `proc_captions`

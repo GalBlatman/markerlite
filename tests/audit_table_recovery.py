@@ -82,6 +82,10 @@ def capture(pdf, directory):
                 "bbox": list(state["bbox"]),
                 "source_digest": digest(source_tokens),
                 "source_tokens": len(source_tokens),
+                # The caption is split off before reconstruction and counted
+                # apart: source_tokens above are the grid's own.
+                "caption_tokens": state.get("caption_tokens", 0),
+                "lines_excluded": state.get("lines_excluded", 0),
                 "fallback": state["fell_back"],
                 "reconstruction": errors(counts, reconstruction[0] if reconstruction else ""),
                 "output": errors(counts, state["html"]),
