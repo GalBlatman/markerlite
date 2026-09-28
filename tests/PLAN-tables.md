@@ -464,6 +464,30 @@ known words recover without splitting true words. Risk: highest of these three;
 global geometry changes can alter `paper.pdf` math/numeric tokens and `hard.pdf`
 column boundaries. Defer until the targeted gap examples are measured visually.
 
+### 12. Sideways region on an upright page - evidence only
+
+**Observed mechanism:** R00443 Kraatz & Moore 2002 p. 16 emits 163 of its 336
+source words (tests/REPORT-batch3.md). The page is upright prose with a table
+set sideways on part of it. Its vertical characters are under
+`ROTATED_PAGE_MIN_FRAC` (0.8), so the page is not turned, and the rotated-line
+filter in `extract_page` then drops every sideways line. The conservation check
+reports the page as lossy, which is correct; the words are still lost.
+
+**Proposed fix:** rotate the region, not the page. Group the rotated lines into
+a connected region, extract that region through a rotated clip so its lines
+come out upright, and hand it to table detection as its own candidate, placed
+in the stream where the region stands. The page-level rule stays as it is for
+pages that are sideways as a whole. A diagonal watermark must stay dropped:
+only quarter-turn text, in a region with several parallel lines, qualifies.
+
+**Fixture:** `sideways_region.pdf`: an upright page with two paragraphs and a
+quarter-turned table between them, plus the `watermark` control. Assert the
+cell matrix of the turned table, not word counts, and that the page is no
+longer in `lossy_pages`.
+
+**Risk and rank:** medium. `watermark` and `rotated_pages` must not change.
+Not ranked against items 2-7 until reviewed. No implementation in v0.1.12.
+
 ## Review and shipment gates
 
 Ship item 0 alone first after approval, then item 1 as the first reconstruction
