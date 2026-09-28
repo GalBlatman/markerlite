@@ -93,6 +93,10 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
 - **Equation detection uses glyphs + placement, not just font names**, so
   Symbol+Times equations are caught. Equations are NOT converted to LaTeX;
   `--flag-math` crops them for a vision pass, `--apply-math` splices results.
+- **Token preservation ≠ structural correctness.** A table can keep every
+  word and still be unusable if words land in the wrong cells. Word ratios
+  (the 0.9 guards, conservation) catch loss; only per-cell token identity
+  catches misassignment. Never certify a table change on counts alone.
 - **Vendored table_recon is imported first**, marker-pdf second, and a missing
   file WARNS instead of silently setting the function to None. v0.1.0 shipped
   with that import reversed and lost borderless tables. Don't regress it.
