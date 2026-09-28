@@ -2,6 +2,7 @@
 <!-- source: ResearchGate; Institutional Distance and Legitimacy: The Case of the Multinational Enterprise; Article in Journal of Synthetic Studies · January 2026; DOI: 10.2307/259037 -->
 <!-- source: ProQuest; Institutional distance and legitimacy; Lovelace, Ada; Academy of Synthetic Studies. The Journal of Synthetic Studies; Jul 2026; 12, 3; ABI/INFORM Global; pg. 571 -->
 <!-- source: SAGE Journals (oss.sagepub.com); downloaded at SAGE Publications on December 7, 2012 -->
+<!-- source: EBSCOhost; Copyright of Journal of Synthetic Studies is the property of Academy of Synthetic Studies -->
 
 ## Institutional Distance and Legitimacy
 

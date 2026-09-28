@@ -994,6 +994,15 @@ def make_provenance_pages():
     pdf.text(238, LETTER_H - 30, "oss.sagepub.com")
     pdf.text(276, LETTER_H - 30, " at SAGE Publications on December 7, 2012")
     pdf.text(14, LETTER_H - 16, "from the SAGE Social Science Collections. All Rights Reserved.")
+
+    # p6: EBSCOhost notice page (native text, nothing else on the page)
+    pdf.add_page(format="a4")
+    f = Flow(pdf, [(margin, 72, 450, 300)], size=10, leading=13)
+    f.paragraph("Copyright of Journal of Synthetic Studies is the property of Academy of "
+                "Synthetic Studies and its content may not be copied or emailed to multiple "
+                "sites or posted to a listserv without the copyright holder's express written "
+                "permission. However, users may print, download, or email articles for "
+                "individual use.", hyphenate=False)
     pdf.out("provenance_pages.pdf")
 
 
@@ -1089,6 +1098,34 @@ def make_rotated_pages():
     doc.save(str(path), garbage=0, deflate=True, no_new_id=True)
     doc.close()
     print(f"wrote {path.relative_to(HERE.parent.parent)}  ({path.stat().st_size} bytes)")
+
+
+def make_ebsco_notice_scan():
+    """A digital page followed by the EBSCOhost notice delivered as a raster
+    (Greenwood & Suddaby 2006 ends this way). Needs OCR to be recognised.
+
+    Bug: the recognised notice came through as the article's last paragraph.
+    """
+    pdf = Doc()
+    margin, width = 72.0, LETTER_W - 144
+    pdf.add_page()
+    pdf.text_at(margin, 60, "6 Conclusion", style="B", size=14)
+    f = Flow(pdf, [(margin, 86, width, 740)], size=10, leading=13)
+    for para in paragraphs(2, start=33, step=4, width=4):
+        f.paragraph(para, space_after=8)
+    notice = Doc()
+    notice.add_page()
+    nf = Flow(notice, [(40, 60, 520, 300)], size=12, leading=15, font="Helvetica")
+    nf.paragraph("Copyright of Journal of Synthetic Studies is the property of Academy of "
+                 "Synthetic Studies and its content may not be copied or emailed to multiple "
+                 "sites or posted to a listserv without the copyright holder's express written "
+                 "permission. However, users may print, download, or email articles for "
+                 "individual use.", hyphenate=False)
+    with pymupdf.open(stream=bytes(notice.output()), filetype="pdf") as doc:
+        png = doc[0].get_pixmap(dpi=150, colorspace=pymupdf.csGRAY, alpha=False).tobytes("png")
+    pdf.add_page()
+    pdf.image(io.BytesIO(png), x=0, y=0, w=LETTER_W, h=LETTER_H)
+    pdf.out("ebsco_notice_scan.pdf")
 
 
 def make_watermark():
@@ -1402,6 +1439,7 @@ MAKERS = {
     "watermark": make_watermark,
     "bold_bullets": make_bold_bullets,
     "images_inline": make_images_inline,
+    "ebsco_notice_scan": make_ebsco_notice_scan,
     "rotated_pages": make_rotated_pages,
     "provenance_pages": make_provenance_pages,
     "tall_cell": make_tall_cell,

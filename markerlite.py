@@ -2583,6 +2583,11 @@ _RG_FOOTER = "View publication stats"
 # SAGE Journals Online: "Downloaded from <journal>.sagepub.com at <institution>
 # on <date>" at the foot of every page, split across three native lines, and
 # "from the SAGE Social Science Collections. All Rights Reserved." on page 1.
+# EBSCOhost appends a notice page (native text, or a raster of it): "Copyright
+# of <journal> is the property of <publisher> and its content may not be
+# copied or emailed to multiple sites or posted to a listserv ...".
+_EBSCO_PHRASE = "may not be copied or emailed to multiple sites or posted to a listserv"
+_EBSCO_CITE = re.compile(r"Copyright of (.+?) is the property of (.+?) and its content", re.S)
 _SAGE_HOST = re.compile(r"\b[\w.-]*sagepub\.com\b", re.I)
 _SAGE_DOWNLOADED = "Downloaded from"
 _SAGE_COLLECTIONS = "SAGE Social Science Collections"
@@ -2610,6 +2615,11 @@ def detect_provenance(doc) -> Tuple[dict, set, List[str]]:
         text = doc[idx].get_text()
         lines = _lines_of(text)
         if not lines:
+            continue
+        flat = re.sub(r"\s+", " ", text)
+        if _EBSCO_PHRASE in flat and len(flat) < 700:
+            comments.append(_ebsco_comment(flat))
+            drop_pages[idx] = "EBSCOhost"
             continue
         if any(ph in text for ph in _JSTOR_PHRASES):
             # Title is the first line; the citation is the labelled lines.
@@ -2671,6 +2681,32 @@ def detect_provenance(doc) -> Tuple[dict, set, List[str]]:
     return drop_pages, drop_lines, comments
 
 
+def _ebsco_comment(flat: str) -> str:
+    m = _EBSCO_CITE.search(flat)
+    if m:
+        return (f"<!-- source: EBSCOhost; Copyright of {m.group(1).strip()} is the property of "
+                f"{m.group(2).strip()} -->")
+    return "<!-- source: EBSCOhost -->"
+
+
+def _drop_ocr_notice(page: Page, provenance: List[str]) -> None:
+    """An aggregator notice page delivered as a raster is only recognisable
+    after OCR. When a recognised page is nothing but the EBSCO notice, hide
+    it and record the source, as detect_provenance does for the native form."""
+    if not page.ocr_used:
+        return
+    flat = re.sub(r"\s+", " ", " ".join(b.text for b in page.blocks))
+    squeezed = re.sub(r"[^a-z]", "", flat.lower())
+    key = re.sub(r"[^a-z]", "", _EBSCO_PHRASE.lower())
+    if key in squeezed and len(flat) < 700:
+        for blk in page.blocks:
+            blk.ignore_for_output = True
+        page.raster_covered = False     # nothing to yield: not a low-yield page
+        comment = _ebsco_comment(flat)
+        if not any(c.startswith("<!-- source: EBSCOhost") for c in provenance):
+            provenance.append(comment)
+
+
 def _drop_provenance_lines(page: Page, drop_lines: set) -> None:
     """Hide blocks made only of provenance lines. A stamp that is several
     native pieces ("Downloaded from ", "oss.sagepub.com", " at ...") is one
@@ -2710,6 +2746,7 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         # On an OCR'd page the native layer is gone, but Tesseract reads the
         # stamp off the rendered page, so the same texts are dropped there.
         _drop_provenance_lines(p, drop_lines)
+        _drop_ocr_notice(p, provenance)
         detect_tables(doc[i], p)
         pages.append(p)
 
