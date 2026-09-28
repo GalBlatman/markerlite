@@ -189,6 +189,11 @@ before the PyInstaller build.
 5. References section: bold "REFERENCES" heading sometimes merges with first
    entry.
 6. Inline math is not detected (Marker needs an LLM for this too).
+7. Publisher scans with an invisible OCR layer (Jay 2013) are read from that
+   layer, errors and all: footnote marks come through as "^". Re-OCR would
+   be an OCR-gate decision and has not been taken.
+8. Numbered footnotes on some two-column digital pages are not emitted as
+   definitions (York 2018: 3 of 8); stage not yet traced.
 
 Fixed and covered by the regression (do not reintroduce; the fixture in
 parentheses fails if the fix is undone):
@@ -219,9 +224,26 @@ parentheses fails if the fix is undone):
   content signature and recorded as `<!-- source: ... -->` (`provenance_pages`;
   the control title page must survive).
 - `propose_tables_from_text` keeps a block as prose when the proposed grid
-  keeps < `TABLE_FALLBACK_MIN_KEEP` of the block's words (interim; no
-  synthetic fixture yet - needs a justified two-column scan; PLAN items 4/5
-  remain the real fix). stats: `proposals_kept_prose`.
+  keeps < `TABLE_FALLBACK_MIN_KEEP` of the block's words (`justified_scan`;
+  interim, PLAN items 4/5 remain the real fix). stats: `proposals_kept_prose`.
+- footnote labels and continuation boundaries come from raw spans, never from
+  formatted Markdown (`footnote_bold_wrapped`; "**3During" gave `[^**]:`).
+  Note numbers must increase down the page.
+- sideways pages are turned upright before extraction: `/Rotate` is baked in
+  and a page with >= `ROTATED_PAGE_MIN_FRAC` (0.8) vertical characters is
+  rotated in memory (`rotated_pages`). The tilt filter alone deleted seven
+  table pages in two articles. Do not "simplify" it back to a filter.
+- EBSCOhost notice pages, native or OCR'd, are provenance (`provenance_pages`
+  p6, `ebsco_notice_scan`).
+- a significance legend ("* p < .05") is not a footnote (`table_legend`).
+- pi fonts: minus and "<" that extract as "2" and "," are repaired from the
+  document's font inventory, BEFORE tables are built (`pi_minus`). convert()
+  therefore extracts all pages first and runs detect_tables second.
+- drop capitals are reattached to their paragraph; a lone capitalised word with
+  real bold/size evidence is a heading (`dropcap`).
+- a block of single letters is never a heading (`panel_letters`).
+- `content_words` strips real tags only; a bare "<" is content. The old
+  pattern undercounted SBTi by 2,079 words (16,266 vs 18,345).
 - text-loss guard in `detect_tables`: a reconstruction that keeps fewer than
   `TABLE_FALLBACK_MIN_KEEP` (0.9) of the words in PyMuPDF's geometric cells
   loses to those cells (`tall_cell`). The geometric grid is filled from the
@@ -232,8 +254,9 @@ parentheses fails if the fix is undone):
 
 ## Open items
 
-- Table work follows tests/PLAN-tables.md; items 0, 1, 11b done; 8 next;
-  5,6,2,3,4 then 7,9,10,11a,11c pending review.
+- Table work follows tests/PLAN-tables.md; items 0, 1, 8, 11b done;
+  5,6,2,3,4 then 7,9,10,11a,11c pending review. Items 2 and 5 carry extra
+  evidence from five journal articles (tests/REPORT-batch2.md).
 - Real-document validation: the user's Ragins 2012 (AMR manuscript PDF) and
   SBTi standards PDFs are the reference cases. Ask for them; do not assume
   the synthetic fixtures cover them.

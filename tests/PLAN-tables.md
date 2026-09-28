@@ -211,6 +211,16 @@ front matter or boxed prose; items 5/6 negative fixtures gate this work. Edge
 filtering can destroy `paper.pdf`'s sparse booktabs rules; aggressive row merging
 can collapse `hard.pdf`'s real rows. Keep those exact baseline grids intact.
 
+**Evidence added by batch 2 (tests/REPORT-batch2.md, journal articles):**
+Greenwood & Suddaby 2006 p. 7 (Table 1, three columns of wrapped text, emitted
+as one 13-column fallback row), p. 10 (Table 2, 10 columns, one row), p. 11
+(Table 3, 14 columns); York et al. 2018 p. 12 (Table 1, correlation matrix
+turned upright since ab57a91: all 17 row labels merged into one cell), pp.
+14-15 (Table 2 split into five tables, coefficient and standard-error lines
+stacked in one cell), pp. 22-23 (Table 3, same shape); Jay 2013 p. 6 (Table 1
+split in two, header row lost). These are ruled or booktabs tables in
+two-column journal pages, not compliance tables: batch C starts with both kinds.
+
 ### 3. Keep criterion lead-ins with the following bullets
 
 **Observed mechanism:** SBTi p. 10 places “Criterion not met if:” at the end of
@@ -292,6 +302,13 @@ all words preserved. This paired test isolates structure from typography.
 Over-rejection erases legitimate one-column tables; requiring vertical rules
 breaks `paper.pdf` booktabs. Verify `hard.pdf`'s ruled table stays a table.
 
+**Evidence added by batch 2 (tests/REPORT-batch2.md):** Peng et al. 2009 p. 2
+(two-column body prose beside Figure 1 emitted as a 6-column table of line
+fragments, "| the ity and mal 1). use well | last three (North, 1990; ..."),
+from detect_tables; Wry et al. 2013 p. 37 (six numbered endnotes emitted as a
+2-column table "| 1. | Note that the data for 2011 ...", from
+propose_tables_from_text, which also costs the document its footnotes).
+
 ### 6. Reject journal-front-matter pseudo-tables (report 1)
 
 **Observed mechanism:** R01285 and R02611 p. 1 still merge title, journal metadata,
@@ -311,6 +328,11 @@ is intact, abstract label remains with text, and real table cells survive.
 **Risk and rank:** no demonstrated SBTi word gain / medium risk. A page-position
 ban could delete `hard.pdf`'s or `paper.pdf`'s first-page table. This is a safety
 prerequisite for item 2, not a shortcut for raising the area threshold.
+
+**Evidence added by batch 2 (tests/REPORT-batch2.md):** no new case. The first
+pages of Peng 2009, Greenwood & Suddaby 2006, Wry et al. 2013, Jay 2013 and
+York et al. 2018 all stay prose; none is captured as a table. Recorded as a
+negative result so the item is not assumed to affect every journal.
 
 ### 7. Isolate captions and constrain membership before reconstruction (report 3)
 
@@ -337,7 +359,7 @@ numeric rows, and no diagram labels in any cell.
 start with “Table”; excessive clipping loses notes or tall rows. Protect the
 caption, header band, and sparse rules of `paper.pdf`, and all `hard.pdf` cells.
 
-### 8. Parse footnote labels before inline formatting (remaining report 7)
+### 8. Parse footnote labels before inline formatting (remaining report 7) - DONE 699c4f3
 
 **Observed mechanism:** R02027 p. 3's bold notes 3/4 become multiple `[^**]:`
 definitions. The source-label logic works earlier, but `render` reparses the
