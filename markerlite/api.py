@@ -25,25 +25,52 @@ from sklearn.cluster import KMeans
 from sklearn.exceptions import ConvergenceWarning
 
 from .model import *
-from .extraction import (_drop_ocr_notice, _drop_provenance_lines, _remap_pi_fonts,
-                         detect_provenance, extract_page)
+from .extraction import (
+    _drop_ocr_notice,
+    _drop_provenance_lines,
+    _remap_pi_fonts,
+    detect_provenance,
+    extract_page,
+)
 from .tables import detect_tables, propose_tables_from_text
 from .classification import body_font_size, classify
-from .processors import (_protect_numeric_records, proc_blockquote, proc_captions,
-                         proc_code, proc_continuation, proc_footnotes,
-                         proc_ignore_common, proc_line_numbers, proc_list_indent,
-                         proc_marginalia, proc_merge_equations, proc_reflow,
-                         proc_section_levels)
-from .figures import (_attach_figure_source_text, _figures_from_captions,
-                      _prepare_figure_zones, _promote_figure_captions,
-                      _route_raster_equations, flag_figures, flag_math,
-                      place_figures)
+from .processors import (
+    _protect_numeric_records,
+    proc_blockquote,
+    proc_captions,
+    proc_code,
+    proc_continuation,
+    proc_footnotes,
+    proc_ignore_common,
+    proc_line_numbers,
+    proc_list_indent,
+    proc_marginalia,
+    proc_merge_equations,
+    proc_reflow,
+    proc_section_levels,
+)
+from .figures import (
+    _attach_figure_source_text,
+    _figures_from_captions,
+    _prepare_figure_zones,
+    _promote_figure_captions,
+    _route_raster_equations,
+    flag_figures,
+    flag_math,
+    place_figures,
+)
 from .render import render
 from .stats import _emitted_words, content_words
 
-def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
-            do_flag_math=False, page_markers=False,
-            do_flag_figures=False) -> Tuple[pathlib.Path, dict]:
+
+def convert(
+    path: pathlib.Path,
+    outdir: pathlib.Path,
+    images=False,
+    do_flag_math=False,
+    page_markers=False,
+    do_flag_figures=False,
+) -> Tuple[pathlib.Path, dict]:
     """Convert one PDF. Returns (markdown path, info).
 
     ``info`` carries ``regions`` (equation crops, when --flag-math ran) and
@@ -56,15 +83,27 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         if i in drop_pages:
             # An aggregator cover: nothing on it is the article. Keep an
             # empty page so page numbers in markers stay true to the PDF.
-            removed = [{"page": i + 1, "bbox": list(ln["bbox"]),
-                        "text": "".join(sp["text"] for sp in ln["spans"]),
-                        "reason": "provenance"}
-                       for block in doc[i].get_text("dict")["blocks"]
-                       for ln in block.get("lines", [])]
-            pages.append(Page(page_idx=i, width=doc[i].rect.width,
-                              height=doc[i].rect.height, blocks=[], suppressed=removed))
+            removed = [
+                {
+                    "page": i + 1,
+                    "bbox": list(ln["bbox"]),
+                    "text": "".join(sp["text"] for sp in ln["spans"]),
+                    "reason": "provenance",
+                }
+                for block in doc[i].get_text("dict")["blocks"]
+                for ln in block.get("lines", [])
+            ]
+            pages.append(
+                Page(
+                    page_idx=i,
+                    width=doc[i].rect.width,
+                    height=doc[i].rect.height,
+                    blocks=[],
+                    suppressed=removed,
+                )
+            )
             continue
-        p = extract_page(doc[i], i)   # may turn a sideways page upright, in memory
+        p = extract_page(doc[i], i)  # may turn a sideways page upright, in memory
         # On an OCR'd page the native layer is gone, but Tesseract reads the
         # stamp off the rendered page, so the same texts are dropped there.
         _drop_provenance_lines(p, drop_lines)
@@ -112,8 +151,9 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
     if do_flag_math:
         manifest = flag_math(doc, pages, outdir, path.stem)
     if do_flag_figures:
-        manifest["figures"] = flag_figures(doc, pages, outdir, path.stem,
-                                           link=images)["regions"]
+        manifest["figures"] = flag_figures(doc, pages, outdir, path.stem, link=images)[
+            "regions"
+        ]
 
     md = render(pages, page_markers=page_markers)
     if provenance:
@@ -126,10 +166,13 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         emitted = _emitted_words(p)
         if p.raster_covered and emitted < LOW_YIELD_WORDS:
             low_yield.append(p.page_idx + 1)
-        if (p.source_words >= CONSERVATION_MIN_SOURCE
-                and emitted < CONSERVATION_MIN * p.source_words):
-            lossy.append({"page": p.page_idx + 1, "source": p.source_words,
-                          "emitted": emitted})
+        if (
+            p.source_words >= CONSERVATION_MIN_SOURCE
+            and emitted < CONSERVATION_MIN * p.source_words
+        ):
+            lossy.append(
+                {"page": p.page_idx + 1, "source": p.source_words, "emitted": emitted}
+            )
     manifest["stats"] = {
         "suppressed": [record for page in pages for record in page.suppressed],
         "pages": len(pages),
@@ -143,12 +186,15 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         "pi_glyphs_repaired": pi_spans,
         "figures": n_figures,
         "figure_crops": sum(1 for f in manifest.get("figures", []) if f.get("file")),
-        "figures_saved": sum(1 for p in pages for b in p.blocks
-                             if b.btype == "Figure" and b.image_path),
+        "figures_saved": sum(
+            1 for p in pages for b in p.blocks if b.btype == "Figure" and b.image_path
+        ),
         "equations": len(manifest.get("regions", [])),
         "ocr_pages": sum(1 for p in pages if p.ocr_used),
         "image_only_pages": sum(1 for p in pages if p.image_only),
-        "provenance": [c.split(";")[0].replace("<!-- source: ", "") for c in provenance],
+        "provenance": [
+            c.split(";")[0].replace("<!-- source: ", "") for c in provenance
+        ],
         "tables": sum(p.tables_emitted for p in pages),
         "tables_fallback": sum(p.tables_fell_back for p in pages),
         "table_captions_isolated": sum(p.table_captions_isolated for p in pages),

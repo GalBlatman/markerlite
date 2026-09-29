@@ -27,13 +27,18 @@ from sklearn.exceptions import ConvergenceWarning
 from .model import *
 from .tables import _html_word_count
 
+
 def _emitted_words(page: Page) -> int:
     """Words this page contributes to the Markdown: the text of every block
     that is rendered, and for a table the words of the HTML it renders from
     (its grid may hold fewer words than the blocks it consumed)."""
     total = 0
     for blk in page.blocks:
-        if blk.ignore_for_output or blk.btype in ("PageHeader", "PageFooter", "ImageMarker"):
+        if blk.ignore_for_output or blk.btype in (
+            "PageHeader",
+            "PageFooter",
+            "ImageMarker",
+        ):
             continue
         if blk.btype == "Table" and not blk.fallback_paragraphs:
             total += _html_word_count(blk.html or "")
@@ -44,12 +49,14 @@ def _emitted_words(page: Page) -> int:
             total += len(child.text.split())
     return total
 
+
 def content_words(md: str) -> int:
     """The project's one word metric ("content words"): whitespace tokens of
     the Markdown after removing HTML comments, table separator rows, HTML
     tags, heading hashes, pipes, emphasis stars and $$ fences, NFKC-normalised.
     tests/audit_table_recovery.py and the GUI both use this."""
     import unicodedata
+
     # A description spliced in by --apply-figures is not the document's
     # text: the whole block quote goes, before its opening comment does.
     text = _FIGURE_DESCRIPTION_BLOCK.sub(" ", md)
@@ -66,38 +73,55 @@ def content_words(md: str) -> int:
     text = text.replace("|", " ").replace("*", "").replace("$$", "")
     return len(unicodedata.normalize("NFKC", unescape(text)).split())
 
+
 def stat_warnings(stats: dict) -> List[str]:
     """Human-readable warnings derived from convert()'s stats, shared by
     summarize(), the GUI's file list and the run log."""
     out: List[str] = []
     if stats.get("image_only_pages") and not stats.get("ocr_pages"):
         n = stats["image_only_pages"]
-        out.append(f"{n} image-only page{'s' * (n != 1)}, 0 OCR'd \u2014 check Tesseract")
+        out.append(
+            f"{n} image-only page{'s' * (n != 1)}, 0 OCR'd \u2014 check Tesseract"
+        )
     low = stats.get("low_yield_pages") or []
     if low:
-        shown = ", ".join(str(n) for n in low[:8]) + (", \u2026" if len(low) > 8 else "")
+        shown = ", ".join(str(n) for n in low[:8]) + (
+            ", \u2026" if len(low) > 8 else ""
+        )
         out.append(f"{len(low)} low-yield page{'s' * (len(low) != 1)} ({shown})")
     garbled = stats.get("garbled_pages") or []
     if garbled:
-        shown = ", ".join(str(n) for n in garbled[:8]) + (", \u2026" if len(garbled) > 8 else "")
-        fate = ("OCR'd instead" if stats.get("garbled_ocr") == len(garbled)
-                else "OCR unavailable \u2014 check Tesseract")
-        out.append(f"{len(garbled)} garbled page{'s' * (len(garbled) != 1)} ({shown}): "
-                   f"text layer unreadable, {fate}")
+        shown = ", ".join(str(n) for n in garbled[:8]) + (
+            ", \u2026" if len(garbled) > 8 else ""
+        )
+        fate = (
+            "OCR'd instead"
+            if stats.get("garbled_ocr") == len(garbled)
+            else "OCR unavailable \u2014 check Tesseract"
+        )
+        out.append(
+            f"{len(garbled)} garbled page{'s' * (len(garbled) != 1)} ({shown}): "
+            f"text layer unreadable, {fate}"
+        )
     lossy = stats.get("lossy_pages") or []
     if lossy:
-        shown = ", ".join(f"p{d['page']} {d['emitted']}/{d['source']}" for d in lossy[:6])
+        shown = ", ".join(
+            f"p{d['page']} {d['emitted']}/{d['source']}" for d in lossy[:6]
+        )
         shown += ", \u2026" if len(lossy) > 6 else ""
         out.append(f"{len(lossy)} lossy page{'s' * (len(lossy) != 1)} ({shown})")
     if stats.get("tables_fallback"):
         n = stats["tables_fallback"]
-        out.append(f"{n} of {stats.get('tables', n)} table{'s' * (n != 1)} kept as prose")
+        out.append(
+            f"{n} of {stats.get('tables', n)} table{'s' * (n != 1)} kept as prose"
+        )
     if stats.get("proposals_kept_prose"):
         n = stats["proposals_kept_prose"]
         out.append(f"{n} text-table proposal{'s' * (n != 1)} kept as prose")
     if stats.get("provenance"):
         out.append("provenance page dropped: " + ", ".join(stats["provenance"]))
     return out
+
 
 def summarize(stats: dict) -> str:
     """'17 pages -> 76 KB Markdown · 3 figures · 2 equation crops'."""
@@ -109,7 +133,9 @@ def summarize(stats: dict) -> str:
     if stats.get("figures"):
         n = stats["figures"]
         saved = stats.get("figures_saved", 0)
-        note = "" if saved == n else (f" ({saved} saved)" if saved else " (placeholders)")
+        note = (
+            "" if saved == n else (f" ({saved} saved)" if saved else " (placeholders)")
+        )
         parts.append(f"{n} figure{'s' * (n != 1)}{note}")
     if stats.get("equations"):
         n = stats["equations"]

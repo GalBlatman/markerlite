@@ -8,7 +8,9 @@ def main() -> None:
     source = (root / "CLAUDE.md").read_bytes()
     title, separator, body = source.partition(b"\n")
     title = title.replace(b"for Claude Code", b"for coding agents")
-    header = b"<!-- GENERATED from CLAUDE.md by tools/sync_agents.py - do not edit -->\n"
+    header = (
+        b"<!-- GENERATED from CLAUDE.md by tools/sync_agents.py - do not edit -->\n"
+    )
     (root / "AGENTS.md").write_bytes(header + title + separator + body)
 
 

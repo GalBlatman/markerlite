@@ -5,6 +5,7 @@ Fixture hashes are always runnable. ``--scope full`` also verifies tests/real
 and every logical Packet A/B source, resolving packet PDFs by their recorded
 SHA-256 across one or more ``--corpus-root`` directories.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -41,8 +42,9 @@ def sha256_file(path: pathlib.Path) -> str:
 
 
 def canonical_hash(value) -> str:
-    data = json.dumps(value, sort_keys=True, separators=(",", ":"),
-                      ensure_ascii=False).encode("utf-8")
+    data = json.dumps(
+        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
     return sha256_bytes(data)
 
 
@@ -50,8 +52,13 @@ def tesseract_version() -> str | None:
     executable = shutil.which("tesseract")
     if not executable:
         return None
-    result = subprocess.run([executable, "--version"], capture_output=True,
-                            text=True, encoding="utf-8", errors="replace")
+    result = subprocess.run(
+        [executable, "--version"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
     if result.returncode:
         return None
     return result.stdout.splitlines()[0].strip() if result.stdout else None
@@ -95,17 +102,21 @@ def packet_sources(packet_root: pathlib.Path) -> list[dict]:
 
 def source_specs(packet_root: pathlib.Path) -> list[dict]:
     specs = []
-    for group, directory in (("fixture", ROOT / "tests" / "fixtures"),
-                             ("real", ROOT / "tests" / "real")):
+    for group, directory in (
+        ("fixture", ROOT / "tests" / "fixtures"),
+        ("real", ROOT / "tests" / "real"),
+    ):
         for path in sorted(directory.glob("*.pdf")):
             rel = path.relative_to(ROOT).as_posix()
-            specs.append({
-                "id": f"{group}:{rel}",
-                "group": group,
-                "path": rel,
-                "source_sha256": sha256_file(path),
-                "mode": "default",
-            })
+            specs.append(
+                {
+                    "id": f"{group}:{rel}",
+                    "group": group,
+                    "path": rel,
+                    "source_sha256": sha256_file(path),
+                    "mode": "default",
+                }
+            )
     specs.extend(packet_sources(packet_root))
     repro = "tests/fixtures/repro.pdf"
     isolated = "tests/fixtures/isolated_ocr_page.pdf"
@@ -117,13 +128,15 @@ def source_specs(packet_root: pathlib.Path) -> list[dict]:
     ]
     for rel, mode in extras:
         path = ROOT / rel
-        specs.append({
-            "id": f"fixture:{rel}:{mode}",
-            "group": "fixture",
-            "path": rel,
-            "source_sha256": sha256_file(path),
-            "mode": mode,
-        })
+        specs.append(
+            {
+                "id": f"fixture:{rel}:{mode}",
+                "group": "fixture",
+                "path": rel,
+                "source_sha256": sha256_file(path),
+                "mode": mode,
+            }
+        )
     return specs
 
 
@@ -138,8 +151,9 @@ def index_corpus(roots: Iterable[pathlib.Path]) -> dict[str, pathlib.Path]:
     return index
 
 
-def resolve_source(spec: dict, corpus_roots: list[pathlib.Path],
-                   corpus_index: dict[str, pathlib.Path]) -> pathlib.Path | None:
+def resolve_source(
+    spec: dict, corpus_roots: list[pathlib.Path], corpus_index: dict[str, pathlib.Path]
+) -> pathlib.Path | None:
     if spec["group"] != "packet":
         path = ROOT / spec["path"]
         return path if path.is_file() else None
@@ -176,19 +190,24 @@ def run_one(spec: dict, source: pathlib.Path, work: pathlib.Path) -> dict:
     with pymupdf.open(source) as document:
         pages = len(document)
     result = dict(spec)
-    result.update({
-        "pages": pages,
-        "markdown_sha256": sha256_file(markdown),
-        "stats_sha256": canonical_hash(info["stats"]),
-        "ocr": bool(info["stats"].get("ocr_pages")),
-        "artifacts": artifact_hashes(outdir, markdown),
-    })
+    result.update(
+        {
+            "pages": pages,
+            "markdown_sha256": sha256_file(markdown),
+            "stats_sha256": canonical_hash(info["stats"]),
+            "ocr": bool(info["stats"].get("ocr_pages")),
+            "artifacts": artifact_hashes(outdir, markdown),
+        }
+    )
     return result
 
 
 def selected(entries: list[dict], scope: str) -> list[dict]:
-    groups = {"fixture"} if scope == "fixtures" else (
-        {"fixture", "real"} if scope == "repo" else {"fixture", "real", "packet"})
+    groups = (
+        {"fixture"}
+        if scope == "fixtures"
+        else ({"fixture", "real"} if scope == "repo" else {"fixture", "real", "packet"})
+    )
     return [entry for entry in entries if entry["group"] in groups]
 
 
@@ -212,8 +231,9 @@ def record(args) -> int:
         "created_with": environment(),
         "entries": entries,
     }
-    args.output.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
-                           encoding="utf-8")
+    args.output.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
     print(f"wrote {len(entries)} entries to {args.output}")
     return 0
 
@@ -223,8 +243,12 @@ def verify(args) -> int:
     entries = selected(payload["entries"], args.scope)
     current_env = environment()
     recorded_env = payload["created_with"]
-    print(f"PyMuPDF recorded={recorded_env['pymupdf']} current={current_env['pymupdf']}")
-    print(f"Tesseract recorded={recorded_env['tesseract']!r} current={current_env['tesseract']!r}")
+    print(
+        f"PyMuPDF recorded={recorded_env['pymupdf']} current={current_env['pymupdf']}"
+    )
+    print(
+        f"Tesseract recorded={recorded_env['tesseract']!r} current={current_env['tesseract']!r}"
+    )
     corpus_index = index_corpus(args.corpus_root) if args.scope == "full" else {}
     failures = 0
     skipped_ocr = 0
@@ -240,25 +264,45 @@ def verify(args) -> int:
                 print(f"FAIL source hash {expected['id']}: {source}")
                 failures += 1
                 continue
-            if expected["ocr"] and current_env["tesseract"] != recorded_env["tesseract"]:
+            if (
+                expected["ocr"]
+                and current_env["tesseract"] != recorded_env["tesseract"]
+            ):
                 print(f"SKIP OCR version mismatch {expected['id']}")
                 skipped_ocr += 1
                 continue
-            print(f"verify {number:02d}/{len(entries):02d} {expected['id']}", flush=True)
-            actual = run_one({key: expected[key] for key in
-                              ("id", "group", "path", "source_sha256", "mode")},
-                             source, work)
-            differences = [key for key in
-                           ("pages", "markdown_sha256", "stats_sha256", "ocr", "artifacts")
-                           if actual[key] != expected[key]]
+            print(
+                f"verify {number:02d}/{len(entries):02d} {expected['id']}", flush=True
+            )
+            actual = run_one(
+                {
+                    key: expected[key]
+                    for key in ("id", "group", "path", "source_sha256", "mode")
+                },
+                source,
+                work,
+            )
+            differences = [
+                key
+                for key in (
+                    "pages",
+                    "markdown_sha256",
+                    "stats_sha256",
+                    "ocr",
+                    "artifacts",
+                )
+                if actual[key] != expected[key]
+            ]
             if differences:
                 failures += 1
                 print(f"FAIL {expected['id']}: {', '.join(differences)}")
     if failures:
         print(f"{failures} golden entries differ; {skipped_ocr} OCR entries skipped")
         return 1
-    print(f"all {len(entries) - skipped_ocr} compared golden entries match; "
-          f"{skipped_ocr} OCR entries skipped")
+    print(
+        f"all {len(entries) - skipped_ocr} compared golden entries match; "
+        f"{skipped_ocr} OCR entries skipped"
+    )
     return 0
 
 
@@ -267,16 +311,19 @@ def parse_args(argv=None):
     sub = parser.add_subparsers(dest="command", required=True)
     for name in ("record", "verify"):
         command = sub.add_parser(name)
-        command.add_argument("--scope", choices=("fixtures", "repo", "full"),
-                             default="fixtures")
-        command.add_argument("--corpus-root", action="append", type=pathlib.Path,
-                             default=[])
+        command.add_argument(
+            "--scope", choices=("fixtures", "repo", "full"), default="fixtures"
+        )
+        command.add_argument(
+            "--corpus-root", action="append", type=pathlib.Path, default=[]
+        )
         if name == "record":
             command.add_argument("--packet-root", type=pathlib.Path, required=True)
             command.add_argument("--output", type=pathlib.Path, required=True)
         else:
-            command.add_argument("--manifest", type=pathlib.Path,
-                                 default=DEFAULT_MANIFEST)
+            command.add_argument(
+                "--manifest", type=pathlib.Path, default=DEFAULT_MANIFEST
+            )
     return parser.parse_args(argv)
 
 

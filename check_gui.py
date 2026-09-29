@@ -7,12 +7,15 @@ dependencies, so it runs anywhere in well under a second.
 
     python check_gui.py
 """
+
 import ast
 import pathlib
 import re
 import sys
 
-src = (pathlib.Path(__file__).resolve().parent / "markerlite_gui.py").read_text(encoding="utf-8")
+src = (pathlib.Path(__file__).resolve().parent / "markerlite_gui.py").read_text(
+    encoding="utf-8"
+)
 tree = ast.parse(src)
 cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == "App")
 methods = {m.name for m in cls.body if isinstance(m, ast.FunctionDef)}
@@ -23,6 +26,9 @@ methods = {m.name for m in cls.body if isinstance(m, ast.FunctionDef)}
 called = set(re.findall(r"self\.(_?[A-Za-z_]+)\(", src))
 missing = sorted(called - methods)
 if missing:
-    print("FAIL markerlite_gui.py: App calls methods that do not exist:", ", ".join(missing))
+    print(
+        "FAIL markerlite_gui.py: App calls methods that do not exist:",
+        ", ".join(missing),
+    )
     sys.exit(1)
 print(f"OK: App defines {len(methods)} methods; all {len(called)} self-calls resolve.")

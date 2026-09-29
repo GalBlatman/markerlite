@@ -44,9 +44,11 @@ def digest(value):
 
 def errors(source, rendered):
     counter = Counter(html_words(rendered))
-    return {"tokens": sum(counter.values()),
-            "missing": sum((source - counter).values()),
-            "duplicated_or_extra": sum((counter - source).values())}
+    return {
+        "tokens": sum(counter.values()),
+        "missing": sum((source - counter).values()),
+        "duplicated_or_extra": sum((counter - source).values()),
+    }
 
 
 def markdown_words(text):
@@ -66,33 +68,46 @@ def markdown_words(text):
 def capture(pdf, directory):
     records, cells = [], []
     source, start = inspect.getsourcelines(markerlite_tables.detect_tables)
-    decision_line = start + next(i for i, text in enumerate(source)
-                                 if "page.tables_emitted += 1" in text)
+    decision_line = start + next(
+        i for i, text in enumerate(source) if "page.tables_emitted += 1" in text
+    )
 
     def trace(frame, event, arg):
         if frame.f_code is not markerlite_tables.detect_tables.__code__:
             return None
         if event == "line" and frame.f_lineno == decision_line:
             state = frame.f_locals
-            source_tokens = [token for block in state["members"] for line in block.lines
-                             for token in words(line.text)]
+            source_tokens = [
+                token
+                for block in state["members"]
+                for line in block.lines
+                for token in words(line.text)
+            ]
             counts = Counter(source_tokens)
             reconstruction = state.get("res")
-            records.append({
-                "region": len(records) + 1,
-                "page": state["page"].page_idx + 1,
-                "bbox": list(state["bbox"]),
-                "source_digest": digest(source_tokens),
-                "source_tokens": len(source_tokens),
-                # The caption is split off before reconstruction and counted
-                # apart: source_tokens above are the grid's own.
-                "caption_tokens": state.get("caption_tokens", 0),
-                "lines_excluded": state.get("lines_excluded", 0),
-                "fallback": state["fell_back"],
-                "reconstruction": errors(counts, reconstruction[0] if reconstruction else ""),
-                "output": errors(counts, "\n".join(block.text for block in state["members"])
-                                 if state["fell_back"] else state["html"]),
-            })
+            records.append(
+                {
+                    "region": len(records) + 1,
+                    "page": state["page"].page_idx + 1,
+                    "bbox": list(state["bbox"]),
+                    "source_digest": digest(source_tokens),
+                    "source_tokens": len(source_tokens),
+                    # The caption is split off before reconstruction and counted
+                    # apart: source_tokens above are the grid's own.
+                    "caption_tokens": state.get("caption_tokens", 0),
+                    "lines_excluded": state.get("lines_excluded", 0),
+                    "fallback": state["fell_back"],
+                    "reconstruction": errors(
+                        counts, reconstruction[0] if reconstruction else ""
+                    ),
+                    "output": errors(
+                        counts,
+                        "\n".join(block.text for block in state["members"])
+                        if state["fell_back"]
+                        else state["html"],
+                    ),
+                }
+            )
         return trace
 
     original_render = markerlite_api.render
@@ -100,12 +115,23 @@ def capture(pdf, directory):
     def render(pages, **kwargs):
         for page in pages:
             for block in page.blocks:
-                if block.btype == "Table" and not block.ignore_for_output and not block.fallback_paragraphs:
+                if (
+                    block.btype == "Table"
+                    and not block.ignore_for_output
+                    and not block.fallback_paragraphs
+                ):
                     parser = markerlite._TableParser()
                     parser.feed(block.html)
-                    cells.append({"page": page.page_idx + 1, "bbox": list(block.bbox),
-                                  "cell_hashes": [[digest(cell) for cell in row]
-                                                  for row in [parser.header, *parser.rows]]})
+                    cells.append(
+                        {
+                            "page": page.page_idx + 1,
+                            "bbox": list(block.bbox),
+                            "cell_hashes": [
+                                [digest(cell) for cell in row]
+                                for row in [parser.header, *parser.rows]
+                            ],
+                        }
+                    )
         return original_render(pages, **kwargs)
 
     previous_trace = sys.gettrace()
@@ -120,8 +146,12 @@ def capture(pdf, directory):
     expected_records = info["stats"]["tables"] - info["stats"].get("proposals", 0)
     assert len(records) == expected_records, "incomplete decision trace"
     assert sum(r["fallback"] for r in records) == info["stats"]["tables_fallback"]
-    return {"stats": info["stats"], "words": markdown_words(md.read_text(encoding="utf-8")),
-            "regions": records, "tables": cells}
+    return {
+        "stats": info["stats"],
+        "words": markdown_words(md.read_text(encoding="utf-8")),
+        "regions": records,
+        "tables": cells,
+    }
 
 
 def main():
@@ -130,13 +160,19 @@ def main():
     parser.add_argument("--without-wrapped", action="store_true")
     parser.add_argument("pdfs", nargs="*", help="audit only these PDFs")
     args = parser.parse_args()
-    paths = [ROOT / "tests/real/Target-Validation-Protocol.pdf",
-             ROOT / "tests/real/Ragins craft of clear writing 2012.pdf",
-             ROOT / "tests/fixtures/paper.pdf", ROOT / "tests/fixtures/hard.pdf"]
+    paths = [
+        ROOT / "tests/real/Target-Validation-Protocol.pdf",
+        ROOT / "tests/real/Ragins craft of clear writing 2012.pdf",
+        ROOT / "tests/fixtures/paper.pdf",
+        ROOT / "tests/fixtures/hard.pdf",
+    ]
     # Scanned reference documents need Tesseract; they are audited when present
     # and on PATH (WSL), and skipped otherwise.
-    scans = [ROOT / "tests/real/suchman1995.pdf", ROOT / "tests/real/kostova1999.pdf",
-             ROOT / "tests/real/kitchener2002.pdf"]
+    scans = [
+        ROOT / "tests/real/suchman1995.pdf",
+        ROOT / "tests/real/kostova1999.pdf",
+        ROOT / "tests/real/kitchener2002.pdf",
+    ]
     if args.pdfs:
         paths = [pathlib.Path(x) for x in args.pdfs]
     elif shutil.which("tesseract"):
@@ -145,14 +181,22 @@ def main():
     if missing:
         parser.error("missing local reference PDFs: " + ", ".join(missing))
     results = {}
-    recovery = (lambda lines, original, *unused: original) if args.without_wrapped else (
-        markerlite_tables.recover_wrapped_lines)
+    recovery = (
+        (lambda lines, original, *unused: original)
+        if args.without_wrapped
+        else (markerlite_tables.recover_wrapped_lines)
+    )
     with tempfile.TemporaryDirectory(prefix="markerlite-table-audit-") as directory:
         with patch.object(markerlite_tables, "recover_wrapped_lines", recovery):
             for pdf in paths:
                 results[pdf.stem] = capture(pdf, pathlib.Path(directory))
-                print(pdf.stem, results[pdf.stem]["stats"],
-                      "content words:", results[pdf.stem]["words"], flush=True)
+                print(
+                    pdf.stem,
+                    results[pdf.stem]["stats"],
+                    "content words:",
+                    results[pdf.stem]["words"],
+                    flush=True,
+                )
     args.output.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
 
 

@@ -19,8 +19,17 @@ from . import cli as cli
 from . import table_wrap as table_wrap
 
 _MODULES = (
-    model, extraction, classification, render_module, tables, processors,
-    figures, stats, api, cli, table_wrap,
+    model,
+    extraction,
+    classification,
+    render_module,
+    tables,
+    processors,
+    figures,
+    stats,
+    api,
+    cli,
+    table_wrap,
 )
 
 # Preserve the practical v0.1.14 module surface, including private helpers

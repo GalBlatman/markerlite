@@ -30,22 +30,30 @@ from .tables import _overlap_frac
 from .render import block_text
 from .classification import body_font_size
 
+
 def _prepare_figure_zones(pm, page):
     # Include the label apron around detected artwork; axis labels often sit
     # just outside the raster/path box. This only protects source text.
     pad = 0.04 * page.height
     ypad = 0.01 * page.height
-    page.figure_cores = [box for _, _, _, box in _figure_regions(pm, page)
-                         if not any(_overlap_frac(box, t) > 0.5 for t in page.table_zones)]
-    page.figure_zones = [(x0-pad, y0-ypad, x1+pad, y1+ypad)
-                         for x0,y0,x1,y1 in page.figure_cores]
+    page.figure_cores = [
+        box
+        for _, _, _, box in _figure_regions(pm, page)
+        if not any(_overlap_frac(box, t) > 0.5 for t in page.table_zones)
+    ]
+    page.figure_zones = [
+        (x0 - pad, y0 - ypad, x1 + pad, y1 + ypad)
+        for x0, y0, x1, y1 in page.figure_cores
+    ]
     for block in page.blocks:
         if not FIGURE_LABEL.match(block.text.strip()):
             continue
         box = _locate_caption_figure(pm, page, block.bbox)
         if box:
             page.figure_cores.append(box)
-            page.figure_zones.append(tuple(pymupdf.Rect(box)+(-pad,-ypad,pad,ypad)))
+            page.figure_zones.append(
+                tuple(pymupdf.Rect(box) + (-pad, -ypad, pad, ypad))
+            )
             continue
         if not page.raster_covered:
             continue
@@ -53,74 +61,110 @@ def _prepare_figure_zones(pm, page):
         # A nearby run of short labels, including three numeric ticks, supplies
         # a text-layer extent. Stop at paragraph-sized text; no OCR vocabulary.
         for below in (True, False):
-            candidates = [b for b in page.blocks if b is not block and
-                          ((b.y_start >= block.y_end) if below else (b.y_end <= block.y_start))]
-            candidates.sort(key=lambda b:b.y_start, reverse=not below)
-            taken=[];edge=block.y_end if below else block.y_start
+            candidates = [
+                b
+                for b in page.blocks
+                if b is not block
+                and (
+                    (b.y_start >= block.y_end) if below else (b.y_end <= block.y_start)
+                )
+            ]
+            candidates.sort(key=lambda b: b.y_start, reverse=not below)
+            taken = []
+            edge = block.y_end if below else block.y_start
             for b in candidates:
-                gap=b.y_start-edge if below else edge-b.y_end
-                if gap > 0.07*page.height or len(b.text.split()) > 12:
+                gap = b.y_start - edge if below else edge - b.y_end
+                if gap > 0.07 * page.height or len(b.text.split()) > 12:
                     break
-                taken.append(b);edge=max(edge,b.y_end) if below else min(edge,b.y_start)
-            ticks=sum(bool(re.fullmatch(r"[−-]?\d+(?:\.\d+)?", ln.text.strip()))
-                      for b in taken for ln in b.lines)
+                taken.append(b)
+                edge = max(edge, b.y_end) if below else min(edge, b.y_start)
+            ticks = sum(
+                bool(re.fullmatch(r"[−-]?\d+(?:\.\d+)?", ln.text.strip()))
+                for b in taken
+                for ln in b.lines
+            )
             if ticks >= 3:
                 box = _bbox_of([b.bbox for b in taken])
                 page.figure_cores.append(box)
                 page.figure_zones.append(box)
 
+
 def _attach_figure_source_text(pages):
     for page in pages:
-        figures=[b for b in page.blocks if b.btype=="Figure" and not b.ignore_for_output]
+        figures = [
+            b for b in page.blocks if b.btype == "Figure" and not b.ignore_for_output
+        ]
         for zone, core in zip(page.figure_zones, page.figure_cores):
             if not figures:
                 continue
-            figure=min(figures,key=lambda f: abs((f.y_start+f.y_end)-(zone[1]+zone[3])))
+            figure = min(
+                figures, key=lambda f: abs((f.y_start + f.y_end) - (zone[1] + zone[3]))
+            )
             for block in page.blocks:
-                if (block.ignore_for_output or block.btype in ("Figure","Table","Caption","Footnote")
-                        or any(block is c for f in figures for c in f.children)):
+                if (
+                    block.ignore_for_output
+                    or block.btype in ("Figure", "Table", "Caption", "Footnote")
+                    or any(block is c for f in figures for c in f.children)
+                ):
                     continue
-                contained = sum(_overlap_frac(ln.bbox, zone) > 0.5 for ln in block.lines)
-                if (not block.lines or contained < 0.8*len(block.lines)
-                        or any(len(ln.text.split()) > 12 for ln in block.lines)):
+                contained = sum(
+                    _overlap_frac(ln.bbox, zone) > 0.5 for ln in block.lines
+                )
+                if (
+                    not block.lines
+                    or contained < 0.8 * len(block.lines)
+                    or any(len(ln.text.split()) > 12 for ln in block.lines)
+                ):
                     continue
-                kept=[]
+                kept = []
                 for line in block.lines:
                     inside = _overlap_frac(line.bbox, core) > 0.5
-                    small = max((sp.size for sp in line.spans), default=0) < 0.9*body_font_size([page])
-                    if _overlap_frac(line.bbox,zone)>0.5 and (inside or small):
+                    small = max(
+                        (sp.size for sp in line.spans), default=0
+                    ) < 0.9 * body_font_size([page])
+                    if _overlap_frac(line.bbox, zone) > 0.5 and (inside or small):
                         if line.text.strip():
                             figure.figure_text.append(line.text)
                     else:
                         kept.append(line)
-                block.lines=kept
+                block.lines = kept
                 if kept:
-                    block.bbox=_bbox_of([ln.bbox for ln in kept])
-            remaining=[]
+                    block.bbox = _bbox_of([ln.bbox for ln in kept])
+            remaining = []
             for record in page.suppressed:
-                if record["reason"]=="tilt_filter" and _overlap_frac(record["bbox"],zone)>0.5:
+                if (
+                    record["reason"] == "tilt_filter"
+                    and _overlap_frac(record["bbox"], zone) > 0.5
+                ):
                     figure.figure_text.append(record["text"])
                 else:
                     remaining.append(record)
-            page.suppressed=remaining
+            page.suppressed = remaining
 
         for label in list(page.suppressed):
-            if label["reason"] != "tilt_filter" or not FIGURE_LABEL.match(label["text"].strip()):
+            if label["reason"] != "tilt_filter" or not FIGURE_LABEL.match(
+                label["text"].strip()
+            ):
                 continue
             if not figures:
                 continue
             box = pymupdf.Rect(label["bbox"])
+
             def gap(other):
                 r = pymupdf.Rect(other)
-                return max(0, r.x0-box.x1, box.x0-r.x1, r.y0-box.y1, box.y0-r.y1)
+                return max(
+                    0, r.x0 - box.x1, box.x0 - r.x1, r.y0 - box.y1, box.y0 - r.y1
+                )
+
             figure = min(figures, key=lambda f: gap(f.bbox))
-            if gap(figure.bbox) > FIGURE_CAPTION_REACH*page.height:
+            if gap(figure.bbox) > FIGURE_CAPTION_REACH * page.height:
                 continue
-            reach = 2*min(box.width, box.height)
+            reach = 2 * min(box.width, box.height)
             for record in list(page.suppressed):
                 if record["reason"] == "tilt_filter" and gap(record["bbox"]) <= reach:
                     figure.figure_text.append(record["text"])
                     page.suppressed.remove(record)
+
 
 def _insert_pos(page: Page, y0: float) -> float:
     """Reading-order position for a graphic at vertical offset ``y0``.
@@ -137,6 +181,7 @@ def _insert_pos(page: Page, y0: float) -> float:
         return min(b.char_pos for b in below) - 0.5
     return max((b.char_pos for b in page.blocks), default=0) + 0.5
 
+
 def _vector_regions(pmpage: pymupdf.Page, min_items=8, min_side=60.0):
     """Bounding boxes of vector drawings (charts, diagrams, flowcharts).
 
@@ -150,7 +195,8 @@ def _vector_regions(pmpage: pymupdf.Page, min_items=8, min_side=60.0):
     except Exception:
         return []
     rects = [
-        pymupdf.Rect(d["rect"]) for d in drawings
+        pymupdf.Rect(d["rect"])
+        for d in drawings
         if d.get("rect") and pymupdf.Rect(d["rect"]).width < pmpage.rect.width * 0.98
     ]
     if len(rects) < min_items:
@@ -186,9 +232,13 @@ def _vector_regions(pmpage: pymupdf.Page, min_items=8, min_side=60.0):
         out.append(box)
     return out
 
-def _content_images(pm: pymupdf.Page, min_side: float = 40.0,
-                    max_page_frac: float = 0.9,
-                    span_frac: float = 0.95) -> List[Tuple[int, int, tuple]]:
+
+def _content_images(
+    pm: pymupdf.Page,
+    min_side: float = 40.0,
+    max_page_frac: float = 0.9,
+    span_frac: float = 0.95,
+) -> List[Tuple[int, int, tuple]]:
     """(index, xref, bbox) of the embedded rasters that are content.
 
     Two kinds are not: icons (either side under ``min_side`` points) and
@@ -213,10 +263,14 @@ def _content_images(pm: pymupdf.Page, min_side: float = 40.0,
         clip = pymupdf.Rect(bbox) & prect
         if clip.width * clip.height > max_page_frac * page_area:
             continue
-        if clip.height >= span_frac * prect.height or clip.width >= span_frac * prect.width:
+        if (
+            clip.height >= span_frac * prect.height
+            or clip.width >= span_frac * prect.width
+        ):
             continue
         out.append((n, xref, tuple(bbox)))
     return out
+
 
 def _insert_block(page: Page, blk: Block) -> None:
     """Put a lineless block (figure, marker) in front of the first text block
@@ -233,12 +287,14 @@ def _insert_block(page: Page, blk: Block) -> None:
             return
     page.blocks.append(blk)
 
+
 def _figure_regions(pm: pymupdf.Page, page: Page) -> List[Tuple[str, int, int, tuple]]:
     """(kind, index, xref, bbox) of every figure on the page: embedded rasters
     that are content, then clusters of vector paths that are neither a table
     nor mostly text."""
     found: List[Tuple[str, int, int, tuple]] = [
-        ("img", n, xref, bbox) for n, xref, bbox in _content_images(pm)]
+        ("img", n, xref, bbox) for n, xref, bbox in _content_images(pm)
+    ]
     taken = [f[3] for f in found]
     for n, box in enumerate(_vector_regions(pm)):
         bt = tuple(box)
@@ -246,15 +302,21 @@ def _figure_regions(pm: pymupdf.Page, page: Page) -> List[Tuple[str, int, int, t
             continue  # already captured as a raster
         # A ruled table is also "a pile of path operators". Two tells: it
         # overlaps a detected Table, or the region is mostly text.
-        if any(b.btype == "Table" and _overlap_frac(b.bbox, bt) > 0.4 for b in page.blocks):
+        if any(
+            b.btype == "Table" and _overlap_frac(b.bbox, bt) > 0.4 for b in page.blocks
+        ):
             continue
         area = max((bt[2] - bt[0]) * (bt[3] - bt[1]), 1.0)
-        text_area = sum(_overlap_frac(b.bbox, bt) * b.width * b.height
-                        for b in page.blocks if b.lines)
+        text_area = sum(
+            _overlap_frac(b.bbox, bt) * b.width * b.height
+            for b in page.blocks
+            if b.lines
+        )
         if text_area / area > 0.35:
             continue
         found.append(("vec", n, 0, bt))
     return found
+
 
 def _promote_figure_captions(pages: List[Page], max_words: int = 60) -> int:
     """Relabel a short text block that is a figure caption without a
@@ -263,7 +325,11 @@ def _promote_figure_captions(pages: List[Page], max_words: int = 60) -> int:
     for page in pages:
         for blk in page.blocks:
             # A bold caption in capitals has usually been taken for a heading.
-            if blk.btype not in ("Text", "SectionHeader") or blk.ignore_for_output                     or not blk.lines:
+            if (
+                blk.btype not in ("Text", "SectionHeader")
+                or blk.ignore_for_output
+                or not blk.lines
+            ):
                 continue
             text = blk.text.strip()
             if len(text.split()) > max_words:
@@ -272,12 +338,15 @@ def _promote_figure_captions(pages: List[Page], max_words: int = 60) -> int:
             if not m:
                 continue
             rest = m.group(3).lstrip()
-            first_line_is_label = FIGURE_LABEL.match(blk.lines[0].text.strip()) is not None \
+            first_line_is_label = (
+                FIGURE_LABEL.match(blk.lines[0].text.strip()) is not None
                 and not FIGURE_LABEL.match(blk.lines[0].text.strip()).group(3).strip()
+            )
             if first_line_is_label or not rest or rest[:1].isupper():
                 blk.btype = "Caption"
                 count += 1
     return count
+
 
 def _figures_from_captions(pages: List[Page]) -> int:
     """A figure caption that no detected region claimed still marks a figure.
@@ -306,8 +375,9 @@ def _figures_from_captions(pages: List[Page]) -> int:
                     continue
                 if any(c.btype == "Caption" for c in other.children):
                     continue
-                gap = max(0.0, max(other.y_start, blk.y_start)
-                          - min(other.y_end, blk.y_end))
+                gap = max(
+                    0.0, max(other.y_start, blk.y_start) - min(other.y_end, blk.y_end)
+                )
                 if gap < best_gap:
                     best, best_gap = other, gap
             if best is not None:
@@ -315,13 +385,20 @@ def _figures_from_captions(pages: List[Page]) -> int:
                 blk.ignore_for_output = True
                 continue
             i = page.blocks.index(blk)
-            fig = Block(lines=[], bbox=blk.bbox, page_idx=page.page_idx,
-                        char_pos=blk.char_pos - 0.5, btype="Figure", figure_kind="cap")
+            fig = Block(
+                lines=[],
+                bbox=blk.bbox,
+                page_idx=page.page_idx,
+                char_pos=blk.char_pos - 0.5,
+                btype="Figure",
+                figure_kind="cap",
+            )
             fig.children.append(blk)
             blk.ignore_for_output = True
             page.blocks.insert(i, fig)
             count += 1
     return count
+
 
 def _equation_neighbourhood(fig: Block, page: Page) -> Tuple[bool, Optional[Block]]:
     """(is an equation, the text block above) for a raster without caption.
@@ -334,10 +411,17 @@ def _equation_neighbourhood(fig: Block, page: Page) -> Tuple[bool, Optional[Bloc
     reach = RASTER_EQ_REACH * h
     x0, y0, x1, y1 = fig.bbox
     mid = (y0 + y1) / 2
-    texts = [b for b in page.blocks
-             if b.lines and not b.ignore_for_output and b.btype not in ("Table", "Figure")
-             and b.text.strip()]
-    above = [b for b in texts if b.y_start < y0 and b.y_end <= mid and y0 - b.y_end <= reach]
+    texts = [
+        b
+        for b in page.blocks
+        if b.lines
+        and not b.ignore_for_output
+        and b.btype not in ("Table", "Figure")
+        and b.text.strip()
+    ]
+    above = [
+        b for b in texts if b.y_start < y0 and b.y_end <= mid and y0 - b.y_end <= reach
+    ]
     below = [b for b in texts if b.y_start >= mid and b.y_start - y1 <= reach]
     upper = max(above, key=lambda b: b.y_end) if above else None
     lower = min(below, key=lambda b: b.y_start) if below else None
@@ -346,15 +430,21 @@ def _equation_neighbourhood(fig: Block, page: Page) -> Tuple[bool, Optional[Bloc
     for b in texts:
         for ln in b.lines:
             cy = (ln.bbox[1] + ln.bbox[3]) / 2
-            if y0 - 2 <= cy <= y1 + 2 and EQ_NUMBER_ALONE.match(ln.text) \
-                    and ln.bbox[0] >= (x0 + x1) / 2:
+            if (
+                y0 - 2 <= cy <= y1 + 2
+                and EQ_NUMBER_ALONE.match(ln.text)
+                and ln.bbox[0] >= (x0 + x1) / 2
+            ):
                 numbered = True
                 if len(b.lines) == 1:
                     # the number belongs to the equation, not to the prose
                     fig.children.append(b)
-    after = bool(lower) and bool(EQ_WHERE.match(lower.text) or EQ_DEFINITION.match(lower.text))
+    after = bool(lower) and bool(
+        EQ_WHERE.match(lower.text) or EQ_DEFINITION.match(lower.text)
+    )
     before = bool(upper) and bool(EQ_LEADIN.search(upper.text[-600:]))
     return (numbered or after or before), upper
+
 
 def _route_raster_equations(pages: List[Page]) -> int:
     """Turn a caption-less picture of a formula from a Figure into an
@@ -363,7 +453,11 @@ def _route_raster_equations(pages: List[Page]) -> int:
     count = 0
     for page in pages:
         for blk in list(page.blocks):
-            if blk.btype != "Figure" or blk.figure_kind != "img" or blk.ignore_for_output:
+            if (
+                blk.btype != "Figure"
+                or blk.figure_kind != "img"
+                or blk.ignore_for_output
+            ):
                 continue
             if any(c.btype == "Caption" for c in blk.children):
                 continue
@@ -386,8 +480,10 @@ def _route_raster_equations(pages: List[Page]) -> int:
             count += 1
     return count
 
-def place_figures(doc, pages: List[Page], outdir: Optional[pathlib.Path] = None,
-                  stem: str = "") -> int:
+
+def place_figures(
+    doc, pages: List[Page], outdir: Optional[pathlib.Path] = None, stem: str = ""
+) -> int:
     """Put a Figure block at the reading position of every figure.
 
     This runs whether or not --images was given: a figure that leaves no
@@ -400,7 +496,7 @@ def place_figures(doc, pages: List[Page], outdir: Optional[pathlib.Path] = None,
     count = 0
     for page in pages:
         if not page.blocks and not page.source_words:
-            continue        # a page dropped as provenance
+            continue  # a page dropped as provenance
         pm = doc[page.page_idx]
         for kind, n, xref, bbox in _figure_regions(pm, page):
             path = None
@@ -422,13 +518,21 @@ def place_figures(doc, pages: List[Page], outdir: Optional[pathlib.Path] = None,
                     path = f"{imgdir.name}/{name}"
                 except Exception:
                     path = None
-            _insert_block(page, Block(
-                lines=[], bbox=bbox, page_idx=page.page_idx,
-                char_pos=_insert_pos(page, bbox[1]), btype="Figure", image_path=path,
-                figure_kind=kind,
-            ))
+            _insert_block(
+                page,
+                Block(
+                    lines=[],
+                    bbox=bbox,
+                    page_idx=page.page_idx,
+                    char_pos=_insert_pos(page, bbox[1]),
+                    btype="Figure",
+                    image_path=path,
+                    figure_kind=kind,
+                ),
+            )
             count += 1
     return count
+
 
 def _locate_caption_figure(pm: pymupdf.Page, page: Page, caption) -> Optional[tuple]:
     """The region of a figure that is known from its caption only.
@@ -455,16 +559,17 @@ def _locate_caption_figure(pm: pymupdf.Page, page: Page, caption) -> Optional[tu
             continue
         r = pymupdf.Rect(r)
         if r.width >= 0.9 * prect.width or r.height >= 0.9 * prect.height:
-            continue                    # a page frame
+            continue  # a page frame
         if r.height < 1.5 and r.width > 0.25 * prect.width:
-            continue                    # a rule
+            continue  # a rule
         if r.width < 1.5 and r.height > 0.25 * prect.height:
             continue
         # Inside a table region only its ruling is left out: strokes made of
         # straight lines. A curve or a filled shape there is a diagram that
         # the table detector took for a grid (Peng 2009 p. 2).
         ruling = d.get("type") == "s" and all(
-            it[0] in ("l", "re") for it in d.get("items", []))
+            it[0] in ("l", "re") for it in d.get("items", [])
+        )
         if ruling and any(_overlap_frac(tuple(r), t) > 0.4 for t in tables):
             continue
         rects.append(tuple(r))
@@ -493,21 +598,30 @@ def _locate_caption_figure(pm: pymupdf.Page, page: Page, caption) -> Optional[tu
                 changed = True
         return taken
 
-    best = max((grow(True), grow(False)),
-               key=lambda t: sum((r[2] - r[0]) * (r[3] - r[1]) for r in t))
-    if len(best) < 2 and not any(r in [b for _n, _x, b in _content_images(pm)] for r in best):
+    best = max(
+        (grow(True), grow(False)),
+        key=lambda t: sum((r[2] - r[0]) * (r[3] - r[1]) for r in t),
+    )
+    if len(best) < 2 and not any(
+        r in [b for _n, _x, b in _content_images(pm)] for r in best
+    ):
         return None
     box = _bbox_of(best)
     # the labels of the diagram: text that stands inside the region
-    inside = [b.bbox for b in page.blocks
-              if b.lines and _overlap_frac(b.bbox, box) > 0.5 and b.btype != "Caption"]
+    inside = [
+        b.bbox
+        for b in page.blocks
+        if b.lines and _overlap_frac(b.bbox, box) > 0.5 and b.btype != "Caption"
+    ]
     box = _bbox_of([box] + inside)
     if (box[2] - box[0]) < 40 or (box[3] - box[1]) < 30:
         return None
     return box
 
-def flag_figures(doc, pages: List[Page], outdir: pathlib.Path, stem: str, dpi=200,
-                 link: bool = False) -> dict:
+
+def flag_figures(
+    doc, pages: List[Page], outdir: pathlib.Path, stem: str, dpi=200, link: bool = False
+) -> dict:
     """Crop every figure for a description by something that can see.
 
     markerlite does not read figures. It knows where they are and what their
@@ -520,14 +634,17 @@ def flag_figures(doc, pages: List[Page], outdir: pathlib.Path, stem: str, dpi=20
     figdir = outdir / f"{stem}_figures"
     regions = []
     for page in pages:
-        figs = [b for b in page.blocks if b.btype == "Figure" and not b.ignore_for_output]
+        figs = [
+            b for b in page.blocks if b.btype == "Figure" and not b.ignore_for_output
+        ]
         if not figs:
             continue
         pm = doc[page.page_idx]
         for n, blk in enumerate(figs, 1):
             fig_id = f"fig_p{page.page_idx + 1}_{n}"
-            caption = " ".join(block_text(c, plain=True) for c in blk.children
-                               if c.btype == "Caption").strip()
+            caption = " ".join(
+                block_text(c, plain=True) for c in blk.children if c.btype == "Caption"
+            ).strip()
             bbox = blk.bbox
             if blk.figure_kind == "cap":
                 bbox = _locate_caption_figure(pm, page, blk.bbox)
@@ -550,13 +667,17 @@ def flag_figures(doc, pages: List[Page], outdir: pathlib.Path, stem: str, dpi=20
                 if link:
                     blk.image_path = entry["file"]
             else:
-                entry["note"] = "region not located: the figure is known from its caption only"
+                entry["note"] = (
+                    "region not located: the figure is known from its caption only"
+                )
             regions.append(entry)
     manifest = {"stem": stem, "regions": regions}
     if regions:
         (outdir / f"{stem}_figures.json").write_text(
-            json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
+            json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
     return manifest
+
 
 def apply_figures(md_path: pathlib.Path, manifest_path: pathlib.Path) -> int:
     """Put the descriptions of a filled-in figure manifest under the
@@ -584,19 +705,25 @@ def apply_figures(md_path: pathlib.Path, manifest_path: pathlib.Path) -> int:
         text = (entry.get("description") or "").strip()
         if not text or page is None:
             continue
-        holders = list(re.finditer(
-            r"<!-- figure: p\. " + str(int(page)) + r"; caption: .*? -->", md, re.S))
+        holders = list(
+            re.finditer(
+                r"<!-- figure: p\. " + str(int(page)) + r"; caption: .*? -->", md, re.S
+            )
+        )
         if nth > len(holders):
             continue
         end = holders[nth - 1].end()
         old = _FIGURE_DESCRIPTION_BLOCK.match(md, end)
-        tail = md[old.end():] if old else md[end:]
-        quoted = "\n".join((">" + (" " + ln if ln.strip() else "")).rstrip()
-                           for ln in text.splitlines())
+        tail = md[old.end() :] if old else md[end:]
+        quoted = "\n".join(
+            (">" + (" " + ln if ln.strip() else "")).rstrip()
+            for ln in text.splitlines()
+        )
         md = md[:end] + "\n\n> " + FIGURE_DESCRIPTION_MARK + "\n" + quoted + tail
         applied += 1
     md_path.write_text(md, encoding="utf-8")
     return applied
+
 
 def flag_math(doc, pages: List[Page], outdir: pathlib.Path, stem: str, dpi=200) -> dict:
     """Render regions no weight-free heuristic can read, for visual transcription.
@@ -619,18 +746,21 @@ def flag_math(doc, pages: List[Page], outdir: pathlib.Path, stem: str, dpi=200) 
             eq_id = f"page{page.page_idx + 1}_eq{n}"
             blk.eq_id = eq_id
             pix.save(cropdir / f"{eq_id}.png")
-            regions.append({
-                "id": eq_id,
-                "page": page.page_idx + 1,
-                "image": f"{cropdir.name}/{eq_id}.png",
-                "bbox": [round(v, 1) for v in blk.bbox],
-                "text_layer": blk.text,
-                "latex": "",  # fill in from the crop, then run --apply-math
-            })
+            regions.append(
+                {
+                    "id": eq_id,
+                    "page": page.page_idx + 1,
+                    "image": f"{cropdir.name}/{eq_id}.png",
+                    "bbox": [round(v, 1) for v in blk.bbox],
+                    "text_layer": blk.text,
+                    "latex": "",  # fill in from the crop, then run --apply-math
+                }
+            )
     manifest = {"stem": stem, "regions": regions}
     if regions:
         (outdir / f"{stem}_math.json").write_text(json.dumps(manifest, indent=2))
     return manifest
+
 
 def apply_math(md_path: pathlib.Path, manifest_path: pathlib.Path) -> int:
     """Splice transcribed LaTeX back into the markdown, replacing the
@@ -645,16 +775,15 @@ def apply_math(md_path: pathlib.Path, manifest_path: pathlib.Path) -> int:
         anchor = re.escape(f"<!-- markerlite:eq {region['id']} -->")
         # (?:(?!\$\$).)* keeps the match from starting at an earlier equation
         # and swallowing the prose in between.
-        pattern = re.compile(
-            r"\$\$\n(?:(?!\$\$).)*\n\$\$\n\n" + anchor, re.DOTALL
-        )
+        pattern = re.compile(r"\$\$\n(?:(?!\$\$).)*\n\$\$\n\n" + anchor, re.DOTALL)
         new, n = pattern.subn(lambda _m: f"$$\n{latex}\n$$", md, count=1)
         if not n:
             # An equation set as a picture has a comment where the text-layer
             # approximation would be, and perhaps a link to the saved image.
             pictured = re.compile(
                 r"<!-- equation: p\. \d+; set as an image(?:; number [^>\n]*?)? -->\n\n"
-                r"(?:!\[\]\([^)\n]*\)\n\n)?" + anchor)
+                r"(?:!\[\]\([^)\n]*\)\n\n)?" + anchor
+            )
             new, n = pictured.subn(lambda _m: f"$$\n{latex}\n$$", md, count=1)
         if n:
             md, applied = new, applied + 1

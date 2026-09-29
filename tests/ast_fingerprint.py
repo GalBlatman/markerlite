@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Hash function ASTs while ignoring file and line locations."""
+
 from __future__ import annotations
 
 import argparse
@@ -39,15 +40,19 @@ def main() -> int:
     args = parser.parse_args()
     current = fingerprints(args.paths)
     if args.output:
-        args.output.write_text(json.dumps(current, indent=2, sort_keys=True) + "\n",
-                               encoding="utf-8")
+        args.output.write_text(
+            json.dumps(current, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
     if not args.compare:
         print(json.dumps(current, indent=2, sort_keys=True))
         return 0
     before = json.loads(args.compare.read_text(encoding="utf-8"))
     names = sorted(set(before) | set(current))
-    mismatches = [(name, before.get(name), current.get(name)) for name in names
-                  if before.get(name) != current.get(name)]
+    mismatches = [
+        (name, before.get(name), current.get(name))
+        for name in names
+        if before.get(name) != current.get(name)
+    ]
     if mismatches:
         for name, old, new in mismatches:
             print(f"MISMATCH {name} {old or 'missing'} {new or 'missing'}")

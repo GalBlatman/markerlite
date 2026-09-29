@@ -31,8 +31,9 @@ def _ruled_bounds(table, columns):
         if len(cells) != columns or any(cell is None for cell in cells):
             return None  # spanning/partial cells need a different row model
         top, bottom = cells[0][1], cells[0][3]
-        if any(abs(cell[1] - top) > 0.5 or abs(cell[3] - bottom) > 0.5
-               for cell in cells):
+        if any(
+            abs(cell[1] - top) > 0.5 or abs(cell[3] - bottom) > 0.5 for cell in cells
+        ):
             return None
         if bottom <= top or (bounds and abs(top - bounds[-1][1]) > 0.5):
             return None
@@ -60,16 +61,23 @@ def recover_wrapped_lines(lines, original, table=None):
     if vendor._find_header_band(lines) is not None:
         return original  # leave the existing numeric-table path untouched
 
-    data_ids = [i for i, (spans, _, _) in enumerate(lines)
-                if len(spans) >= vendor.MIN_CELLS_PER_ROW]
+    data_ids = [
+        i
+        for i, (spans, _, _) in enumerate(lines)
+        if len(spans) >= vendor.MIN_CELLS_PER_ROW
+    ]
     if not data_ids:
         return original
     first_y = min(lines[i][1] for i in data_ids)
     band = [(spans, y0) for spans, y0, _ in lines if y0 < first_y]
-    n_header = (sum(x1 - x0 < 200 for spans, _ in band for _, x0, x1 in spans)
-                or None) if band else None
+    n_header = (
+        (sum(x1 - x0 < 200 for spans, _ in band for _, x0, x1 in spans) or None)
+        if band
+        else None
+    )
     name, best, _ = vendor._pick_winner(
-        vendor._candidates([lines[i][0] for i in data_ids]), n_header)
+        vendor._candidates([lines[i][0] for i in data_ids]), n_header
+    )
     if not best:
         return original
     columns, cuts, winning_grid, _ = best
@@ -99,7 +107,9 @@ def recover_wrapped_lines(lines, original, table=None):
         for i in body_ids:
             _, y0, y1 = lines[i]
             cy = (y0 + y1) / 2
-            matches = [j for j, (top, bottom) in enumerate(bounds) if top <= cy < bottom]
+            matches = [
+                j for j, (top, bottom) in enumerate(bounds) if top <= cy < bottom
+            ]
             if len(matches) != 1:
                 return original
             groups[matches[0]].append(i)
@@ -119,8 +129,11 @@ def recover_wrapped_lines(lines, original, table=None):
                 groups.append([])
             if not groups:
                 return original
-            if (not cells[0] and groups[-1]
-                    and lines[i][1] - lines[groups[-1][-1]][2] > line_height):
+            if (
+                not cells[0]
+                and groups[-1]
+                and lines[i][1] - lines[groups[-1][-1]][2] > line_height
+            ):
                 return original  # distant prose is not a soft cell wrap
             groups[-1].append(i)
         if len(groups) < vendor.MIN_TABLE_ROWS:

@@ -27,6 +27,7 @@ from sklearn.exceptions import ConvergenceWarning
 from .model import *
 from .classification import footnote_label
 
+
 class _TableParser(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -63,6 +64,7 @@ class _TableParser(HTMLParser):
         if self._in_cell:
             self._cell.append(data)
 
+
 def table_html_to_markdown(html: str) -> str:
     p = _TableParser()
     p.feed(html)
@@ -77,11 +79,14 @@ def table_html_to_markdown(html: str) -> str:
         r = [unescape(c).replace("|", r"\|").replace("\n", " ") for c in r]
         return r + [""] * (width - len(r))
 
-    out = ["| " + " | ".join(pad(header)) + " |",
-           "|" + "|".join([" --- "] * width) + "|"]
+    out = [
+        "| " + " | ".join(pad(header)) + " |",
+        "|" + "|".join([" --- "] * width) + "|",
+    ]
     for r in rows:
         out.append("| " + " | ".join(pad(r)) + " |")
     return "\n".join(out)
+
 
 def _inline(spans: List[Span], fn_labels=frozenset()) -> str:
     """Emit bold/italic runs, coalescing adjacent spans with the same format.
@@ -115,8 +120,13 @@ def _inline(spans: List[Span], fn_labels=frozenset()) -> str:
             core = f"**{core}**"
         elif italic:
             core = f"*{core}*"
-        parts.append(text[:lead] + core + text[len(text) - trail:] if trail else text[:lead] + core)
+        parts.append(
+            text[:lead] + core + text[len(text) - trail :]
+            if trail
+            else text[:lead] + core
+        )
     return "".join(parts)
+
 
 def _strip_source_label(spans: List[Span], raw: str) -> List[Span]:
     """The line's spans without the footnote label that opens ``raw``.
@@ -134,11 +144,18 @@ def _strip_source_label(spans: List[Span], raw: str) -> List[Span]:
         elif len(sp.text) <= n:
             n -= len(sp.text)
         else:
-            out.append(replace(sp, text=sp.text[n:], chars=list(sp.chars[n:]) if sp.chars else []))
+            out.append(
+                replace(
+                    sp, text=sp.text[n:], chars=list(sp.chars[n:]) if sp.chars else []
+                )
+            )
             n = 0
     return out
 
-def _footnote_groups(blk: Block, fn_labels=frozenset()) -> List[Tuple[Optional[str], str]]:
+
+def _footnote_groups(
+    blk: Block, fn_labels=frozenset()
+) -> List[Tuple[Optional[str], str]]:
     """(label, formatted body) for every note in a Footnote block.
 
     Labels and continuation boundaries come from the raw line text. A line
@@ -156,11 +173,20 @@ def _footnote_groups(blk: Block, fn_labels=frozenset()) -> List[Tuple[Optional[s
         if not raw.strip():
             continue
         label, _body = footnote_label(raw)
-        if label is not None and label.isdigit() and groups and prev_num is not None \
-                and int(label) <= prev_num:
+        if (
+            label is not None
+            and label.isdigit()
+            and groups
+            and prev_num is not None
+            and int(label) <= prev_num
+        ):
             label = None
         if label is not None or not groups:
-            spans = _strip_source_label(ln.spans, raw) if label is not None else list(ln.spans)
+            spans = (
+                _strip_source_label(ln.spans, raw)
+                if label is not None
+                else list(ln.spans)
+            )
             groups.append([label, [spans]])
             if label is not None and label.isdigit():
                 prev_num = int(label)
@@ -177,14 +203,19 @@ def _footnote_groups(blk: Block, fn_labels=frozenset()) -> List[Tuple[Optional[s
                 tail = "".join(sp.text for sp in merged).rstrip()
                 last = merged[-1]
                 if HYPHEN_END.match(tail):
-                    merged[-1] = replace(last, text=re.sub(r"[-\u2014\u00ac]\s*$", "", last.text))
-                    spans = [replace(spans[0], text=spans[0].text.lstrip())] + list(spans[1:])
+                    merged[-1] = replace(
+                        last, text=re.sub(r"[-\u2014\u00ac]\s*$", "", last.text)
+                    )
+                    spans = [replace(spans[0], text=spans[0].text.lstrip())] + list(
+                        spans[1:]
+                    )
                 elif not last.text.endswith((" ", "\t")):
                     merged[-1] = replace(last, text=last.text + " ")
             merged.extend(spans)
         body = re.sub(r"[ \t]+", " ", _inline(merged, fn_labels)).strip()
         out.append((label, body))
     return out
+
 
 def block_text(blk: Block, plain: bool = False) -> str:
     """Join a block's lines, dehyphenating and unwrapping soft line breaks.
@@ -207,24 +238,32 @@ def block_text(blk: Block, plain: bool = False) -> str:
             pieces.append(" " + seg.lstrip())
     return re.sub(r"[ \t]+", " ", "".join(pieces)).strip()
 
+
 def _escape_list_start(text: str) -> str:
     """Escape the marker of a paragraph that is not a list item."""
     m = LIST_LOOKALIKE.match(text)
     if not m:
         return text
     if m.group(2):
-        return m.group(1) + "\\" + text[m.end(1):]
-    return m.group(1) + m.group(3) + "\\" + text[m.end(3):]
+        return m.group(1) + "\\" + text[m.end(1) :]
+    return m.group(1) + m.group(3) + "\\" + text[m.end(3) :]
+
 
 def _is_list_line(chunk: str) -> bool:
     last = chunk.rsplit("\n", 1)[-1].lstrip()
     return bool(re.match(r"^(-|\d{1,3}\.)\s", last))
 
+
 def fallback_prose(blk: Block) -> List[str]:
     """Source paragraphs, with soft line breaks and no grid or token repairs."""
-    return ["\n".join(_escape_list_start(escape(line, quote=False).replace("|", "&#124;"))
-                      for line in paragraph.splitlines())
-            for paragraph in blk.fallback_paragraphs]
+    return [
+        "\n".join(
+            _escape_list_start(escape(line, quote=False).replace("|", "&#124;"))
+            for line in paragraph.splitlines()
+        )
+        for paragraph in blk.fallback_paragraphs
+    ]
+
 
 def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
     out: List[str] = []
@@ -263,7 +302,12 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
             if blk.ignore_for_output:
                 continue
             t = blk.btype
-            if not blk.lines and t not in ("Figure", "Equation", "Table", "ImageMarker"):
+            if not blk.lines and t not in (
+                "Figure",
+                "Equation",
+                "Table",
+                "ImageMarker",
+            ):
                 continue
 
             if t == "Text":
@@ -279,7 +323,9 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                 else:
                     pending_paragraph = txt
                 if blk.blockquote:
-                    pending_paragraph = ("> " * max(blk.blockquote_level, 1)) + pending_paragraph
+                    pending_paragraph = (
+                        "> " * max(blk.blockquote_level, 1)
+                    ) + pending_paragraph
                 if not blk.has_continuation:
                     flush()
                 continue
@@ -294,7 +340,7 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                 m = re.match(r"^\s*\(?(\d{1,3})[.)]\s*", txt)
                 if m:
                     bullet = f"{m.group(1)}."
-                    txt = txt[m.end():]
+                    txt = txt[m.end() :]
                 else:
                     # The glyph may sit inside the emphasis markers that
                     # block_text wrapped around a bold or italic item.
@@ -312,8 +358,10 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                     if cap.leads:
                         out.append("*" + block_text(cap, plain=True) + "*")
                 if blk.fallback_paragraphs:
-                    out.append(f"<!-- table p. {page.page_idx + 1}: "
-                               "reconstruction failed; text kept as prose -->")
+                    out.append(
+                        f"<!-- table p. {page.page_idx + 1}: "
+                        "reconstruction failed; text kept as prose -->"
+                    )
                     out.extend(fallback_prose(blk))
                 else:
                     out.append(md or (blk.html or ""))
@@ -337,8 +385,10 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                     # --apply-math replaces it with the transcription.
                     number = " ".join(c.text.strip() for c in blk.children)
                     number = f"; number {number}" if number else ""
-                    out.append(f"<!-- equation: p. {blk.page_idx + 1}; "
-                               f"set as an image{number} -->")
+                    out.append(
+                        f"<!-- equation: p. {blk.page_idx + 1}; "
+                        f"set as an image{number} -->"
+                    )
                     if blk.image_path:
                         out.append(f"![]({blk.image_path})")
                     if blk.eq_id:
@@ -368,7 +418,9 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                 # appear inside an HTML comment.
                 caption = " ".join(block_text(cap, plain=True) for cap in blk.children)
                 caption = caption.replace("--", "\u2013").strip() or "none found"
-                out.append(f"<!-- figure: p. {blk.page_idx + 1}; caption: {caption} -->")
+                out.append(
+                    f"<!-- figure: p. {blk.page_idx + 1}; caption: {caption} -->"
+                )
                 for source_line in blk.figure_text:
                     safe = source_line.replace("--", "&#45;&#45;").replace("\n", " ")
                     out.append(f"<!-- figure text: {safe} -->")

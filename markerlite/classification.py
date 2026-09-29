@@ -27,6 +27,7 @@ from sklearn.exceptions import ConvergenceWarning
 from .model import *
 from .extraction import _bbox_of
 
+
 def body_font_size(pages: List[Page]) -> float:
     weighted = Counter()
     for p in pages:
@@ -38,6 +39,7 @@ def body_font_size(pages: List[Page]) -> float:
     if not weighted:
         return 10.0
     return weighted.most_common(1)[0][0]
+
 
 def classify(pages: List[Page], body_size: float) -> None:
     # Set once a "References" line has been seen: past it, an OCR page's
@@ -51,7 +53,7 @@ def classify(pages: List[Page], body_size: float) -> None:
             if blk.btype == "Table":
                 continue
             if blk.btype == "Caption":
-                continue        # split off a table candidate by detect_tables
+                continue  # split off a table candidate by detect_tables
             text = blk.text.strip()
             if not text:
                 blk.ignore_for_output = True
@@ -82,8 +84,9 @@ def classify(pages: List[Page], body_size: float) -> None:
                 continue
             # Headings are tested BEFORE lists: "2. Method" satisfies the list
             # pattern too, and a numbered heading must not become a bullet.
-            is_head = _is_heading(blk, body_size, text, first, ocr=page.ocr_used,
-                                  in_refs=in_refs)
+            is_head = _is_heading(
+                blk, body_size, text, first, ocr=page.ocr_used, in_refs=in_refs
+            )
             # The references keyword itself is still a heading; the list
             # starts after it.
             if BIB_HINT.match(text):
@@ -110,6 +113,7 @@ def classify(pages: List[Page], body_size: float) -> None:
     _unmark_lone_lists(pages)
     _demote_toc(pages)
 
+
 def _demote_toc(pages: List[Page], min_run=5) -> None:
     """A table of contents is a list, not 40 headings.
 
@@ -132,6 +136,7 @@ def _demote_toc(pages: List[Page], min_run=5) -> None:
                     b.btype = "TocEntry"
             run = []
 
+
 def _split_list_blocks(pages: List[Page]) -> None:
     """marker/builders/structure.py::split_list_groups.
 
@@ -145,8 +150,9 @@ def _split_list_blocks(pages: List[Page]) -> None:
             if blk.btype not in ("Text", "ListItem") or len(blk.lines) < 2:
                 out.append(blk)
                 continue
-            bullets = [i for i, ln in enumerate(blk.lines)
-                       if LIST_ITEM_START.match(ln.text)]
+            bullets = [
+                i for i, ln in enumerate(blk.lines) if LIST_ITEM_START.match(ln.text)
+            ]
             if len(bullets) < 2 or bullets[0] != 0:
                 out.append(blk)
                 continue
@@ -158,11 +164,16 @@ def _split_list_blocks(pages: List[Page]) -> None:
                     groups[-1].append(ln)
             for grp in groups:
                 out.append(
-                    Block(lines=grp, bbox=_bbox_of([ln.bbox for ln in grp]),
-                          page_idx=blk.page_idx, char_pos=grp[0].char_pos,
-                          btype="ListItem")
+                    Block(
+                        lines=grp,
+                        bbox=_bbox_of([ln.bbox for ln in grp]),
+                        page_idx=blk.page_idx,
+                        char_pos=grp[0].char_pos,
+                        btype="ListItem",
+                    )
                 )
         page.blocks = out
+
 
 def _unmark_lone_lists(pages: List[Page]) -> None:
     """marker/builders/structure.py::unmark_lists - "if lists aren't grouped,
@@ -177,6 +188,7 @@ def _unmark_lone_lists(pages: List[Page]) -> None:
         for i in items:
             if i not in grouped:
                 page.blocks[i].btype = "Text"
+
 
 def _is_equation(blk: Block, page: Page, text: str) -> bool:
     """Math evidence from glyphs and placement, not just font names.
@@ -215,6 +227,7 @@ def _is_equation(blk: Block, page: Page, text: str) -> bool:
         return True
     return False
 
+
 def _symbol_is_notation(blk: Block, page: Page) -> bool:
     """True when a block that opens with a footnote symbol is NOT a note.
 
@@ -250,13 +263,15 @@ def _symbol_is_notation(blk: Block, page: Page) -> bool:
         return legend or entries >= 2
     return False
 
+
 def footnote_label(text: str):
     """(label, body) for a note that starts with a marker, else (None, text)."""
     m = FOOTNOTE_MARKER.match(text)
     if not m:
         return None, text
     label = next(g for g in m.groups()[1:] if g)
-    return label, text[m.end():]
+    return label, text[m.end() :]
+
 
 def note_text_size(blk: Block) -> float:
     """The type size of a footnote's TEXT, ignoring its label.
@@ -273,6 +288,7 @@ def note_text_size(blk: Block) -> float:
     rest = spans[1:] or spans
     return float(median(s.size for s in rest))
 
+
 def _is_footnote(blk: Block, page: Page, body_size: float, first: str) -> bool:
     h = page.height or 1
     if blk.y_start / h < 0.70:
@@ -285,8 +301,15 @@ def _is_footnote(blk: Block, page: Page, body_size: float, first: str) -> bool:
         return False
     return bool(FOOTNOTE_MARKER.match(first))
 
-def _is_heading(blk: Block, body_size: float, text: str, first: str,
-                ocr: bool = False, in_refs: bool = False) -> bool:
+
+def _is_heading(
+    blk: Block,
+    body_size: float,
+    text: str,
+    first: str,
+    ocr: bool = False,
+    in_refs: bool = False,
+) -> bool:
     if len(text) > 250 or len(blk.lines) > 3:
         return False
     # An equation is never a heading, however heading-shaped it looks.
@@ -324,16 +347,26 @@ def _is_heading(blk: Block, body_size: float, text: str, first: str,
         if len(blk.lines) == 1 and not in_refs:
             if BIB_HINT.match(stripped):
                 return True
-            if len(words) == 1 and words[0].isalpha() and words[0][0].isupper() \
-                    and len(words[0]) >= 4:
+            if (
+                len(words) == 1
+                and words[0].isalpha()
+                and words[0][0].isupper()
+                and len(words[0]) >= 4
+            ):
                 return True
     if not (bigger or bold):
         return False
     # A heading of one word ("Conclusion", "Contributions") fails the
     # title-case test, which needs two. With real weight or size evidence, a
     # lone capitalised word in its own one-line block is a heading.
-    if (not ocr and len(blk.lines) == 1 and len(words) == 1 and words[0].isalpha()
-            and words[0][0].isupper() and len(words[0]) >= 4):
+    if (
+        not ocr
+        and len(blk.lines) == 1
+        and len(words) == 1
+        and words[0].isalpha()
+        and words[0][0].isupper()
+        and len(words[0]) >= 4
+    ):
         return True
     # Body paragraphs end in sentence punctuation; headings almost never do.
     if stripped.endswith((".", ";", ",")) and not NUMBERED_HEADING.match(first):
@@ -359,6 +392,7 @@ def _is_heading(blk: Block, body_size: float, text: str, first: str,
     if len(words) <= 12 and _title_case(words) and not (ocr and in_refs):
         return True
     return False
+
 
 def _title_case(words: List[str]) -> bool:
     cand = [w for w in words if w[:1].isalpha()]

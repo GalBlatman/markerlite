@@ -36,7 +36,11 @@ except ImportError:
         from marker.processors.table_recon import reconstruct_table_html
     except ImportError:
         reconstruct_table_html = None
-        warnings.warn("table_recon.py not found beside markerlite.py; borderless table reconstruction is disabled", RuntimeWarning)
+        warnings.warn(
+            "table_recon.py not found beside markerlite.py; borderless table reconstruction is disabled",
+            RuntimeWarning,
+        )
+
 
 def _overlap_frac(inner, outer) -> float:
     ix0 = max(inner[0], outer[0])
@@ -48,6 +52,7 @@ def _overlap_frac(inner, outer) -> float:
     inter = (ix1 - ix0) * (iy1 - iy0)
     area = max((inner[2] - inner[0]) * (inner[3] - inner[1]), 1e-6)
     return inter / area
+
 
 def _tokens_for_recon(blocks: List[Block], bbox) -> list:
     """Build marker's ``[(tokens, y0, y1)]`` shape from PyMuPDF char data.
@@ -73,7 +78,11 @@ def _tokens_for_recon(blocks: List[Block], bbox) -> list:
                 for sp in ln.spans:
                     t = sp.text.strip()
                     sx0, sy0, sx1, sy1 = sp.bbox
-                    if t and bx0 <= (sx0 + sx1) / 2 <= bx1 and by0 <= (sy0 + sy1) / 2 <= by1:
+                    if (
+                        t
+                        and bx0 <= (sx0 + sx1) / 2 <= bx1
+                        and by0 <= (sy0 + sy1) / 2 <= by1
+                    ):
                         words.append([t, sx0, sx1, sy1 - sy0])
                 if words:
                     gap_thresh = 0.8 * median([w[3] for w in words])
@@ -86,7 +95,9 @@ def _tokens_for_recon(blocks: List[Block], bbox) -> list:
             for sp in ln.spans:
                 for c in sp.chars or []:
                     cx0, cy0, cx1, cy1 = c["bbox"]
-                    if not (bx0 <= (cx0 + cx1) / 2 <= bx1 and by0 <= (cy0 + cy1) / 2 <= by1):
+                    if not (
+                        bx0 <= (cx0 + cx1) / 2 <= bx1 and by0 <= (cy0 + cy1) / 2 <= by1
+                    ):
                         continue
                     ch = c.get("c", "")
                     gap = 0.5 * max(cy1 - cy0, 1.0)
@@ -124,6 +135,7 @@ def _tokens_for_recon(blocks: List[Block], bbox) -> list:
         else:
             rows.append([list(toks), y0, y1])
     return [(sorted(t, key=lambda x: x[1]), y0, y1) for t, y0, y1 in rows]
+
 
 def _grid_from_members(tbl, members: List[Block]) -> List[List[str]]:
     """PyMuPDF's cell geometry filled with OUR text.
@@ -171,8 +183,13 @@ def _grid_from_members(tbl, members: List[Block]) -> List[List[str]]:
                 place(word, (wx0 + wx1) / 2, cy)
     return grid
 
+
 def _grid_to_html(rows: List[List[str]]) -> str:
-    rows = [[(c or "").strip() for c in r] for r in rows if any((c or "").strip() for c in r)]
+    rows = [
+        [(c or "").strip() for c in r]
+        for r in rows
+        if any((c or "").strip() for c in r)
+    ]
     if len(rows) < 2:
         return ""
     head, body = rows[0], rows[1:]
@@ -184,10 +201,12 @@ def _grid_to_html(rows: List[List[str]]) -> str:
     parts.append("</tbody></table>")
     return "".join(parts)
 
+
 def _html_word_count(html: str) -> int:
     """Words of visible text in a table's HTML (tags stripped)."""
     text = re.sub(r"<[^>]+>", " ", html or "")
     return len(unescape(text).split())
+
 
 def _table_sane(html: str, max_header_ratio=1.4, max_empty_frac=0.45) -> bool:
     """Reject a reconstruction that cannot be the table on the page.
@@ -220,6 +239,7 @@ def _table_sane(html: str, max_header_ratio=1.4, max_empty_frac=0.45) -> bool:
     if total and empty / total > max_empty_frac:
         return False
     return True
+
 
 def _page_graphics(pmpage) -> Tuple[list, list]:
     """Horizontal rule segments ``(y, x0, x1)`` and the boxes of every other
@@ -257,11 +277,12 @@ def _page_graphics(pmpage) -> Tuple[list, list]:
             others.append(tuple(d["rect"]))
     return rules, others
 
+
 def _rules_in(rules: list, bbox, min_cover: float = RULE_MIN_COVER) -> List[float]:
     """y of every horizontal rule that spans the candidate, top to bottom."""
     x0, y0, x1, y1 = bbox
     width = max(x1 - x0, 1.0)
-    bands: List[list] = []          # [y, covered length]
+    bands: List[list] = []  # [y, covered length]
     for y, a, b in sorted(rules):
         if y < y0 - 1 or y > y1 + 1:
             continue
@@ -274,6 +295,7 @@ def _rules_in(rules: list, bbox, min_cover: float = RULE_MIN_COVER) -> List[floa
             bands.append([y, b - a])
     return [y for y, covered in bands if covered >= min_cover * width]
 
+
 def _one_run(ln: Line) -> bool:
     """True when the line is one run of text, not several cells: no gap in it
     is wide enough to separate columns."""
@@ -281,12 +303,15 @@ def _one_run(ln: Line) -> bool:
     rows = _tokens_for_recon([probe], (-1e9, -1e9, 1e9, 1e9))
     return len(rows) == 1 and len(rows[0][0]) == 1
 
+
 def _line_size(ln: Line) -> float:
     sizes = [sp.size for sp in ln.spans if sp.text.strip()]
     return max(sizes) if sizes else 0.0
 
-def _isolate_table(members: List[Block], bbox, rules: list, others: list,
-                   bound_rows: bool = True):
+
+def _isolate_table(
+    members: List[Block], bbox, rules: list, others: list, bound_rows: bool = True
+):
     """Split a candidate's source lines into caption, grid and what stands
     below the grid, BEFORE reconstruction.
 
@@ -304,8 +329,10 @@ def _isolate_table(members: List[Block], bbox, rules: list, others: list,
     the first of them is a note, or when a drawing that is not a rule (a
     frame, a curve: a diagram) stands under the rule.
     """
-    entries = sorted(((ln, blk) for blk in members for ln in blk.lines if ln.text.strip()),
-                     key=lambda e: (e[0].bbox[1], e[0].bbox[0]))
+    entries = sorted(
+        ((ln, blk) for blk in members for ln in blk.lines if ln.text.strip()),
+        key=lambda e: (e[0].bbox[1], e[0].bbox[0]),
+    )
     if len(entries) < 3:
         return [], [], None
     ys = _rules_in(rules, bbox)
@@ -313,8 +340,10 @@ def _isolate_table(members: List[Block], bbox, rules: list, others: list,
     def alone(i: int) -> bool:
         ln = entries[i][0]
         mid = (ln.bbox[1] + ln.bbox[3]) / 2
-        return not any(j != i and o.bbox[1] <= mid <= o.bbox[3]
-                       for j, (o, _b) in enumerate(entries))
+        return not any(
+            j != i and o.bbox[1] <= mid <= o.bbox[3]
+            for j, (o, _b) in enumerate(entries)
+        )
 
     def rule_between(upper: Line, lower: Line) -> bool:
         return any(upper.bbox[3] - 1.5 <= y <= lower.bbox[1] + 1.5 for y in ys)
@@ -333,14 +362,17 @@ def _isolate_table(members: List[Block], bbox, rules: list, others: list,
                 break
             if ln.bbox[1] - prev.bbox[3] > 0.8 * max(prev.height, 1.0):
                 break
-            if abs(ln.bbox[0] - first.bbox[0]) > 3.0 and abs(
-                    (ln.bbox[0] + ln.bbox[2]) - (first.bbox[0] + first.bbox[2])) > 10.0:
+            if (
+                abs(ln.bbox[0] - first.bbox[0]) > 3.0
+                and abs((ln.bbox[0] + ln.bbox[2]) - (first.bbox[0] + first.bbox[2]))
+                > 10.0
+            ):
                 break
             caption.append(ln)
         rest = [e for e in entries if not any(e[0] is c for c in caption)]
         bands = {round(e[0].bbox[1] / 4) for e in rest}
         if len(bands) < 2:
-            caption = []        # nothing like a grid is left: not a caption split
+            caption = []  # nothing like a grid is left: not a caption split
     top = bbox[1]
     if caption:
         top = max(c.bbox[3] for c in caption)
@@ -350,26 +382,37 @@ def _isolate_table(members: List[Block], bbox, rules: list, others: list,
     bottom = bbox[3]
     if bound_rows and len(ys) >= 2:
         last = ys[-1]
-        below = [e[0] for e in entries
-                 if (e[0].bbox[1] + e[0].bbox[3]) / 2 > last + 0.5
-                 and not any(e[0] is c for c in caption)]
+        below = [
+            e[0]
+            for e in entries
+            if (e[0].bbox[1] + e[0].bbox[3]) / 2 > last + 0.5
+            and not any(e[0] is c for c in caption)
+        ]
         # Strokes that are not rules inside the grid - cell borders, a frame
         # around the rows - mean the table is boxed after all: it is closed
         # by its frame, and what stands under an inner rule is a row.
-        framed = any(o[1] < last - 1 and o[3] > top + 1
-                     and min(o[2], bbox[2]) - max(o[0], bbox[0]) > 0
-                     and min(o[3], bbox[3]) - max(o[1], bbox[1]) >= 0
-                     for o in others)
+        framed = any(
+            o[1] < last - 1
+            and o[3] > top + 1
+            and min(o[2], bbox[2]) - max(o[0], bbox[0]) > 0
+            and min(o[3], bbox[3]) - max(o[1], bbox[1]) >= 0
+            for o in others
+        )
         if below and not framed:
-            diagram = any(o[1] >= last - 1 and o[3] <= bbox[3] + 2 and (o[3] - o[1]) > 3
-                          and min(o[2], bbox[2]) - max(o[0], bbox[0]) > 0
-                          for o in others)
+            diagram = any(
+                o[1] >= last - 1
+                and o[3] <= bbox[3] + 2
+                and (o[3] - o[1]) > 3
+                and min(o[2], bbox[2]) - max(o[0], bbox[0]) > 0
+                for o in others
+            )
             if TABLE_NOTE.match(below[0].text) or diagram:
                 excluded = below
                 bottom = last
     if not caption and not excluded:
         return [], [], None
     return caption, excluded, (top, bottom)
+
 
 def _split_members(members: List[Block], caption: List[Line], excluded: List[Line]):
     """Rebuild the member blocks without the caption and the excluded lines.
@@ -380,24 +423,32 @@ def _split_members(members: List[Block], caption: List[Line], excluded: List[Lin
     apart or used (these leave the page; an original made only of excluded
     lines is not touched and stays where it is).
     """
+
     def among(ln: Line, group: List[Line]) -> bool:
         return any(ln is g for g in group)
 
     def block_of(lines: List[Line], src: Block, btype: str = "Text") -> Block:
-        return Block(lines=lines, bbox=_bbox_of([ln.bbox for ln in lines]),
-                     page_idx=src.page_idx, char_pos=lines[0].char_pos, btype=btype)
+        return Block(
+            lines=lines,
+            bbox=_bbox_of([ln.bbox for ln in lines]),
+            page_idx=src.page_idx,
+            char_pos=lines[0].char_pos,
+            btype=btype,
+        )
 
     grid_members, leftovers, touched, cap_lines, cap_src = [], [], [], [], None
     for blk in members:
         cap = [ln for ln in blk.lines if among(ln, caption)]
         out = [ln for ln in blk.lines if among(ln, excluded)]
-        grid = [ln for ln in blk.lines if not among(ln, caption) and not among(ln, excluded)]
+        grid = [
+            ln for ln in blk.lines if not among(ln, caption) and not among(ln, excluded)
+        ]
         if not cap and not out:
             grid_members.append(blk)
             touched.append(blk)
             continue
         if not cap and not grid:
-            continue                    # wholly below the grid: stays on the page
+            continue  # wholly below the grid: stays on the page
         touched.append(blk)
         if cap:
             cap_lines.extend(cap)
@@ -412,6 +463,7 @@ def _split_members(members: List[Block], caption: List[Line], excluded: List[Lin
         caption_block = block_of(cap_lines, cap_src, "Caption")
         caption_block.leads = True
     return grid_members, caption_block, leftovers, touched
+
 
 def _journal_front_matter(members: List[Block], context: List[Block]) -> bool:
     """Require abstract prose, a distinct title, and publication metadata.
@@ -431,18 +483,28 @@ def _journal_front_matter(members: List[Block], context: List[Block]) -> bool:
     if not sizes:
         return False
     body_size = median(sizes)
-    abstract_top = min(ln.bbox[1] for ln in lines
-                       if re.sub(r"\s+", "", ln.text).rstrip(":").lower() == "abstract")
-    title = any(4 <= len(b.text.split()) <= 40
-                and b.y_end <= abstract_top
-                and b.max_size() >= 1.25 * body_size for b in context)
+    abstract_top = min(
+        ln.bbox[1]
+        for ln in lines
+        if re.sub(r"\s+", "", ln.text).rstrip(":").lower() == "abstract"
+    )
+    title = any(
+        4 <= len(b.text.split()) <= 40
+        and b.y_end <= abstract_top
+        and b.max_size() >= 1.25 * body_size
+        for b in context
+    )
     if not title:
         return False
     text = "\n".join(b.text for b in members)
-    metadata = re.search(r"doi\s*[:.]|doi\.org/|journal(?:s| homepage)?|"
-                         r"article history|received.*\d{4}|corresponding author",
-                         text, re.I)
+    metadata = re.search(
+        r"doi\s*[:.]|doi\.org/|journal(?:s| homepage)?|"
+        r"article history|received.*\d{4}|corresponding author",
+        text,
+        re.I,
+    )
     return bool(metadata or "keywords" in labels)
+
 
 def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
     """Find table regions with PyMuPDF, then rebuild the grid.
@@ -489,19 +551,28 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
         # Publisher edge rules are not table boundaries. An actual admitted
         # table remains protected independently; a table caption can also
         # establish a genuine top rule inside the header band.
-        caption_above = any(TABLE_LABEL.match(b.text.strip())
-                            and 0 <= y-b.y_end <= 30 for b in page.blocks)
-        if y > 0.95*page.height or (y < 0.08*page.height and not caption_above):
+        caption_above = any(
+            TABLE_LABEL.match(b.text.strip()) and 0 <= y - b.y_end <= 30
+            for b in page.blocks
+        )
+        if y > 0.95 * page.height or (y < 0.08 * page.height and not caption_above):
             continue
         rows[round(y, 1)].append((x0, x1))
-    extents = [(y, min(a for a, b in xs), max(b for a, b in xs))
-               for y, xs in rows.items()]
+    extents = [
+        (y, min(a for a, b in xs), max(b for a, b in xs)) for y, xs in rows.items()
+    ]
     for y0, x0, x1 in extents:
         for y1, a, b in extents:
-            if (12 < y1 - y0 < 0.9 * page.height and x1 - x0 > 0.15 * page.width
-                    and abs(x0-a) < 4 and abs(x1-b) < 4
-                    and any(y0 < mid < y1 and abs(left-x0)<4 and abs(right-x1)<4
-                            for mid,left,right in extents)):
+            if (
+                12 < y1 - y0 < 0.9 * page.height
+                and x1 - x0 > 0.15 * page.width
+                and abs(x0 - a) < 4
+                and abs(x1 - b) < 4
+                and any(
+                    y0 < mid < y1 and abs(left - x0) < 4 and abs(right - x1) < 4
+                    for mid, left, right in extents
+                )
+            ):
                 page.table_zones.append((x0, y0, x1, y1))
     if not found:
         return
@@ -512,21 +583,29 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
     for tbl in found:
         bbox = tuple(tbl.bbox)
         members = [
-            b for i, b in enumerate(page.blocks)
+            b
+            for i, b in enumerate(page.blocks)
             if i not in consumed and _overlap_frac(b.bbox, bbox) > 0.5
         ]
         if not members:
             continue
         if _journal_front_matter(members, page.blocks):
-            abstract_top = min(ln.bbox[1] for b in members for ln in b.lines
-                               if re.sub(r"\s+", "", ln.text).rstrip(":").lower() == "abstract")
+            abstract_top = min(
+                ln.bbox[1]
+                for b in members
+                for ln in b.lines
+                if re.sub(r"\s+", "", ln.text).rstrip(":").lower() == "abstract"
+            )
             preceding = [b for b in page.blocks if b.y_end <= abstract_top]
-            title_size = max(b.max_size() for b in preceding
-                             if 4 <= len(b.text.split()) <= 40)
+            title_size = max(
+                b.max_size() for b in preceding if 4 <= len(b.text.split()) <= 40
+            )
             for block in members + preceding:
                 block.journal_front_matter = True
-                block.journal_title = (4 <= len(block.text.split()) <= 40
-                                       and block.max_size() >= 0.95 * title_size)
+                block.journal_title = (
+                    4 <= len(block.text.split()) <= 40
+                    and block.max_size() >= 0.95 * title_size
+                )
             continue  # original blocks remain for heading/paragraph classification
 
         # The caption and whatever stands under the bottom rule leave the
@@ -538,17 +617,24 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
         touched = members
         try:
             cap_lines, out_lines, extent = _isolate_table(
-                members, bbox, rules, others, bound_rows=id(tbl) in ruled_only)
+                members, bbox, rules, others, bound_rows=id(tbl) in ruled_only
+            )
         except Exception:
             cap_lines, out_lines, extent = [], [], None
         if extent is not None:
             grid_members, caption_block, leftovers, touched = _split_members(
-                members, cap_lines, out_lines)
+                members, cap_lines, out_lines
+            )
             if len(grid_members) == 0:
                 caption_block, leftovers, touched, extent = None, [], members, None
             else:
                 members = grid_members
-                bbox = (bbox[0], max(bbox[1], extent[0]), bbox[2], min(bbox[3], extent[1] + 1.0))
+                bbox = (
+                    bbox[0],
+                    max(bbox[1], extent[0]),
+                    bbox[2],
+                    min(bbox[3], extent[1] + 1.0),
+                )
                 lines_excluded = len(out_lines)
                 if caption_block is not None:
                     caption_tokens = len(caption_block.text.split())
@@ -616,9 +702,13 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
             html=html if not fell_back else None,
             # Preserve original block/line stream order. In particular, do
             # not dehyphenate: conservation is a source-token multiset check.
-            fallback_paragraphs=["\n".join(ln.text.strip() for ln in m.lines
-                                           if ln.text.strip())
-                                 for m in members if m.text.strip()] if fell_back else [],
+            fallback_paragraphs=[
+                "\n".join(ln.text.strip() for ln in m.lines if ln.text.strip())
+                for m in members
+                if m.text.strip()
+            ]
+            if fell_back
+            else [],
         )
         new_blocks.append(tb)
 
@@ -626,6 +716,7 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
         page.blocks = [b for i, b in enumerate(page.blocks) if i not in consumed]
         page.blocks.extend(new_blocks)
         page.blocks.sort(key=lambda b: b.char_pos)
+
 
 def _columns_align(rows, tol=3.0, min_share=0.6) -> bool:
     """True when token starts recur at the same x across rows.
@@ -653,6 +744,7 @@ def _columns_align(rows, tol=3.0, min_share=0.6) -> bool:
             shared += 1
     return shared >= 2
 
+
 def propose_tables_from_text(pages: List[Page], min_score=0.62) -> None:
     """Second-chance table detection for pages with no ruling lines.
 
@@ -666,8 +758,12 @@ def propose_tables_from_text(pages: List[Page], min_score=0.62) -> None:
         return
     for page in pages:
         for blk in page.blocks:
-            if (blk.btype == "Table" or blk.journal_front_matter
-                    or len(blk.lines) < 3 or blk.ignore_for_output):
+            if (
+                blk.btype == "Table"
+                or blk.journal_front_matter
+                or len(blk.lines) < 3
+                or blk.ignore_for_output
+            ):
                 continue
             lines = _tokens_for_recon([blk], blk.bbox)
             multi = [ln for ln in lines if len(ln[0]) >= 2]
@@ -694,7 +790,10 @@ def propose_tables_from_text(pages: List[Page], min_score=0.62) -> None:
             # the block stays prose. This rejects proposals only; it does not
             # change what is admitted (PLAN-tables items 4 and 5 still stand).
             src_words = len(blk.text.split())
-            if src_words and _html_word_count(html) < TABLE_FALLBACK_MIN_KEEP * src_words:
+            if (
+                src_words
+                and _html_word_count(html) < TABLE_FALLBACK_MIN_KEEP * src_words
+            ):
                 page.proposals_kept_prose += 1
                 continue
             page.tables_emitted += 1

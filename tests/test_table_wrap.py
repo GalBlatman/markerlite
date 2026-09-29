@@ -36,11 +36,19 @@ class WrappedCellsTests(unittest.TestCase):
                 _, info = markerlite.convert(pdf, pathlib.Path(directory))
         expected = [
             ["Record", "Requirement", "Assessment"],
-            ["Alpha", "Include the whole reporting boundary and retain every subsidiary "
-             "without dropping any exception from the account.", "Accepted Review continues"],
+            [
+                "Alpha",
+                "Include the whole reporting boundary and retain every subsidiary "
+                "without dropping any exception from the account.",
+                "Accepted Review continues",
+            ],
             ["Beta", "Report the short independent entry.", "Pending"],
-            ["Gamma", "Cover at least 7% of relevant activity without treating the percentage "
-             "as a new row. Publish all checks and name their owners.", "Reviewed"],
+            [
+                "Gamma",
+                "Cover at least 7% of relevant activity without treating the percentage "
+                "as a new row. Publish all checks and name their owners.",
+                "Reviewed",
+            ],
             ["Delta", "Keep the final independent record.", "Complete"],
         ]
         self.assertEqual(tables, [expected, expected])
@@ -48,11 +56,31 @@ class WrappedCellsTests(unittest.TestCase):
 
     def lines(self):
         return [
-            ([("Record", 0, 30), ("Description", 100, 145), ("Status", 300, 330)], 0, 10),
-            ([("Alpha", 0, 25), ("Opening statement", 100, 170), ("Approved", 300, 340)], 12, 22),
+            (
+                [("Record", 0, 30), ("Description", 100, 145), ("Status", 300, 330)],
+                0,
+                10,
+            ),
+            (
+                [
+                    ("Alpha", 0, 25),
+                    ("Opening statement", 100, 170),
+                    ("Approved", 300, 340),
+                ],
+                12,
+                22,
+            ),
             ([("Opening statement", 100, 170)], 24, 34),
-            ([("Beta", 0, 20), ("Second entry", 100, 160), ("Pending", 300, 330)], 36, 46),
-            ([("Gamma", 0, 30), ("Third entry", 100, 160), ("Reviewed", 300, 340)], 48, 58),
+            (
+                [("Beta", 0, 20), ("Second entry", 100, 160), ("Pending", 300, 330)],
+                36,
+                46,
+            ),
+            (
+                [("Gamma", 0, 30), ("Third entry", 100, 160), ("Reviewed", 300, 340)],
+                48,
+                58,
+            ),
         ]
 
     def test_repeated_words_retained_once_per_occurrence(self):

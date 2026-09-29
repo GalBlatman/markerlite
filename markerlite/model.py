@@ -33,7 +33,9 @@ LIST_ITEM_START = re.compile(
 
 BULLET_START = re.compile(r"^\s*(?:[•●○ഠ ം◦■▪▫–—-]|[\x80-\x9f])\s")
 
-BULLET_IN_EMPHASIS = re.compile(r"^(\s*(?:\*{1,3}|_{1,2}))\s*(?:[•●○ഠ ം◦■▪▫–—-]|[\x80-\x9f])\s+")
+BULLET_IN_EMPHASIS = re.compile(
+    r"^(\s*(?:\*{1,3}|_{1,2}))\s*(?:[•●○ഠ ം◦■▪▫–—-]|[\x80-\x9f])\s+"
+)
 
 HYPHEN_END = regex.compile(r".*[\p{Ll}|\d][-—¬]\s?$", regex.DOTALL)
 
@@ -80,13 +82,14 @@ OCR_MAX_NATIVE_CHARS = 500
 
 OCR_RASTER_MIN_FRAC = 0.8
 
-OCR_STAMP_MARGIN = 0.15   # native text must lie in the top/bottom 15% to be a stamp
+OCR_STAMP_MARGIN = 0.15  # native text must lie in the top/bottom 15% to be a stamp
 
 GARBLE_MIN = 0.10
 
 GARBLE_MIN_TOKENS = 50
 
-_COMMON_WORDS = frozenset("""
+_COMMON_WORDS = frozenset(
+    """
 the of and to in a is that for it as was with be by on not he this are or his from at which but
 have an had they you were their one all we can her has there been if more when will would who so
 no out up into than them only its some could these two may then do first any my now such like our
@@ -100,7 +103,8 @@ er hat dass sie nach bei
 el los las del y una por con para su al lo como más pero sus ya o este
 di che per non sono da della si nel alla più anche
 het een van dat op te zijn voor met niet aan ook bij door
-""".split())
+""".split()
+)
 
 _WORD_TOKEN = re.compile(r"[^\W_]+(?:['\u2019-][^\W_]+)*")
 
@@ -119,7 +123,8 @@ TABLE_FALLBACK_MIN_KEEP = 0.9
 TABLE_LABEL = re.compile(r"^\s*(table|tbl\.?)\s*(\d{1,3}|[IVX]{1,4})[a-z]?\b", re.I)
 
 TABLE_NOTE = re.compile(
-    r"^\s*(notes?|sources?)\s*[.:]|^\s*[*\u2020\u2021]+\s*p\s*[<=\u2264]", re.I)
+    r"^\s*(notes?|sources?)\s*[.:]|^\s*[*\u2020\u2021]+\s*p\s*[<=\u2264]", re.I
+)
 
 RULE_MIN_COVER = 0.6
 
@@ -130,31 +135,36 @@ FOOTNOTE_MARKER = re.compile(
     r"([*\u2020\u2021\u00a7\u00b6]{1,3}))\s*"
 )
 
-SIGNIFICANCE_LEGEND = re.compile(
-    r"^\s*[*†‡+]{1,3}\s*p\s*[<≤,]\s*0?\.\d", re.I)
+SIGNIFICANCE_LEGEND = re.compile(r"^\s*[*†‡+]{1,3}\s*p\s*[<≤,]\s*0?\.\d", re.I)
 
 SIGNIFICANCE_LEGEND_BARE = re.compile(
-    r"^\s*[*\u2020\u2021+]{1,3}\s*p[\s\x00-\x1f]{1,4}0?\.\d", re.I)
+    r"^\s*[*\u2020\u2021+]{1,3}\s*p[\s\x00-\x1f]{1,4}0?\.\d", re.I
+)
 
 SYMBOL_LED = re.compile(r"^\s*([*\u2020\u2021\u00a7\u00b6]{1,3})")
 
 REF_LIST_HEAD = re.compile(
     r"^\s*(references|bibliography|works cited|literature cited)\s*[a-z*\u2020\u2021]?\s*$",
-    re.I)
+    re.I,
+)
 
 REF_ENTRY_SHAPE = re.compile(
-    r"^\s*[*\u2020\u2021\u00a7\u00b6]{0,3}\s*[A-Z][\w\u00a8\u2019' .\-]{1,40},\s+(?:[A-Z]\.\s*){1,4}")
+    r"^\s*[*\u2020\u2021\u00a7\u00b6]{0,3}\s*[A-Z][\w\u00a8\u2019' .\-]{1,40},\s+(?:[A-Z]\.\s*){1,4}"
+)
 
 MARK_LEGEND = re.compile(
     r"\b(marked|denoted|indicated|preceded|identified)\b.{0,40}\b(asterisks?|daggers?|stars?)\b"
     r"|\b(asterisks?|daggers?)\b.{0,60}\b(indicates?|denotes?|marks?|(?:were|are) included)\b",
-    re.I | re.S)
+    re.I | re.S,
+)
 
 TEXTISH = ("Text", "SectionHeader", "ListItem", "Caption", "Equation")
 
 FURNITURE_HEIGHT_TOL = 0.015
 
-PAGE_NUMBER_ONLY = re.compile(r"^[\s\-\u2013\u2014|]*(?:\d{1,4}|[ivxlcdmIVXLCDM]{1,7})[\s\-\u2013\u2014|]*$")
+PAGE_NUMBER_ONLY = re.compile(
+    r"^[\s\-\u2013\u2014|]*(?:\d{1,4}|[ivxlcdmIVXLCDM]{1,7})[\s\-\u2013\u2014|]*$"
+)
 
 _FN_LABELS: set = set()
 
@@ -162,13 +172,17 @@ LIST_LOOKALIKE = re.compile(r"^(\s*)(?:([*+-])|(\d{1,9})([.)]))(?=\s)")
 
 FIGURE_CAPTION = re.compile(r"^\s*(figure|fig\.?)\s*[\dIVXA-Z]+", re.I)
 
-FIGURE_LABEL = re.compile(r"^\s*(figure|fig\.?)\s*([A-Z]?\d{1,3}|[IVX]{1,4})[a-z]?\b\s*(.*)$", re.I | re.S)
+FIGURE_LABEL = re.compile(
+    r"^\s*(figure|fig\.?)\s*([A-Z]?\d{1,3}|[IVX]{1,4})[a-z]?\b\s*(.*)$", re.I | re.S
+)
 
 FIGURE_CAPTION_REACH = 0.25
 
 EQ_LEADIN = re.compile(
     r"\b(formula|equation|expression)s?\s+(below|that\s+follows)\b"
-    r"|\b(following|below)\s+(formula|equation|expression)s?\b", re.I)
+    r"|\b(following|below)\s+(formula|equation|expression)s?\b",
+    re.I,
+)
 
 EQ_WHERE = re.compile(r"^\s*where\b", re.I)
 
@@ -185,12 +199,15 @@ FIGURE_GROW_GAP = 0.04
 FIGURE_DESCRIPTION_MARK = "<!-- figure description: model-transcribed -->"
 
 _FIGURE_DESCRIPTION_BLOCK = re.compile(
-    r"\n\n> " + re.escape(FIGURE_DESCRIPTION_MARK) + r"(?:\n>[^\n]*)*")
+    r"\n\n> " + re.escape(FIGURE_DESCRIPTION_MARK) + r"(?:\n>[^\n]*)*"
+)
 
 _JSTOR_PHRASES = ("JSTOR is a not-for-profit service", "Your use of the JSTOR archive")
 
-_RG_PHRASES = ("See discussions, stats, and author profiles",
-               "All content following this page was uploaded")
+_RG_PHRASES = (
+    "See discussions, stats, and author profiles",
+    "All content following this page was uploaded",
+)
 
 _PROQUEST_STAMP = "Reproduced with permission of the copyright owner"
 
@@ -198,10 +215,15 @@ _RG_FOOTER = "View publication stats"
 
 _EBSCO_PHRASE = "may not be copied or emailed to multiple sites or posted to a listserv"
 
-_EBSCO_CITE = re.compile(r"Copyright of (.+?) is the property of (.+?) and its content", re.S)
+_EBSCO_CITE = re.compile(
+    r"Copyright of (.+?) is the property of (.+?) and its content", re.S
+)
 
-_WRAP_PHRASES = ("warwick.ac.uk/lib-publications", "Persistent WRAP URL",
-                 "Warwick Research Archive Portal")
+_WRAP_PHRASES = (
+    "warwick.ac.uk/lib-publications",
+    "Persistent WRAP URL",
+    "Warwick Research Archive Portal",
+)
 
 _SAGE_HOST = re.compile(r"\b[\w.-]*sagepub\.com\b", re.I)
 
@@ -211,10 +233,11 @@ _SAGE_COLLECTIONS = "SAGE Social Science Collections"
 
 _JSTOR_CITE = re.compile(r"^(Author\(s\)|Source|Published by|Stable URL)\s*:", re.I)
 
-_RG_CITE = re.compile(r"^(Article|Chapter|Conference Paper|Preprint|Book|Thesis)\b.*\bin\b", re.I)
+_RG_CITE = re.compile(
+    r"^(Article|Chapter|Conference Paper|Preprint|Book|Thesis)\b.*\bin\b", re.I
+)
 
 _PROQUEST_PG = re.compile(r"^pg\.\s*\d+", re.I)
-
 
 
 @dataclass
@@ -247,6 +270,7 @@ class Span:
     def superscript(self) -> bool:
         return bool(self.flags & SUPER_FLAG)
 
+
 @dataclass
 class Line:
     spans: List[Span]
@@ -272,6 +296,7 @@ class Line:
     @property
     def width(self) -> float:
         return self.bbox[2] - self.bbox[0]
+
 
 @dataclass
 class Block:
@@ -360,6 +385,7 @@ class Block:
         if not chars:
             return 0.0
         return sum(len(s.text) for s in spans if getattr(s, attr)) / chars
+
 
 @dataclass
 class Page:

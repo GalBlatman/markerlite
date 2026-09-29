@@ -26,12 +26,14 @@ from sklearn.exceptions import ConvergenceWarning
 
 from .model import *
 
+
 def _bbox_of(items) -> Tuple[float, float, float, float]:
     xs0 = min(i[0] for i in items)
     ys0 = min(i[1] for i in items)
     xs1 = max(i[2] for i in items)
     ys1 = max(i[3] for i in items)
     return (xs0, ys0, xs1, ys1)
+
 
 def readable_ratio(text: str) -> Tuple[int, float]:
     """(tokens, share of them that are common words or numerals)."""
@@ -40,6 +42,7 @@ def readable_ratio(text: str) -> Tuple[int, float]:
         return 0, 0.0
     hits = sum(1 for tok in tokens if tok.isdigit() or tok.lower() in _COMMON_WORDS)
     return len(tokens), hits / len(tokens)
+
 
 def _normalise_rotation(page: pymupdf.Page) -> Tuple[pymupdf.Page, bool]:
     """Return the page with its text upright, and whether it was turned.
@@ -75,6 +78,7 @@ def _normalise_rotation(page: pymupdf.Page) -> Tuple[pymupdf.Page, bool]:
         turned = True
     return page, turned
 
+
 def _page_raster_covered(page: pymupdf.Page) -> bool:
     prect = page.rect
     area = max(prect.width * prect.height, 1.0)
@@ -91,9 +95,12 @@ def _page_raster_covered(page: pymupdf.Page) -> bool:
             return True
     return False
 
+
 def _remap_pi_fonts(pages: List[Page]) -> int:
     """Rewrite the glyphs of pi fonts in place; returns the spans changed."""
-    inventory: dict = defaultdict(lambda: [0, 0, 0, 0])   # spans, letters, twos, twos-before-number
+    inventory: dict = defaultdict(
+        lambda: [0, 0, 0, 0]
+    )  # spans, letters, twos, twos-before-number
     for page in pages:
         if page.ocr_used:
             continue
@@ -110,11 +117,17 @@ def _remap_pi_fonts(pages: List[Page]) -> int:
                     if text == "2":
                         inv[2] += 1
                         nxt = ln.spans[i + 1] if i + 1 < len(ln.spans) else None
-                        if nxt is not None and nxt.font != sp.font \
-                                and re.match(r"\s*\.?\d", nxt.text):
+                        if (
+                            nxt is not None
+                            and nxt.font != sp.font
+                            and re.match(r"\s*\.?\d", nxt.text)
+                        ):
                             inv[3] += 1
-    pi = {font for font, (n, letters, twos, glued) in inventory.items()
-          if n >= 5 and letters == 0 and twos >= 3 and glued >= 0.8 * twos}
+    pi = {
+        font
+        for font, (n, letters, twos, glued) in inventory.items()
+        if n >= 5 and letters == 0 and twos >= 3 and glued >= 0.8 * twos
+    }
     changed = 0
     for page in pages:
         if page.ocr_used:
@@ -130,8 +143,8 @@ def _remap_pi_fonts(pages: List[Page]) -> int:
                         changed += 1
     return changed
 
-def _page_is_image_only(page: pymupdf.Page, native_chars: int,
-                        native_lines=()) -> bool:
+
+def _page_is_image_only(page: pymupdf.Page, native_chars: int, native_lines=()) -> bool:
     """A page-covering raster with, at most, a stamp of native text.
 
     ``native_lines`` are the rawdict line bboxes. A stamp or citation banner
@@ -160,6 +173,7 @@ def _page_is_image_only(page: pymupdf.Page, native_chars: int,
             return True
     return False
 
+
 def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = 300) -> Optional[Page]:
     """OCR stand-in for surya's recognition model.
 
@@ -179,9 +193,19 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = 300) -> Optional[Pag
             img = pathlib.Path(td) / "page.png"
             pix.save(img)
             proc = subprocess.run(
-                ["tesseract", str(img), "stdout", "--psm", "1", "-c",
-                 "preserve_interword_spaces=1", "tsv"],
-                capture_output=True, text=True, timeout=180,
+                [
+                    "tesseract",
+                    str(img),
+                    "stdout",
+                    "--psm",
+                    "1",
+                    "-c",
+                    "preserve_interword_spaces=1",
+                    "tsv",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=180,
             )
         if proc.returncode != 0:
             return None
@@ -224,12 +248,21 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = 300) -> Optional[Pag
         spans = []
         for text, bbox in words:
             spans.append(
-                Span(text=text + " ", bbox=bbox, size=round(bbox[3] - bbox[1], 1),
-                     font="OCR", flags=0, char_pos=counter)
+                Span(
+                    text=text + " ",
+                    bbox=bbox,
+                    size=round(bbox[3] - bbox[1], 1),
+                    font="OCR",
+                    flags=0,
+                    char_pos=counter,
+                )
             )
             counter += 1
-        line = Line(spans=spans, bbox=_bbox_of([s.bbox for s in spans]),
-                    char_pos=spans[0].char_pos)
+        line = Line(
+            spans=spans,
+            bbox=_bbox_of([s.bbox for s in spans]),
+            char_pos=spans[0].char_pos,
+        )
         par_key = key[:2]  # block, paragraph
         if par_key not in blocks_by_par:
             par_order.append(par_key)
@@ -239,12 +272,23 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = 300) -> Optional[Pag
     for par_key in par_order:
         lines = blocks_by_par[par_key]
         blocks.append(
-            Block(lines=lines, bbox=_bbox_of([ln.bbox for ln in lines]),
-                  page_idx=page_idx, char_pos=lines[0].char_pos)
+            Block(
+                lines=lines,
+                bbox=_bbox_of([ln.bbox for ln in lines]),
+                page_idx=page_idx,
+                char_pos=lines[0].char_pos,
+            )
         )
 
-    return Page(page_idx=page_idx, width=page.rect.width, height=page.rect.height,
-                blocks=blocks, ocr_used=True, source_words=recognised)
+    return Page(
+        page_idx=page_idx,
+        width=page.rect.width,
+        height=page.rect.height,
+        blocks=blocks,
+        ocr_used=True,
+        source_words=recognised,
+    )
+
 
 def _attach_drop_caps(blocks: List[Block]) -> int:
     """Put a drop capital back on the front of its paragraph.
@@ -257,7 +301,9 @@ def _attach_drop_caps(blocks: List[Block]) -> int:
     it, at its top, with a lowercase letter; without such a line it is left
     alone (the spaced letters of "A R T I C L E" are not drop caps).
     """
-    sizes = [sp.size for b in blocks for ln in b.lines for sp in ln.spans if sp.text.strip()]
+    sizes = [
+        sp.size for b in blocks for ln in b.lines for sp in ln.spans if sp.text.strip()
+    ]
     if not sizes:
         return 0
     body = median(sizes)
@@ -277,9 +323,12 @@ def _attach_drop_caps(blocks: List[Block]) -> int:
                         continue
                     cx0, cy0, _cx1, cy1 = cand.bbox
                     ctext = cand.text.lstrip()
-                    if (ctext[:1].islower() and y0 - 4 <= cy0 <= y1
-                            and x1 - 3 <= cx0 <= x1 + 40
-                            and (best is None or cy0 < best.bbox[1])):
+                    if (
+                        ctext[:1].islower()
+                        and y0 - 4 <= cy0 <= y1
+                        and x1 - 3 <= cx0 <= x1 + 40
+                        and (best is None or cy0 < best.bbox[1])
+                    ):
                         best = cand
             if best is None:
                 continue
@@ -291,8 +340,13 @@ def _attach_drop_caps(blocks: List[Block]) -> int:
             blocks.remove(blk)
     return attached
 
-def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
-                 max_line_tilt: float = 0.1) -> Page:
+
+def extract_page(
+    page: pymupdf.Page,
+    page_idx: int,
+    ocr_if_empty: bool = True,
+    max_line_tilt: float = 0.1,
+) -> Page:
     """Blocks in PDF character-stream order.
 
     Marker orders text-layer pages by pdftext character position rather than by
@@ -312,8 +366,12 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
         for s in ln.get("spans", [])
         for c in s.get("chars", [])
     )
-    native_lines = [tuple(ln["bbox"]) for b in raw.get("blocks", []) if b.get("type") == 0
-                    for ln in b.get("lines", [])]
+    native_lines = [
+        tuple(ln["bbox"])
+        for b in raw.get("blocks", [])
+        if b.get("type") == 0
+        for ln in b.get("lines", [])
+    ]
     image_only = _page_is_image_only(page, text_len, native_lines)
     raster_covered = image_only or _page_raster_covered(page)
     n_tokens, readable = readable_ratio(page.get_text())
@@ -344,14 +402,30 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
             direction = ln.get("dir", (1.0, 0.0))
             # Orthogonal words in a scan's native layer are printed content
             # (often a sideways table), not a diagonal overlay watermark.
-            scan_orthogonal = (raster_covered and len(direction) == 2
-                               and abs(direction[0]) <= max_line_tilt)
-            if len(direction) == 2 and abs(direction[1]) > max_line_tilt and not scan_orthogonal:
-                text = "".join("".join(c.get("c", "") for c in sp.get("chars", []))
-                               or sp.get("text", "") for sp in ln.get("spans", []))
+            scan_orthogonal = (
+                raster_covered
+                and len(direction) == 2
+                and abs(direction[0]) <= max_line_tilt
+            )
+            if (
+                len(direction) == 2
+                and abs(direction[1]) > max_line_tilt
+                and not scan_orthogonal
+            ):
+                text = "".join(
+                    "".join(c.get("c", "") for c in sp.get("chars", []))
+                    or sp.get("text", "")
+                    for sp in ln.get("spans", [])
+                )
                 if text.strip():
-                    suppressed.append({"page": page_idx + 1, "bbox": list(ln["bbox"]),
-                                       "text": text, "reason": "tilt_filter"})
+                    suppressed.append(
+                        {
+                            "page": page_idx + 1,
+                            "bbox": list(ln["bbox"]),
+                            "text": text,
+                            "reason": "tilt_filter",
+                        }
+                    )
                 continue
             spans: List[Span] = []
             for s in ln.get("spans", []):
@@ -407,8 +481,10 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
         readable=readable if n_tokens >= GARBLE_MIN_TOKENS else 1.0,
     )
 
+
 def _lines_of(text: str) -> List[str]:
     return [re.sub(r"\s+", " ", ln).strip() for ln in text.splitlines() if ln.strip()]
+
 
 def detect_provenance(doc) -> Tuple[dict, set, List[str]]:
     """Find aggregator cover pages and banners by their boilerplate.
@@ -435,12 +511,16 @@ def detect_provenance(doc) -> Tuple[dict, set, List[str]]:
             cite = [ln for ln in lines if ln.startswith("Manuscript version")]
             for i, ln in enumerate(lines):
                 if ln.startswith("Persistent WRAP URL"):
-                    url = ln.split(":", 1)[1].strip() or (lines[i + 1] if i + 1 < len(lines) else "")
+                    url = ln.split(":", 1)[1].strip() or (
+                        lines[i + 1] if i + 1 < len(lines) else ""
+                    )
                     cite.append("Persistent WRAP URL: " + url.strip())
             licence = re.search(r"\(CC [A-Z-]+ [\d.]+\)", flat)
             if licence:
                 cite.append(licence.group(0).strip("()"))
-            comments.append(f"<!-- source: WRAP (University of Warwick); {'; '.join(cite)} -->")
+            comments.append(
+                f"<!-- source: WRAP (University of Warwick); {'; '.join(cite)} -->"
+            )
             drop_pages[idx] = "WRAP"
             continue
         if any(ph in text for ph in _JSTOR_PHRASES):
@@ -454,19 +534,26 @@ def detect_provenance(doc) -> Tuple[dict, set, List[str]]:
             # "Article in <journal> · <date>" line; then the DOI line.
             start = next((i for i, ln in enumerate(lines) if _RG_PHRASES[0] in ln), -1)
             art = next((i for i, ln in enumerate(lines) if _RG_CITE.match(ln)), None)
-            title = " ".join(lines[start + 1:art]) if art is not None else ""
+            title = " ".join(lines[start + 1 : art]) if art is not None else ""
             cite = [t for t in (title, lines[art] if art is not None else "") if t]
             cite += [ln for ln in lines if ln.upper().startswith("DOI")]
             comments.append(f"<!-- source: ResearchGate; {'; '.join(cite)} -->")
             drop_pages[idx] = "ResearchGate"
             continue
-        if _SAGE_HOST.search(text) and (_SAGE_DOWNLOADED in text or _SAGE_COLLECTIONS in text):
+        if _SAGE_HOST.search(text) and (
+            _SAGE_DOWNLOADED in text or _SAGE_COLLECTIONS in text
+        ):
             # The stamp is one visual line in three native pieces ("Downloaded
             # from ", "oss.sagepub.com", " at SAGE Publications on ..."); drop
             # each piece, and record the host and download line once.
-            pieces = [ln for ln in lines
-                      if _SAGE_HOST.search(ln) or ln.startswith(_SAGE_DOWNLOADED)
-                      or ln.startswith("at ") or _SAGE_COLLECTIONS in ln]
+            pieces = [
+                ln
+                for ln in lines
+                if _SAGE_HOST.search(ln)
+                or ln.startswith(_SAGE_DOWNLOADED)
+                or ln.startswith("at ")
+                or _SAGE_COLLECTIONS in ln
+            ]
             drop_lines.update(pieces)
             if not any(c.startswith("<!-- source: SAGE") for c in comments):
                 host = _SAGE_HOST.search(text).group(0)
@@ -475,20 +562,28 @@ def detect_provenance(doc) -> Tuple[dict, set, List[str]]:
                 # The native pieces may arrive in any order (SAGE emits
                 # them right-to-left), so look for the "at ..." piece first
                 # and only then for "at ..." after the host in a merged line.
-                at_piece = next((ln for ln in pieces if ln.lower().startswith("at ")), None)
+                at_piece = next(
+                    (ln for ln in pieces if ln.lower().startswith("at ")), None
+                )
                 if at_piece is None:
                     stamp = " ".join(ln for ln in pieces if _SAGE_COLLECTIONS not in ln)
                     tail = stamp.split(host, 1)[1] if host in stamp else ""
                     m_at = re.search(r"\bat\s+(.+)", tail)
                     at_piece = ("at " + m_at.group(1).strip()) if m_at else ""
                 at = at_piece
-                comments.append(f"<!-- source: SAGE Journals ({host}); downloaded {at} -->".replace(" ;", ";").replace("  ", " "))
+                comments.append(
+                    f"<!-- source: SAGE Journals ({host}); downloaded {at} -->".replace(
+                        " ;", ";"
+                    ).replace("  ", " ")
+                )
             continue
         if _PROQUEST_STAMP in text:
             stamp = next(ln for ln in lines if _PROQUEST_STAMP in ln)
             drop_lines.add(stamp)
             pg = next((ln for ln in lines if _PROQUEST_PG.match(ln)), None)
-            if pg is not None and ("ABI/INFORM" in text or "ProQuest" in text or idx == 0):
+            if pg is not None and (
+                "ABI/INFORM" in text or "ProQuest" in text or idx == 0
+            ):
                 # The banner: every native line up to and including "pg. N"
                 # (title, author, journal; date; volume; database).
                 banner = []
@@ -502,12 +597,16 @@ def detect_provenance(doc) -> Tuple[dict, set, List[str]]:
                 comments.append(f"<!-- source: ProQuest; {'; '.join(banner)} -->")
     return drop_pages, drop_lines, comments
 
+
 def _ebsco_comment(flat: str) -> str:
     m = _EBSCO_CITE.search(flat)
     if m:
-        return (f"<!-- source: EBSCOhost; Copyright of {m.group(1).strip()} is the property of "
-                f"{m.group(2).strip()} -->")
+        return (
+            f"<!-- source: EBSCOhost; Copyright of {m.group(1).strip()} is the property of "
+            f"{m.group(2).strip()} -->"
+        )
     return "<!-- source: EBSCOhost -->"
+
 
 def _drop_ocr_notice(page: Page, provenance: List[str]) -> None:
     """An aggregator notice page delivered as a raster is only recognisable
@@ -521,18 +620,21 @@ def _drop_ocr_notice(page: Page, provenance: List[str]) -> None:
     if key in squeezed and len(flat) < 700:
         for blk in page.blocks:
             _suppress_block(page, blk, "provenance")
-        page.raster_covered = False     # nothing to yield: not a low-yield page
-        page.source_words = 0           # dropped on purpose: not a lossy page
+        page.raster_covered = False  # nothing to yield: not a low-yield page
+        page.source_words = 0  # dropped on purpose: not a lossy page
         comment = _ebsco_comment(flat)
         if not any(c.startswith("<!-- source: EBSCOhost") for c in provenance):
             provenance.append(comment)
+
 
 def _drop_provenance_lines(page: Page, drop_lines: set) -> None:
     """Hide blocks made only of provenance lines. A stamp that is several
     native pieces ("Downloaded from ", "oss.sagepub.com", " at ...") is one
     OCR line, so a line also matches when it is the pieces run together."""
+
     def norm(t):
         return re.sub(r"\s+", " ", t).strip()
+
     def is_prov(t):
         t = norm(t)
         if t in drop_lines:
@@ -544,6 +646,7 @@ def _drop_provenance_lines(page: Page, drop_lines: set) -> None:
             return False
         piece = "(?:" + "|".join(pieces) + ")"
         return bool(re.fullmatch(piece + r"(?:\s+" + piece + ")*", t))
+
     for blk in page.blocks:
         if blk.lines and all(is_prov(ln.text) for ln in blk.lines):
             _suppress_block(page, blk, "provenance")
