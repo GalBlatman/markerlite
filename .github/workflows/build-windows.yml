@@ -78,7 +78,8 @@ jobs:
       - name: Check the build launches
         run: |
           if (!(Test-Path dist\markerlite\markerlite.exe)) { throw "exe missing" }
-          & dist\markerlite\markerlite.exe --diag
+          $diag = Start-Process -FilePath dist\markerlite\markerlite.exe -ArgumentList "--diag" -Wait -PassThru
+          if ($diag.ExitCode -ne 0) { throw "diagnostics exited $($diag.ExitCode)" }
           if (!(Test-Path dist\markerlite\markerlite-diag.txt)) { throw "diagnostics missing" }
           Select-String -Path dist\markerlite\markerlite-diag.txt -Pattern "frozen=True", "TkinterDnD.Tk\(\)  OK"
 
