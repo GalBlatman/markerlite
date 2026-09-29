@@ -406,6 +406,9 @@ parentheses fails if the fix is undone):
 
 ## Open items
 
+- Dehyphenation needs a bundled word list; document evidence and character
+  shape alone cannot distinguish compounds from split names or OCR fragments.
+
 - Packet B source-line suppression is fixed (44/44 cases); see
   tests/REPORT-suppression.md. Packet A's 79 structural cases remain batch C
   evidence in tests/PLAN-tables.md, not implemented by the suppression fix.
