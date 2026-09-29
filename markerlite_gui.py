@@ -22,6 +22,15 @@ import tkinter as tk
 import traceback
 from tkinter import filedialog, ttk
 
+from markerlite.gui_logic import (
+    ConversionOptions,
+    output_directory,
+    provenance_comments,
+    snapshot_options,
+    summary_text,
+    warning_lines,
+)
+
 # Crisp text on high-DPI Windows displays; harmless elsewhere.
 #
 # Per-monitor awareness (v2) matters on mixed-scaling setups: with plain
@@ -520,9 +529,7 @@ class App:
             self.out_dir.set(d)
 
     def outdir_for(self, pdf: pathlib.Path) -> pathlib.Path:
-        if self.out_mode.get() == "fixed":
-            return pathlib.Path(self.out_dir.get())
-        return pdf.parent
+        return output_directory(pdf, self.out_mode.get(), self.out_dir.get())
 
     # ------------------------------------------------------------ conversion
     def start(self):
@@ -540,18 +547,18 @@ class App:
         # Tk variables belong to the main thread: read them here, once, and
         # hand the worker a plain snapshot. Reading them from the worker is a
         # data race, and it also let a mid-run checkbox change alter the batch.
-        opts = {
-            "images": self.opt_images.get(),
-            "math": self.opt_math.get(),
-            "page_markers": self.opt_pages.get(),
-            "mode": self.out_mode.get(),
-            "dir": self.out_dir.get(),
-        }
+        opts = snapshot_options(
+            self.opt_images.get(),
+            self.opt_math.get(),
+            self.opt_pages.get(),
+            self.out_mode.get(),
+            self.out_dir.get(),
+        )
         threading.Thread(
             target=self._worker, args=(list(self.files), opts), daemon=True
         ).start()
 
-    def _worker(self, files: list[pathlib.Path], opts: dict):
+    def _worker(self, files: list[pathlib.Path], opts: ConversionOptions):
         try:
             from markerlite import convert, stat_warnings, summarize
         except Exception:
@@ -582,13 +589,11 @@ class App:
 
         for pdf in files:
             self.events.put(("busy", str(pdf)))
-            outdir = (
-                pathlib.Path(opts["dir"]) if opts["mode"] == "fixed" else pdf.parent
-            )
+            outdir = output_directory(pdf, opts.mode, opts.directory)
             try:
                 outdir.mkdir(parents=True, exist_ok=True)
                 md, manifest = convert(
-                    pdf, outdir, opts["images"], opts["math"], opts["page_markers"]
+                    pdf, outdir, opts.images, opts.math, opts.page_markers
                 )
                 stats = manifest.get("stats", {})
                 warns = stat_warnings(stats)
@@ -714,34 +719,21 @@ class App:
     @staticmethod
     def _warnings(stats: dict) -> list[str]:
         try:
-            from markerlite import stat_warnings
-
-            return stat_warnings(stats)
+            return warning_lines(stats)
         except Exception:
             return []
 
     @staticmethod
     def _summary(stats: dict) -> str:
         try:
-            from markerlite import summarize
-
-            return summarize(stats)
+            return summary_text(stats)
         except Exception:
             return ""
 
     @staticmethod
     def _provenance_of(md: str) -> list[str]:
         """The <!-- source: ... --> comments convert() wrote at the top."""
-        out = []
-        try:
-            with open(md, encoding="utf-8") as fh:
-                for _ in range(8):
-                    line = fh.readline()
-                    if line.startswith("<!-- source:"):
-                        out.append(line.strip()[len("<!-- ") : -len(" -->")])
-        except Exception:
-            pass
-        return out
+        return provenance_comments(pathlib.Path(md))
 
     def _tree_motion(self, event):
         row = self.tree.identify_row(event.y)

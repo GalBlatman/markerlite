@@ -41,6 +41,12 @@ def sha256_file(path: pathlib.Path) -> str:
     return digest.hexdigest()
 
 
+def sha256_text_file(path: pathlib.Path) -> str:
+    """Hash text content independent of the checkout platform's newlines."""
+    data = path.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return sha256_bytes(data)
+
+
 def canonical_hash(value) -> str:
     data = json.dumps(
         value, sort_keys=True, separators=(",", ":"), ensure_ascii=False
@@ -179,7 +185,10 @@ def artifact_hashes(directory: pathlib.Path, markdown: pathlib.Path) -> dict:
     for path in sorted(p for p in directory.rglob("*") if p.is_file()):
         if path == markdown:
             continue
-        artifacts[path.relative_to(directory).as_posix()] = sha256_file(path)
+        hasher = (
+            sha256_text_file if path.suffix in {".json", ".md", ".txt"} else sha256_file
+        )
+        artifacts[path.relative_to(directory).as_posix()] = hasher(path)
     return artifacts
 
 
@@ -193,7 +202,7 @@ def run_one(spec: dict, source: pathlib.Path, work: pathlib.Path) -> dict:
     result.update(
         {
             "pages": pages,
-            "markdown_sha256": sha256_file(markdown),
+            "markdown_sha256": sha256_text_file(markdown),
             "stats_sha256": canonical_hash(info["stats"]),
             "ocr": bool(info["stats"].get("ocr_pages")),
             "artifacts": artifact_hashes(outdir, markdown),
