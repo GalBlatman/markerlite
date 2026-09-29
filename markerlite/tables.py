@@ -85,7 +85,7 @@ def _tokens_for_recon(blocks: List[Block], bbox) -> list:
                     ):
                         words.append([t, sx0, sx1, sy1 - sy0])
                 if words:
-                    gap_thresh = 0.8 * median([w[3] for w in words])
+                    gap_thresh = TABLE_TOKEN_GAP_HEIGHT * median([w[3] for w in words])
                     for t, x0, x1, _h in words:
                         if tokens and x0 - tokens[-1][2] < gap_thresh:
                             tokens[-1][0] += " " + t
@@ -100,7 +100,7 @@ def _tokens_for_recon(blocks: List[Block], bbox) -> list:
                     ):
                         continue
                     ch = c.get("c", "")
-                    gap = 0.5 * max(cy1 - cy0, 1.0)
+                    gap = TABLE_ROW_TOLERANCE_HEIGHT * max(cy1 - cy0, 1.0)
                     if cur is None:
                         cur = [ch, cx0, cx1]
                     elif cx0 - cur[2] > gap:
@@ -208,7 +208,11 @@ def _html_word_count(html: str) -> int:
     return len(unescape(text).split())
 
 
-def _table_sane(html: str, max_header_ratio=1.4, max_empty_frac=0.45) -> bool:
+def _table_sane(
+    html: str,
+    max_header_ratio=TABLE_MAX_HEADER_RATIO,
+    max_empty_frac=TABLE_MAX_EMPTY_FRAC,
+) -> bool:
     """Reject a reconstruction that cannot be the table on the page.
 
     The grid sweep sometimes wins with far too many columns - a nine-column
@@ -358,9 +362,11 @@ def _isolate_table(
                 break
             if not alone(i) or not _one_run(ln):
                 break
-            if abs(_line_size(ln) - _line_size(first)) > 0.6:
+            if abs(_line_size(ln) - _line_size(first)) > TABLE_CAPTION_MAX_SIZE_DELTA:
                 break
-            if ln.bbox[1] - prev.bbox[3] > 0.8 * max(prev.height, 1.0):
+            if ln.bbox[1] - prev.bbox[3] > TABLE_CAPTION_MAX_GAP_HEIGHT * max(
+                prev.height, 1.0
+            ):
                 break
             if (
                 abs(ln.bbox[0] - first.bbox[0]) > 3.0
@@ -476,7 +482,7 @@ def _journal_front_matter(members: List[Block], context: List[Block]) -> bool:
     labels = {re.sub(r"\s+", "", ln.text).rstrip(":").lower() for ln in lines}
     if "abstract" not in labels:
         return False
-    prose = [b for b in members if len(b.text.split()) >= 60]
+    prose = [b for b in members if len(b.text.split()) >= FRONT_MATTER_MIN_PROSE_WORDS]
     if not prose:
         return False
     sizes = [sp.size for b in prose for sp in b.spans if sp.text.strip()]
@@ -489,9 +495,11 @@ def _journal_front_matter(members: List[Block], context: List[Block]) -> bool:
         if re.sub(r"\s+", "", ln.text).rstrip(":").lower() == "abstract"
     )
     title = any(
-        4 <= len(b.text.split()) <= 40
+        FRONT_MATTER_TITLE_MIN_WORDS
+        <= len(b.text.split())
+        <= FRONT_MATTER_TITLE_MAX_WORDS
         and b.y_end <= abstract_top
-        and b.max_size() >= 1.25 * body_size
+        and b.max_size() >= FRONT_MATTER_TITLE_SCALE * body_size
         for b in context
     )
     if not title:
@@ -534,9 +542,15 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
         for tbl in cands:
             bb = tuple(tbl.bbox)
             area = max((bb[2] - bb[0]) * (bb[3] - bb[1]), 0.0)
-            if area > 0.6 * page_area or area < 200:
+            if (
+                area > TABLE_CANDIDATE_MAX_PAGE_FRAC * page_area
+                or area < TABLE_CANDIDATE_MIN_AREA
+            ):
                 continue  # a "table" covering the page is the page, not a table
-            if any(_overlap_frac(bb, prev) > 0.6 for prev in seen_bboxes):
+            if any(
+                _overlap_frac(bb, prev) > TABLE_CANDIDATE_MAX_OVERLAP
+                for prev in seen_bboxes
+            ):
                 continue
             seen_bboxes.append(bb)
             found.append(tbl)
@@ -555,7 +569,9 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
             TABLE_LABEL.match(b.text.strip()) and 0 <= y - b.y_end <= 30
             for b in page.blocks
         )
-        if y > 0.95 * page.height or (y < 0.08 * page.height and not caption_above):
+        if y > TABLE_PHYSICAL_EDGE_Y * page.height or (
+            y < TABLE_TOP_EDGE_Y * page.height and not caption_above
+        ):
             continue
         rows[round(y, 1)].append((x0, x1))
     extents = [
@@ -564,12 +580,16 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
     for y0, x0, x1 in extents:
         for y1, a, b in extents:
             if (
-                12 < y1 - y0 < 0.9 * page.height
-                and x1 - x0 > 0.15 * page.width
-                and abs(x0 - a) < 4
-                and abs(x1 - b) < 4
+                TABLE_RULE_MIN_HEIGHT
+                < y1 - y0
+                < TABLE_RULE_MAX_HEIGHT_FRAC * page.height
+                and x1 - x0 > TABLE_RULE_MIN_WIDTH_FRAC * page.width
+                and abs(x0 - a) < TABLE_RULE_EDGE_TOL
+                and abs(x1 - b) < TABLE_RULE_EDGE_TOL
                 and any(
-                    y0 < mid < y1 and abs(left - x0) < 4 and abs(right - x1) < 4
+                    y0 < mid < y1
+                    and abs(left - x0) < TABLE_RULE_EDGE_TOL
+                    and abs(right - x1) < TABLE_RULE_EDGE_TOL
                     for mid, left, right in extents
                 )
             ):
@@ -585,7 +605,7 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
         members = [
             b
             for i, b in enumerate(page.blocks)
-            if i not in consumed and _overlap_frac(b.bbox, bbox) > 0.5
+            if i not in consumed and _overlap_frac(b.bbox, bbox) > TABLE_MEMBER_OVERLAP
         ]
         if not members:
             continue
@@ -598,13 +618,20 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
             )
             preceding = [b for b in page.blocks if b.y_end <= abstract_top]
             title_size = max(
-                b.max_size() for b in preceding if 4 <= len(b.text.split()) <= 40
+                b.max_size()
+                for b in preceding
+                if FRONT_MATTER_TITLE_MIN_WORDS
+                <= len(b.text.split())
+                <= FRONT_MATTER_TITLE_MAX_WORDS
             )
             for block in members + preceding:
                 block.journal_front_matter = True
                 block.journal_title = (
-                    4 <= len(block.text.split()) <= 40
-                    and block.max_size() >= 0.95 * title_size
+                    FRONT_MATTER_TITLE_MIN_WORDS
+                    <= len(block.text.split())
+                    <= FRONT_MATTER_TITLE_MAX_WORDS
+                    and block.max_size()
+                    >= FRONT_MATTER_JOURNAL_TITLE_SCALE * title_size
                 )
             continue  # original blocks remain for heading/paragraph classification
 
@@ -718,7 +745,9 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
         page.blocks.sort(key=lambda b: b.char_pos)
 
 
-def _columns_align(rows, tol=3.0, min_share=0.6) -> bool:
+def _columns_align(
+    rows, tol=PROPOSAL_ALIGN_TOL, min_share=PROPOSAL_ALIGN_MIN_SHARE
+) -> bool:
     """True when token starts recur at the same x across rows.
 
     This is the test that separates a table from justified prose. Both can show
@@ -726,7 +755,7 @@ def _columns_align(rows, tol=3.0, min_share=0.6) -> bool:
     puts its tokens at the *same* x positions row after row - prose word starts
     scatter. Requires at least two such shared columns beyond the left margin.
     """
-    if len(rows) < 3:
+    if len(rows) < PROPOSAL_MIN_ROWS:
         return False
     starts = [sorted(round(x0, 1) for _t, x0, _x1 in r[0]) for r in rows]
     positions = sorted({x for row in starts for x in row})
@@ -745,7 +774,7 @@ def _columns_align(rows, tol=3.0, min_share=0.6) -> bool:
     return shared >= 2
 
 
-def propose_tables_from_text(pages: List[Page], min_score=0.62) -> None:
+def propose_tables_from_text(pages: List[Page], min_score=PROPOSAL_MIN_SCORE) -> None:
     """Second-chance table detection for pages with no ruling lines.
 
     find_tables needs vectors or a clean whitespace signal; a scanned page has
@@ -767,7 +796,7 @@ def propose_tables_from_text(pages: List[Page], min_score=0.62) -> None:
                 continue
             lines = _tokens_for_recon([blk], blk.bbox)
             multi = [ln for ln in lines if len(ln[0]) >= 2]
-            if len(multi) < 3:
+            if len(multi) < PROPOSAL_MIN_ROWS:
                 continue
             if not _columns_align(multi):
                 continue
@@ -780,7 +809,11 @@ def propose_tables_from_text(pages: List[Page], min_score=0.62) -> None:
                 continue
             html, score = res
             ncols = html.count("<th>") or html.split("</tr>")[0].count("<td>")
-            if score < min_score or not (2 <= ncols <= 12) or not _table_sane(html):
+            if (
+                score < min_score
+                or not (PROPOSAL_MIN_COLUMNS <= ncols <= PROPOSAL_MAX_COLUMNS)
+                or not _table_sane(html)
+            ):
                 continue
             # Text-loss guard, the proposal path's counterpart of the one in
             # detect_tables. The proposal consumes this block, so the block's

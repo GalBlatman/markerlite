@@ -60,7 +60,7 @@ from .figures import (
     place_figures,
 )
 from .render import render
-from .stats import _emitted_words, content_words
+from .stats import build_stats
 
 
 def convert(
@@ -160,48 +160,8 @@ def convert(
         md = "\n".join(provenance) + "\n\n" + md
     out = outdir / f"{path.stem}.md"
     out.write_text(md, encoding="utf-8")
-    low_yield = []
-    lossy = []
-    for p in pages:
-        emitted = _emitted_words(p)
-        if p.raster_covered and emitted < LOW_YIELD_WORDS:
-            low_yield.append(p.page_idx + 1)
-        if (
-            p.source_words >= CONSERVATION_MIN_SOURCE
-            and emitted < CONSERVATION_MIN * p.source_words
-        ):
-            lossy.append(
-                {"page": p.page_idx + 1, "source": p.source_words, "emitted": emitted}
-            )
-    manifest["stats"] = {
-        "suppressed": [record for page in pages for record in page.suppressed],
-        "pages": len(pages),
-        "bytes": len(md.encode("utf-8")),
-        "words": content_words(md),
-        "low_yield_pages": low_yield,
-        "lossy_pages": lossy,
-        "garbled_pages": [p.page_idx + 1 for p in pages if p.garbled],
-        "garbled_ocr": sum(1 for p in pages if p.garbled and p.ocr_used),
-        "rotated_pages": [p.page_idx + 1 for p in pages if p.derotated],
-        "pi_glyphs_repaired": pi_spans,
-        "figures": n_figures,
-        "figure_crops": sum(1 for f in manifest.get("figures", []) if f.get("file")),
-        "figures_saved": sum(
-            1 for p in pages for b in p.blocks if b.btype == "Figure" and b.image_path
-        ),
-        "equations": len(manifest.get("regions", [])),
-        "ocr_pages": sum(1 for p in pages if p.ocr_used),
-        "image_only_pages": sum(1 for p in pages if p.image_only),
-        "provenance": [
-            c.split(";")[0].replace("<!-- source: ", "") for c in provenance
-        ],
-        "tables": sum(p.tables_emitted for p in pages),
-        "tables_fallback": sum(p.tables_fell_back for p in pages),
-        "table_captions_isolated": sum(p.table_captions_isolated for p in pages),
-        "table_caption_words": sum(p.table_caption_words for p in pages),
-        "table_lines_excluded": sum(p.table_lines_excluded for p in pages),
-        "proposals": sum(p.proposals_emitted for p in pages),
-        "proposals_kept_prose": sum(p.proposals_kept_prose for p in pages),
-    }
+    manifest["stats"] = build_stats(
+        pages, md, manifest, provenance, pi_spans, n_figures
+    )
     doc.close()
     return out, manifest

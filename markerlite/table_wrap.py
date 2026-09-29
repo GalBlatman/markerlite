@@ -12,6 +12,12 @@ from html import unescape
 import re
 from statistics import median
 
+from .thresholds import (
+    WRAP_HEADER_MAX_SPAN_WIDTH,
+    WRAP_MAX_RECORD_KEY_WORDS,
+    WRAP_RULE_COORD_TOL,
+)
+
 
 def _words(text):
     return Counter(unescape(text).split())
@@ -32,10 +38,12 @@ def _ruled_bounds(table, columns):
             return None  # spanning/partial cells need a different row model
         top, bottom = cells[0][1], cells[0][3]
         if any(
-            abs(cell[1] - top) > 0.5 or abs(cell[3] - bottom) > 0.5 for cell in cells
+            abs(cell[1] - top) > WRAP_RULE_COORD_TOL
+            or abs(cell[3] - bottom) > WRAP_RULE_COORD_TOL
+            for cell in cells
         ):
             return None
-        if bottom <= top or (bounds and abs(top - bounds[-1][1]) > 0.5):
+        if bottom <= top or (bounds and abs(top - bounds[-1][1]) > WRAP_RULE_COORD_TOL):
             return None
         bounds.append((top, bottom))
     return bounds
@@ -71,7 +79,14 @@ def recover_wrapped_lines(lines, original, table=None):
     first_y = min(lines[i][1] for i in data_ids)
     band = [(spans, y0) for spans, y0, _ in lines if y0 < first_y]
     n_header = (
-        (sum(x1 - x0 < 200 for spans, _ in band for _, x0, x1 in spans) or None)
+        (
+            sum(
+                x1 - x0 < WRAP_HEADER_MAX_SPAN_WIDTH
+                for spans, _ in band
+                for _, x0, x1 in spans
+            )
+            or None
+        )
         if band
         else None
     )
@@ -124,7 +139,7 @@ def recover_wrapped_lines(lines, original, table=None):
         for i in body_ids:
             cells = assign(lines[i][0])
             if cells[0]:
-                if not all(cells) or len(cells[0].split()) > 6:
+                if not all(cells) or len(cells[0].split()) > WRAP_MAX_RECORD_KEY_WORDS:
                     return original
                 groups.append([])
             if not groups:

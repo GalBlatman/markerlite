@@ -70,9 +70,9 @@ def _protect_numeric_records(page):
 
 
 def _furniture_band(page, bbox):
-    if bbox[3] <= 0.10 * page.height:
+    if bbox[3] <= FURNITURE_HEADER_BAND * page.height:
         return "header"
-    if bbox[1] >= 0.87 * page.height:
+    if bbox[1] >= FURNITURE_FOOTER_BAND * page.height:
         return "footer"
     return None
 
@@ -88,11 +88,15 @@ def _furniture_protected(page: Page, block: Block) -> bool:
             if _overlap_frac(ln.bbox, box) > 0.5:
                 return True
             x0, y0, x1, y1 = ln.bbox
-            touching = min(abs(y1 - box[1]), abs(y0 - box[3])) <= 2
+            touching = min(abs(y1 - box[1]), abs(y0 - box[3])) <= FURNITURE_TOUCH_TOL
             # A page-wide running head can have one fragment above a
             # table's top rule. Attachment requires the whole block to align
             # with the table, not just that incidental fragment.
-            if touching and block.x_start >= box[0] - 3 and block.x_end <= box[2] + 3:
+            if (
+                touching
+                and block.x_start >= box[0] - FURNITURE_X_TOL
+                and block.x_end <= box[2] + FURNITURE_X_TOL
+            ):
                 return True
     return any(
         _overlap_frac(ln.bbox, box) > 0.5
@@ -142,7 +146,11 @@ def _suppress_block(page: Page, block: Block, reason: str) -> None:
         block.ignore_for_output = True
 
 
-def proc_line_numbers(pages: List[Page], margin_frac=0.14, min_count=8) -> None:
+def proc_line_numbers(
+    pages: List[Page],
+    margin_frac=LINE_NUMBER_MARGIN_FRAC,
+    min_count=LINE_NUMBER_MIN_COUNT,
+) -> None:
     """marker/processors/line_numbers.py - manuscript line numbers in the margin.
 
     Review-copy PDFs number every line down the left edge. Usually each number
@@ -160,24 +168,29 @@ def proc_line_numbers(pages: List[Page], margin_frac=0.14, min_count=8) -> None:
         if len(vals) < min_count:
             return False
         inc = sum(1 for a, b in zip(vals, vals[1:]) if 1 <= b - a <= 2)
-        return inc >= 0.8 * (len(vals) - 1)
+        return inc >= LINE_NUMBER_MIN_INCREASING * (len(vals) - 1)
 
     for page in pages:
         body_lines = [
             ln
             for b in page.blocks
             if b.btype in TEXTISH
-            and b.width > 0.3 * page.width
+            and b.width > LINE_NUMBER_MIN_BODY_WIDTH * page.width
             and not b.ignore_for_output
             for ln in b.lines
-            if 0.08 * page.height < ln.bbox[1] < 0.87 * page.height
+            if MARGINALIA_HEADER_ZONE * page.height
+            < ln.bbox[1]
+            < FURNITURE_FOOTER_BAND * page.height
         ]
         body_extent = (
             max(ln.bbox[3] for ln in body_lines) - min(ln.bbox[1] for ln in body_lines)
             if body_lines
             else page.height
         )
-        min_extent = min(0.4 * page.height, 0.7 * body_extent)
+        min_extent = min(
+            LINE_NUMBER_MIN_PAGE_EXTENT * page.height,
+            LINE_NUMBER_MIN_BODY_EXTENT * body_extent,
+        )
         cands = []
         for blk in page.blocks:
             if blk.ignore_for_output or _furniture_protected(page, blk):
@@ -275,10 +288,10 @@ def _clean_text(text: str) -> str:
 
 def proc_marginalia(
     pages: List[Page],
-    header_zone=0.08,
-    footer_zone=0.13,
-    max_height_frac=0.035,
-    max_chars=150,
+    header_zone=MARGINALIA_HEADER_ZONE,
+    footer_zone=MARGINALIA_FOOTER_ZONE,
+    max_height_frac=MARGINALIA_MAX_HEIGHT_FRAC,
+    max_chars=MARGINALIA_MAX_CHARS,
 ) -> None:
     """Suppress running heads and feet - but only on evidence of repetition.
 
@@ -376,7 +389,7 @@ def proc_marginalia(
             ):
                 continue
             first = blk.lines[0]
-            if first.bbox[3] > 0.10 * page.height:
+            if first.bbox[3] > FURNITURE_HEADER_BAND * page.height:
                 continue
             probe = Block(
                 lines=[first],
@@ -399,7 +412,7 @@ def proc_marginalia(
             continue
         head_size = max((s.size for s in blk.lines[0].spans), default=0)
         rest_size = max((s.size for ln in blk.lines[1:] for s in ln.spans), default=0)
-        if bare_number or (rest_size and head_size < 0.95 * rest_size):
+        if bare_number or (rest_size and head_size < FOOTNOTE_MAX_SIZE * rest_size):
             _record_suppressed(page, blk.lines[:1], "proc_marginalia")
             blk.lines = blk.lines[1:]
             blk.bbox = _bbox_of([ln.bbox for ln in blk.lines])
@@ -427,9 +440,9 @@ def proc_footnotes(pages: List[Page]) -> None:
         for blk in page.blocks:
             if blk.btype not in ("Text", "ListItem") or blk.ignore_for_output:
                 continue
-            if blk.y_start / h < 0.70:
+            if blk.y_start / h < FOOTNOTE_MIN_Y:
                 continue
-            if body and note_text_size(blk) >= body * 0.95:
+            if body and note_text_size(blk) >= body * FOOTNOTE_MAX_SIZE:
                 continue
             if not FOOTNOTE_MARKER.match(blk.text.strip()):
                 continue
@@ -451,8 +464,8 @@ def proc_footnotes(pages: List[Page]) -> None:
             if (
                 prev_was_note
                 and blk.btype in ("Text", "ListItem")
-                and blk.y_start / h >= 0.70
-                and (not body or note_text_size(blk) < body * 0.95)
+                and blk.y_start / h >= FOOTNOTE_MIN_Y
+                and (not body or note_text_size(blk) < body * FOOTNOTE_MAX_SIZE)
                 and not FOOTNOTE_MARKER.match(blk.text.strip())
                 and not PAGE_NUMBER_ONLY.match(blk.text.strip())
             ):
@@ -585,10 +598,10 @@ def _bucket_headings(
 
 def proc_reflow(
     pages: List[Page],
-    max_gap_lines=2.4,
-    ragged_tol=0.15,
-    indent_frac=0.015,
-    margin_frac=0.14,
+    max_gap_lines=REFLOW_MAX_GAP_LINES,
+    ragged_tol=REFLOW_SIZE_DELTA,
+    indent_frac=REFLOW_X_TOL,
+    margin_frac=REFLOW_COLUMN_MARGIN,
 ) -> None:
     """Rejoin lines that the extractor split into one block each.
 
@@ -616,7 +629,7 @@ def proc_reflow(
         body_blocks = [
             b
             for b in texts
-            if b.max_size() >= 0.9 * size_med
+            if b.max_size() >= REFLOW_BODY_SCALE * size_med
             and b.x_end > margin_frac * page.width
             and b.x_start < (1 - margin_frac) * page.width
         ] or texts
@@ -665,7 +678,9 @@ def proc_reflow(
         page.blocks = merged
 
 
-def proc_continuation(pages: List[Page], column_gap_ratio=0.02) -> None:
+def proc_continuation(
+    pages: List[Page], column_gap_ratio=CONTINUATION_COLUMN_GAP
+) -> None:
     """marker/processors/text.py - paragraphs continuing across columns/pages.
 
     Marker skips single-line blocks outright. Here a single-line block is
@@ -730,7 +745,11 @@ def _flat_text_blocks(pages: List[Page]) -> List[Block]:
     return out
 
 
-def proc_blockquote(pages: List[Page], min_x_indent=0.1, x_tol=0.01) -> None:
+def proc_blockquote(
+    pages: List[Page],
+    min_x_indent=BLOCKQUOTE_MIN_INDENT,
+    x_tol=BLOCKQUOTE_X_TOL,
+) -> None:
     """marker/processors/blockquote.py."""
     for page in pages:
         blocks = [
@@ -764,7 +783,7 @@ def proc_blockquote(pages: List[Page], min_x_indent=0.1, x_tol=0.01) -> None:
                 nxt.blockquote_level = 1
 
 
-def proc_list_indent(pages: List[Page], min_x_indent=0.01) -> None:
+def proc_list_indent(pages: List[Page], min_x_indent=LIST_MIN_INDENT) -> None:
     """marker/processors/list.py - nesting depth from x-indentation."""
     for page in pages:
         items = [
@@ -806,7 +825,7 @@ def proc_code(pages: List[Page]) -> None:
             blk.code = "\n".join(out).rstrip()
 
 
-def proc_merge_equations(pages: List[Page], gap_frac=1.8) -> None:
+def proc_merge_equations(pages: List[Page], gap_frac=EQUATION_MERGE_GAP) -> None:
     """Re-assemble a display equation from the fragments the text layer emits.
 
     A LaTeX display equation is not one block: numerators, summation limits, the
@@ -851,7 +870,7 @@ def proc_merge_equations(pages: List[Page], gap_frac=1.8) -> None:
         page.blocks = merged
 
 
-def proc_captions(pages: List[Page], gap_threshold=0.05) -> None:
+def proc_captions(pages: List[Page], gap_threshold=CAPTION_GAP) -> None:
     """marker/builders/structure.py::group_caption_blocks - keep captions with figures."""
     for page in pages:
         gap_px = gap_threshold * page.height

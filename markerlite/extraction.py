@@ -67,11 +67,11 @@ def _normalise_rotation(page: pymupdf.Page) -> Tuple[pymupdf.Page, bool]:
             n = sum(len(sp.get("chars", [])) for sp in ln.get("spans", []))
             total += n
             dx, dy = ln.get("dir", (1.0, 0.0))
-            if abs(dx) < 0.1 and dy < -0.9:
+            if abs(dx) < ROTATION_AXIS_TOL and dy < -ROTATION_VERTICAL_MIN:
                 up += n
-            elif abs(dx) < 0.1 and dy > 0.9:
+            elif abs(dx) < ROTATION_AXIS_TOL and dy > ROTATION_VERTICAL_MIN:
                 down += n
-    if total >= 100 and max(up, down) >= ROTATED_PAGE_MIN_FRAC * total:
+    if total >= ROTATION_MIN_CHARS and max(up, down) >= ROTATED_PAGE_MIN_FRAC * total:
         page.set_rotation(90 if up >= down else 270)
         page.remove_rotation()
         page = doc[number]
@@ -126,7 +126,10 @@ def _remap_pi_fonts(pages: List[Page]) -> int:
     pi = {
         font
         for font, (n, letters, twos, glued) in inventory.items()
-        if n >= 5 and letters == 0 and twos >= 3 and glued >= 0.8 * twos
+        if n >= PI_FONT_MIN_GLYPHS
+        and letters == 0
+        and twos >= PI_FONT_MIN_SUSPICIOUS
+        and glued >= PI_FONT_MIN_GLUED_SHARE * twos
     }
     changed = 0
     for page in pages:
@@ -174,7 +177,7 @@ def _page_is_image_only(page: pymupdf.Page, native_chars: int, native_lines=()) 
     return False
 
 
-def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = 300) -> Optional[Page]:
+def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = OCR_DPI) -> Optional[Page]:
     """OCR stand-in for surya's recognition model.
 
     Marker's OCR path gives the recognizer line boxes and gets back text plus
@@ -198,14 +201,14 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = 300) -> Optional[Pag
                     str(img),
                     "stdout",
                     "--psm",
-                    "1",
+                    str(OCR_PSM),
                     "-c",
                     "preserve_interword_spaces=1",
                     "tsv",
                 ],
                 capture_output=True,
                 text=True,
-                timeout=180,
+                timeout=OCR_TIMEOUT_SECONDS,
             )
         if proc.returncode != 0:
             return None
@@ -228,7 +231,7 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = 300) -> Optional[Pag
         text = r[11]
         if text.strip():
             recognised += 1
-        if conf < 30 or not text.strip():
+        if conf < OCR_MIN_CONFIDENCE or not text.strip():
             continue
         # TSV level-5 columns are level,page,block,par,line,word - group by
         # (block, par, line); including word_num would make every word a line.
@@ -313,7 +316,7 @@ def _attach_drop_caps(blocks: List[Block]) -> int:
             text = ln.text.strip()
             if len(text) != 1 or not text.isalpha() or not text.isupper():
                 continue
-            if max(sp.size for sp in ln.spans) < 2.0 * body:
+            if max(sp.size for sp in ln.spans) < DROP_CAP_MIN_SCALE * body:
                 continue
             x0, y0, x1, y1 = ln.bbox
             best = None
@@ -345,7 +348,7 @@ def extract_page(
     page: pymupdf.Page,
     page_idx: int,
     ocr_if_empty: bool = True,
-    max_line_tilt: float = 0.1,
+    max_line_tilt: float = MAX_LINE_TILT,
 ) -> Page:
     """Blocks in PDF character-stream order.
 
@@ -376,7 +379,7 @@ def extract_page(
     raster_covered = image_only or _page_raster_covered(page)
     n_tokens, readable = readable_ratio(page.get_text())
     garbled = n_tokens >= GARBLE_MIN_TOKENS and readable < GARBLE_MIN
-    if ocr_if_empty and (text_len < 20 or image_only or garbled):
+    if ocr_if_empty and (text_len < OCR_MIN_NATIVE_CHARS or image_only or garbled):
         ocr_page = _ocr_page(page, page_idx)
         if ocr_page is not None:
             ocr_page.garbled = garbled

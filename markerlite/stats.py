@@ -15,7 +15,7 @@ from html import escape, unescape
 from html.parser import HTMLParser
 from itertools import groupby
 from statistics import median
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, TypedDict
 
 import numpy as np
 import pymupdf
@@ -26,6 +26,61 @@ from sklearn.exceptions import ConvergenceWarning
 
 from .model import *
 from .tables import _html_word_count
+
+
+class SuppressionRecord(TypedDict):
+    """Stable serialized record for one source line removed as furniture."""
+
+    page: int
+    bbox: list[float]
+    text: str
+    reason: str
+
+
+class LossyPage(TypedDict):
+    page: int
+    source: int
+    emitted: int
+
+
+class ConversionStats(TypedDict):
+    """The public ``info['stats']`` dictionary returned by :func:`convert`."""
+
+    suppressed: list[SuppressionRecord]
+    pages: int
+    bytes: int
+    words: int
+    low_yield_pages: list[int]
+    lossy_pages: list[LossyPage]
+    garbled_pages: list[int]
+    garbled_ocr: int
+    rotated_pages: list[int]
+    pi_glyphs_repaired: int
+    figures: int
+    figure_crops: int
+    figures_saved: int
+    equations: int
+    ocr_pages: int
+    image_only_pages: int
+    provenance: list[str]
+    tables: int
+    tables_fallback: int
+    table_captions_isolated: int
+    table_caption_words: int
+    table_lines_excluded: int
+    proposals: int
+    proposals_kept_prose: int
+
+
+SUPPRESSION_REASONS = frozenset(
+    {
+        "provenance",
+        "tilt_filter",
+        "proc_line_numbers",
+        "proc_ignore_common",
+        "proc_marginalia",
+    }
+)
 
 
 def _emitted_words(page: Page) -> int:
@@ -74,7 +129,69 @@ def content_words(md: str) -> int:
     return len(unicodedata.normalize("NFKC", unescape(text)).split())
 
 
-def stat_warnings(stats: dict) -> List[str]:
+def build_stats(
+    pages: List[Page],
+    md: str,
+    manifest: dict,
+    provenance: list[str],
+    pi_spans: int,
+    n_figures: int,
+) -> ConversionStats:
+    """Build the exact v0.1.14 public stats shape in one typed location."""
+    low_yield = []
+    lossy = []
+    for page in pages:
+        emitted = _emitted_words(page)
+        if page.raster_covered and emitted < LOW_YIELD_WORDS:
+            low_yield.append(page.page_idx + 1)
+        if (
+            page.source_words >= CONSERVATION_MIN_SOURCE
+            and emitted < CONSERVATION_MIN * page.source_words
+        ):
+            lossy.append(
+                {
+                    "page": page.page_idx + 1,
+                    "source": page.source_words,
+                    "emitted": emitted,
+                }
+            )
+    stats: ConversionStats = {
+        "suppressed": [record for page in pages for record in page.suppressed],
+        "pages": len(pages),
+        "bytes": len(md.encode("utf-8")),
+        "words": content_words(md),
+        "low_yield_pages": low_yield,
+        "lossy_pages": lossy,
+        "garbled_pages": [page.page_idx + 1 for page in pages if page.garbled],
+        "garbled_ocr": sum(1 for page in pages if page.garbled and page.ocr_used),
+        "rotated_pages": [page.page_idx + 1 for page in pages if page.derotated],
+        "pi_glyphs_repaired": pi_spans,
+        "figures": n_figures,
+        "figure_crops": sum(1 for f in manifest.get("figures", []) if f.get("file")),
+        "figures_saved": sum(
+            1
+            for page in pages
+            for block in page.blocks
+            if block.btype == "Figure" and block.image_path
+        ),
+        "equations": len(manifest.get("regions", [])),
+        "ocr_pages": sum(1 for page in pages if page.ocr_used),
+        "image_only_pages": sum(1 for page in pages if page.image_only),
+        "provenance": [
+            comment.split(";")[0].replace("<!-- source: ", "") for comment in provenance
+        ],
+        "tables": sum(page.tables_emitted for page in pages),
+        "tables_fallback": sum(page.tables_fell_back for page in pages),
+        "table_captions_isolated": sum(page.table_captions_isolated for page in pages),
+        "table_caption_words": sum(page.table_caption_words for page in pages),
+        "table_lines_excluded": sum(page.table_lines_excluded for page in pages),
+        "proposals": sum(page.proposals_emitted for page in pages),
+        "proposals_kept_prose": sum(page.proposals_kept_prose for page in pages),
+    }
+    return stats
+
+
+def stat_warnings(stats: ConversionStats) -> List[str]:
     """Human-readable warnings derived from convert()'s stats, shared by
     summarize(), the GUI's file list and the run log."""
     out: List[str] = []
@@ -123,7 +240,7 @@ def stat_warnings(stats: dict) -> List[str]:
     return out
 
 
-def summarize(stats: dict) -> str:
+def summarize(stats: ConversionStats) -> str:
     """'17 pages -> 76 KB Markdown · 3 figures · 2 equation crops'."""
     kb = stats.get("bytes", 0) / 1024
     size = f"{kb:.0f} KB" if kb >= 1 else f"{stats.get('bytes', 0)} B"

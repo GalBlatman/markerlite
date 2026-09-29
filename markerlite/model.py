@@ -24,6 +24,8 @@ from rapidfuzz import fuzz
 from sklearn.cluster import KMeans
 from sklearn.exceptions import ConvergenceWarning
 
+from .thresholds import *
+
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 LIST_ITEM_START = re.compile(
@@ -78,16 +80,6 @@ SUPER_FLAG = 1 << 0
 
 MONO_FLAG = 1 << 3
 
-OCR_MAX_NATIVE_CHARS = 500
-
-OCR_RASTER_MIN_FRAC = 0.8
-
-OCR_STAMP_MARGIN = 0.15  # native text must lie in the top/bottom 15% to be a stamp
-
-GARBLE_MIN = 0.10
-
-GARBLE_MIN_TOKENS = 50
-
 _COMMON_WORDS = frozenset(
     """
 the of and to in a is that for it as was with be by on not he this are or his from at which but
@@ -108,25 +100,13 @@ het een van dat op te zijn voor met niet aan ook bij door
 
 _WORD_TOKEN = re.compile(r"[^\W_]+(?:['\u2019-][^\W_]+)*")
 
-ROTATED_PAGE_MIN_FRAC = 0.8
-
-LOW_YIELD_WORDS = 15
-
-CONSERVATION_MIN = 0.5
-
-CONSERVATION_MIN_SOURCE = 20
-
 PI_FONT_MAP = {"2": "−", ",": "<"}
-
-TABLE_FALLBACK_MIN_KEEP = 0.9
 
 TABLE_LABEL = re.compile(r"^\s*(table|tbl\.?)\s*(\d{1,3}|[IVX]{1,4})[a-z]?\b", re.I)
 
 TABLE_NOTE = re.compile(
     r"^\s*(notes?|sources?)\s*[.:]|^\s*[*\u2020\u2021]+\s*p\s*[<=\u2264]", re.I
 )
-
-RULE_MIN_COVER = 0.6
 
 TOC_LINE = re.compile(r"^(.*\S)[\s.·•…_]{2,}(\d{1,4})$|^(.*\S)\s+(\d{1,4})$")
 
@@ -160,8 +140,6 @@ MARK_LEGEND = re.compile(
 
 TEXTISH = ("Text", "SectionHeader", "ListItem", "Caption", "Equation")
 
-FURNITURE_HEIGHT_TOL = 0.015
-
 PAGE_NUMBER_ONLY = re.compile(
     r"^[\s\-\u2013\u2014|]*(?:\d{1,4}|[ivxlcdmIVXLCDM]{1,7})[\s\-\u2013\u2014|]*$"
 )
@@ -176,8 +154,6 @@ FIGURE_LABEL = re.compile(
     r"^\s*(figure|fig\.?)\s*([A-Z]?\d{1,3}|[IVX]{1,4})[a-z]?\b\s*(.*)$", re.I | re.S
 )
 
-FIGURE_CAPTION_REACH = 0.25
-
 EQ_LEADIN = re.compile(
     r"\b(formula|equation|expression)s?\s+(below|that\s+follows)\b"
     r"|\b(following|below)\s+(formula|equation|expression)s?\b",
@@ -189,12 +165,6 @@ EQ_WHERE = re.compile(r"^\s*where\b", re.I)
 EQ_DEFINITION = re.compile(r"^\s*[A-Za-z][\w\u0080-\uffff]{0,12}\s*=\s+\S")
 
 EQ_NUMBER_ALONE = re.compile(r"^\s*\(\d{1,3}[a-z]?\)\s*$")
-
-RASTER_EQ_MAX_HEIGHT = 0.2
-
-RASTER_EQ_REACH = 0.06
-
-FIGURE_GROW_GAP = 0.04
 
 FIGURE_DESCRIPTION_MARK = "<!-- figure description: model-transcribed -->"
 

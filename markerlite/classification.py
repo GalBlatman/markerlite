@@ -76,7 +76,7 @@ def classify(pages: List[Page], body_size: float) -> None:
                 blk.btype = "Equation"
                 blk.needs_vision = True
                 continue
-            if blk.font_ratio("mono") > 0.8 and len(blk.lines) > 1:
+            if blk.font_ratio("mono") > MONO_MIN_SHARE and len(blk.lines) > 1:
                 blk.btype = "Code"
                 continue
             if CAPTION_START.match(first) and len(text) < 900:
@@ -114,7 +114,7 @@ def classify(pages: List[Page], body_size: float) -> None:
     _demote_toc(pages)
 
 
-def _demote_toc(pages: List[Page], min_run=5) -> None:
+def _demote_toc(pages: List[Page], min_run=TOC_MIN_RUN) -> None:
     """A table of contents is a list, not 40 headings.
 
     Contents entries are short, title-shaped and often set in the heading face,
@@ -209,21 +209,25 @@ def _is_equation(blk: Block, page: Page, text: str) -> bool:
     # Centred and inset on both sides - how display equations are set.
     centre = (blk.x_start + blk.x_end) / 2
     centred = (
-        abs(centre - page.width / 2) < 0.12 * page.width
-        and blk.width < 0.75 * page.width
+        abs(centre - page.width / 2) < EQUATION_CENTER_TOL * page.width
+        and blk.width < EQUATION_MAX_WIDTH * page.width
     )
     numbered = bool(EQ_NUMBER.search(text))
     has_ops = bool(MATH_OPS.search(text))
 
-    if math_font > 0.45:
+    if math_font > EQUATION_MATH_FONT_STRONG:
         return True
-    if math_font > 0.25 and len(text) < 40:
+    if math_font > EQUATION_MATH_FONT_WEAK and len(text) < 40:
         return True
     # Few real words, actual operators, and either math glyphs, an equation
     # number, or display placement.
-    if len(words) <= 4 and has_ops and (math_chars > 0.05 or numbered or centred):
+    if (
+        len(words) <= 4
+        and has_ops
+        and (math_chars > EQUATION_MATH_CHAR_WEAK or numbered or centred)
+    ):
         return True
-    if math_chars > 0.25 and has_ops:
+    if math_chars > EQUATION_MATH_CHAR_STRONG and has_ops:
         return True
     return False
 
@@ -291,9 +295,9 @@ def note_text_size(blk: Block) -> float:
 
 def _is_footnote(blk: Block, page: Page, body_size: float, first: str) -> bool:
     h = page.height or 1
-    if blk.y_start / h < 0.70:
+    if blk.y_start / h < FOOTNOTE_MIN_Y:
         return False
-    if body_size and note_text_size(blk) >= body_size * 0.95:
+    if body_size and note_text_size(blk) >= body_size * FOOTNOTE_MAX_SIZE:
         return False
     if SIGNIFICANCE_LEGEND.match(first):
         return False
@@ -327,7 +331,7 @@ def _is_heading(
     if all(len(w.strip(".,:;()[]")) <= 1 for w in text.split()):
         return False
     size = blk.max_size()
-    bold = blk.font_ratio("bold") > 0.6
+    bold = blk.font_ratio("bold") > HEADING_BOLD_MIN_SHARE
     bigger = size > body_size * 1.06
     stripped = text.rstrip()
     words = stripped.split()
@@ -399,4 +403,4 @@ def _title_case(words: List[str]) -> bool:
     if len(cand) < 2:
         return False
     caps = sum(1 for w in cand if w[:1].isupper())
-    return caps / len(cand) > 0.6
+    return caps / len(cand) > HEADING_TITLE_MIN_SHARE

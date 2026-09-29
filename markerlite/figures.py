@@ -182,7 +182,11 @@ def _insert_pos(page: Page, y0: float) -> float:
     return max((b.char_pos for b in page.blocks), default=0) + 0.5
 
 
-def _vector_regions(pmpage: pymupdf.Page, min_items=8, min_side=60.0):
+def _vector_regions(
+    pmpage: pymupdf.Page,
+    min_items=FIGURE_VECTOR_MIN_SEGMENTS,
+    min_side=FIGURE_VECTOR_MIN_SIDE,
+):
     """Bounding boxes of vector drawings (charts, diagrams, flowcharts).
 
     get_image_info only reports embedded rasters. A plotted chart or a drawn
@@ -197,7 +201,8 @@ def _vector_regions(pmpage: pymupdf.Page, min_items=8, min_side=60.0):
     rects = [
         pymupdf.Rect(d["rect"])
         for d in drawings
-        if d.get("rect") and pymupdf.Rect(d["rect"]).width < pmpage.rect.width * 0.98
+        if d.get("rect")
+        and pymupdf.Rect(d["rect"]).width < pmpage.rect.width * FIGURE_PAGE_LINE_FRAC
     ]
     if len(rects) < min_items:
         return []
@@ -227,7 +232,10 @@ def _vector_regions(pmpage: pymupdf.Page, min_items=8, min_side=60.0):
         if box.width < min_side or box.height < min_side:
             continue
         area = box.width * box.height
-        if area > 0.7 * page_area or area < 0.01 * page_area:
+        if (
+            area > FIGURE_MAX_AREA_FRAC * page_area
+            or area < FIGURE_MIN_AREA_FRAC * page_area
+        ):
             continue
         out.append(box)
     return out
@@ -235,9 +243,9 @@ def _vector_regions(pmpage: pymupdf.Page, min_items=8, min_side=60.0):
 
 def _content_images(
     pm: pymupdf.Page,
-    min_side: float = 40.0,
-    max_page_frac: float = 0.9,
-    span_frac: float = 0.95,
+    min_side: float = FIGURE_IMAGE_MIN_SIDE,
+    max_page_frac: float = FIGURE_IMAGE_MAX_PAGE_FRAC,
+    span_frac: float = FIGURE_IMAGE_SPAN_FRAC,
 ) -> List[Tuple[int, int, tuple]]:
     """(index, xref, bbox) of the embedded rasters that are content.
 
@@ -298,12 +306,14 @@ def _figure_regions(pm: pymupdf.Page, page: Page) -> List[Tuple[str, int, int, t
     taken = [f[3] for f in found]
     for n, box in enumerate(_vector_regions(pm)):
         bt = tuple(box)
-        if any(_overlap_frac(bt, tk) > 0.5 for tk in taken):
+        if any(_overlap_frac(bt, tk) > FIGURE_TABLE_OVERLAP for tk in taken):
             continue  # already captured as a raster
         # A ruled table is also "a pile of path operators". Two tells: it
         # overlaps a detected Table, or the region is mostly text.
         if any(
-            b.btype == "Table" and _overlap_frac(b.bbox, bt) > 0.4 for b in page.blocks
+            b.btype == "Table"
+            and _overlap_frac(b.bbox, bt) > FIGURE_RULED_TABLE_OVERLAP
+            for b in page.blocks
         ):
             continue
         area = max((bt[2] - bt[0]) * (bt[3] - bt[1]), 1.0)
@@ -312,13 +322,15 @@ def _figure_regions(pm: pymupdf.Page, page: Page) -> List[Tuple[str, int, int, t
             for b in page.blocks
             if b.lines
         )
-        if text_area / area > 0.35:
+        if text_area / area > FIGURE_MAX_TEXT_DENSITY:
             continue
         found.append(("vec", n, 0, bt))
     return found
 
 
-def _promote_figure_captions(pages: List[Page], max_words: int = 60) -> int:
+def _promote_figure_captions(
+    pages: List[Page], max_words: int = FIGURE_CAPTION_MAX_WORDS
+) -> int:
     """Relabel a short text block that is a figure caption without a
     delimiter, so it can be attached to its figure or mark one."""
     count = 0
@@ -570,7 +582,9 @@ def _locate_caption_figure(pm: pymupdf.Page, page: Page, caption) -> Optional[tu
         ruling = d.get("type") == "s" and all(
             it[0] in ("l", "re") for it in d.get("items", [])
         )
-        if ruling and any(_overlap_frac(tuple(r), t) > 0.4 for t in tables):
+        if ruling and any(
+            _overlap_frac(tuple(r), t) > FIGURE_RULED_TABLE_OVERLAP for t in tables
+        ):
             continue
         rects.append(tuple(r))
     rects += [bbox for _n, _x, bbox in _content_images(pm)]
@@ -620,7 +634,12 @@ def _locate_caption_figure(pm: pymupdf.Page, page: Page, caption) -> Optional[tu
 
 
 def flag_figures(
-    doc, pages: List[Page], outdir: pathlib.Path, stem: str, dpi=200, link: bool = False
+    doc,
+    pages: List[Page],
+    outdir: pathlib.Path,
+    stem: str,
+    dpi=FIGURE_CROP_DPI,
+    link: bool = False,
 ) -> dict:
     """Crop every figure for a description by something that can see.
 
@@ -725,7 +744,13 @@ def apply_figures(md_path: pathlib.Path, manifest_path: pathlib.Path) -> int:
     return applied
 
 
-def flag_math(doc, pages: List[Page], outdir: pathlib.Path, stem: str, dpi=200) -> dict:
+def flag_math(
+    doc,
+    pages: List[Page],
+    outdir: pathlib.Path,
+    stem: str,
+    dpi=FIGURE_CROP_DPI,
+) -> dict:
     """Render regions no weight-free heuristic can read, for visual transcription.
 
     Marker sends equation and complex-region crops to surya's LaTeX recognizer.
