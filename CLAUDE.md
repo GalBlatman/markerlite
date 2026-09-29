@@ -74,13 +74,19 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
    `proc_marginalia`, `proc_section_levels`, `proc_continuation`,
    `proc_merge_equations`, `proc_blockquote`, `proc_list_indent`, `proc_code`,
    `place_figures`, `_promote_figure_captions`, `proc_captions`,
-   `_figures_from_captions`, `_route_raster_equations`, then the hand-offs
+   `_figures_from_captions`, `_route_raster_equations`,
+   `_attach_figure_source_text`, then the hand-offs
    `flag_math` (--flag-math) and `flag_figures` (--flag-figures).
 6. `render` — Markdown. Footnotes as `[^N]:` with the detected label;
    superscript body refs become `[^N]` only when note N exists (else `<sup>`).
    Pages with `ocr_used` emit `<!-- ocr page N -->` independently of
    `--page-markers`, so recognized text keeps its provenance. A paragraph
    that opens like a list item and is not one has its marker escaped.
+   Native/OCR text inside a located figure is kept beside its placeholder as
+   `<!-- figure text: … -->`, including recovered tilted labels/captions.
+   These are source text, not model descriptions. The unchanged standard
+   `content_words()` excludes comments; per-page conservation includes this
+   retained source text.
 7. Hand-offs for a vision pass. markerlite does not read equations or
    figures; it crops them and takes the answers back. `--flag-math` writes
    `<stem>_math/` and `<stem>_math.json`, `--apply-math` splices LaTeX.
@@ -94,10 +100,18 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
 
 ### Decisions that look wrong but aren't
 
+- Position or repetition alone never removes content; every removed line is recorded in stats['suppressed'].
+  Bare page numbers are the positional exception. Table regions (including
+  fallback prose), aligned attachments, captions and figure regions are
+  protected before the furniture passes.
 - **Marginalia requires repetition evidence.** Position alone deleted page-top
   headings and titles. A running head is suppressed only if its text (page
-  numbers stripped, fuzzy) recurs on 2+ pages, or is a bare page number.
-  Headers and footers are both judged by position plus repetition; the old
+  numbers stripped, fuzzy) recurs in the same edge band at a similar height
+  on 2+ pages, or is a bare page number. `FURNITURE_HEIGHT_TOL` is 0.015 of
+  page height; empty normalization keys never match. The common-boundary
+  pass retains its four-page minimum. Already suppressed heads still supply
+  evidence for split heads on other pages. Headers and footers are both
+  judged by position plus repetition; the old
   last-in-reading-order guard for footers was dropped (PDFMaker draws the
   footer first). Page-number tokens are stripped before matching, including
   tokens that merely contain a digit ("1995 Suchman $79" from OCR).
@@ -145,8 +159,9 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
   `CONSERVATION_MIN` (0.5), with at least `CONSERVATION_MIN_SOURCE` (20)
   source words, the page is listed in stats["lossy_pages"] with both numbers
   and shows in summarize(), the GUI glyph and the run log. regress.py's
-  `conservation` check switches the sideways-page fix off and expects
-  rotated_pages pp. 2-3 flagged. Closest clean page in the reference set:
+  `conservation` check switches both sideways-page normalization and figure
+  source-text recovery off and expects rotated_pages pp. 2-3 flagged. Closest
+  clean page in the reference set:
   Ragins p. 2 at 0.57 (its line numbers are 40% of the page's words).
 - Low-yield pages: a raster-covered page emitting < `LOW_YIELD_WORDS` (15)
   words. A report cover with a full-page picture and a short title trips it
@@ -160,7 +175,9 @@ page orientation), `text` (unformatted source-line text), and `reason` (pass
 name: `proc_line_numbers`, `proc_ignore_common`, `proc_marginalia`,
 `provenance`, or `tilt_filter`). Every removed furniture/provenance/tilted line
 is recorded, including lines cut from a retained block. Caption/footnote or
-paragraph relocation is not suppression. summarize() reports the list length.
+paragraph relocation is not suppression. A tilted line subsequently emitted
+as figure text is removed from this list; it was recovered, not suppressed.
+summarize() reports the list length.
 The downstream bump protocol consumes these field names; keep them stable.
 
 ## Workflow rules
@@ -237,6 +254,24 @@ before the PyInstaller build.
 
 Fixed and covered by the regression (do not reintroduce; the fixture in
 parentheses fails if the fix is undone):
+- source-line suppression preserves table headers, continuation captions,
+  final rows and reference fragments (`continued_table_header`, `edge_content`).
+  Repeated text needs matching edge position; table/figure context wins.
+  Table protection can use matching internal rules or repeated numeric records
+  without admitting a new table. Whole-block alignment is required for an
+  attachment, so one running-head fragment touching a rule does not protect
+  a page-wide head (Peng p. 2). Bare folios below all content can sit above a
+  fixed footer band after an aggregator adds margins (Suchman p. 1).
+- margin numbers must form a near-consecutive run of at least eight values
+  spanning the body margin, outside table/figure context (`year_column`).
+  R00446's eight years survive; real manuscript line numbers still disappear.
+- provenance matching accepts complete stamp pieces and their concatenation,
+  never arbitrary substrings or bags of words (`edge_content`). This kept
+  R00443's short table glyphs and Suchman's OCR fragment from being deleted.
+- figure source labels, ticks and tilted captions survive as figure-text
+  comments (`figure_source_labels`); comments do not increase content words.
+  All 44 Packet B cases and the complete reference suppression logs are
+  documented in tests/REPORT-suppression.md and tests/suppression-audit.json.
 - a hyphenated last line joins across a column break even for a one-line
   block (`hard.pdf`, "bef-" / "ore"; Marker skips one-line blocks).
 - a line-number column that arrives as ONE block is stripped, and reflow's
@@ -244,8 +279,11 @@ parentheses fails if the fix is undone):
   This was the Ragins "every line its own paragraph" failure.
 - footers are judged by position + repetition only; no reading-order guard
   (`hard_footer_first`; Acrobat PDFMaker draws the footer before the body).
-- rotated rawdict lines (|dy| > 0.1) are dropped in extract_page
-  (`watermark`; a diagonal "RETIRED" seeded fake tables).
+- tilted rawdict lines (|dy| > 0.1) are recorded and filtered in extract_page
+  (`watermark`; a diagonal "RETIRED" seeded fake tables). Orthogonal native
+  text on raster-covered pages is retained: mixed-direction hidden OCR can
+  hold genuine sideways table data. Tilted figure labels/captions are
+  restored beside their placeholder. This does not repair OCR/table structure.
 - a footnote is sized by its text, not its label (`footnote_biglabel`; Word
   labels are body-size glyphs).
 - a bulleted line is never a heading, whatever its weight (`bold_bullets`).
@@ -354,6 +392,9 @@ parentheses fails if the fix is undone):
 
 ## Open items
 
+- Packet B source-line suppression is fixed (44/44 cases); see
+  tests/REPORT-suppression.md. Packet A's 79 structural cases remain batch C
+  evidence in tests/PLAN-tables.md, not implemented by the suppression fix.
 - Table work follows tests/PLAN-tables.md; items 0, 1, 7, 8, 11b done;
   fallback-to-prose done; item 5 not needed after fallback-to-prose (no evidence
   in 44 remaining reference regions); item 6 done; 2,3,4 then 9,10,11a,11c pending review; 12 is evidence only. Items 2 and 5 carry extra

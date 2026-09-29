@@ -992,3 +992,12 @@ checks pass, with Tesseract available) and the `capture()` function in
 converter code was loaded from Git into memory, never into a scratch checkout;
 all PDFs were read from the source paths in the JSON. Historical bisection
 results are separately retained in `tests/suppression-history.json`.
+
+## Step 5: context and generated instructions
+
+CLAUDE.md now states the requested source-line decision rule, documents the
+positional/table/figure protections, the stable suppression-record contract,
+and the figure-text marker and its metric behavior. Its pipeline and fixture
+notes reflect the implemented behavior. `tools/sync_agents.py` regenerated
+AGENTS.md; it was not edited directly. Packet A remains deferred batch C work.
+No version tag was created.
