@@ -245,3 +245,750 @@ Markdown, not merely the count, is identical. All 25 reconstructed regions
 retain their exact HTML and every cell hash. No restored row changes any SBTi
 region; the region-by-region change list is empty. `paper.pdf` and `hard.pdf`
 are also byte-identical and keep every cell hash. The 0.9 guard is unchanged.
+
+## Step 4: complete acceptance evidence
+
+Implementation: `702607d`. The frozen logging baseline is `cfcb630`, whose
+Markdown is unchanged from `81b7ca9`. [suppression-audit.json](suppression-audit.json)
+contains both suppression lists for every document, source hashes, complete
+before/after Markdown for each Packet B page case, per-document output diffs,
+and both sides of the reconstructed-cell hash comparisons. Source/evidence
+files remain at their original paths. The audit used page markers solely to
+locate excerpts; the standard metric removes them.
+
+### Suppression-log review and furniture checks
+
+Every final record was reviewed by source text, pass, page and bbox. The final
+lists contain running heads/feet, bare numeric furniture, manuscript line
+numbers, provenance notices/stamps, and tilted watermark/running-head text.
+**No remaining genuine-content suppression was found.** The extra findings in
+the draft were closed before committing: 191 orthogonal table-text lines on
+R00443 pp. 14/16; 73 false provenance matches there; the “itima” OCR fragment in
+Suchman p. 14; two rotated Greenwood p. 15 caption lines; and the R00153 p. 36
+axis label. R02659 and York also retain their formerly tilted figure labels.
+The full lists make these conclusions inspectable, rather than hiding them in
+an aggregate count.
+
+The comparison also reviews records that stopped being suppressed, not just
+the final list. **No previously removed running head or page number returns.**
+The draft's Peng p. 2 head and Suchman's folio 571 were caught by this check and
+fixed before the implementation commit. New removals are genuine furniture:
+R00032's 74 leaking folios, R00446 p. 9's printed header, the ScholarOne banners
+above the Ragins/R00860 submission covers, Peng p. 1's head, and Kostova p. 19's
+copyright footer. Their source pages were rendered and inspected. Submission
+metadata inside the Ragins/R00860 cover tables remains intact.
+
+Spot checks of all ten references used SBTi PDF p. 45 (footer), Ragins p. 2,
+Peng p. 2, Greenwood p. 2, Wry p. 2, Jay p. 2, York p. 2, Kitchener p. 2,
+Suchman p. 2, and Kostova p. 3. The visible running heads/feet and page numerals
+on those pages remain suppressed. Additional rendered checks cover the newly
+removed furniture listed above. Counts below are **source-line records by
+pass**, not a second word metric. Numeric records in running heads can include
+a publication year as well as a page number; they are not mislabeled as a
+count of pages.
+
+| Document | Before records | After records | Line numbers | Repeated boundary | Marginalia | Provenance | Tilt |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| R00032 | 22 | 95 | 0 | 20 | 75 | 0 | 0 |
+| R00153 | 116 | 110 | 0 | 105 | 1 | 4 | 0 |
+| R00160 | 130 | 94 | 0 | 84 | 1 | 0 | 9 |
+| R00263 | 82 | 55 | 0 | 54 | 1 | 0 | 0 |
+| R00373 | 62 | 56 | 0 | 52 | 0 | 4 | 0 |
+| R00443 | 333 | 67 | 0 | 64 | 0 | 3 | 0 |
+| R00446 | 60 | 55 | 0 | 52 | 0 | 3 | 0 |
+| R00860 | 3708 | 3707 | 3529 | 177 | 1 | 0 | 0 |
+| R02659 | 99 | 87 | 0 | 56 | 1 | 0 | 30 |
+| Ragins craft of clear writing 2012 | 1323 | 1324 | 1260 | 63 | 1 | 0 | 0 |
+| S0004 | 96 | 35 | 0 | 23 | 0 | 0 | 12 |
+| S0009 | 124 | 120 | 0 | 30 | 90 | 0 | 0 |
+| Target-Validation-Protocol | 174 | 174 | 0 | 75 | 36 | 0 | 63 |
+| greenwood2006 | 67 | 65 | 0 | 61 | 0 | 4 | 0 |
+| hard | 6 | 6 | 0 | 2 | 4 | 0 | 0 |
+| jay2013 | 70 | 70 | 0 | 66 | 1 | 3 | 0 |
+| kitchener2002 | 77 | 77 | 0 | 29 | 17 | 31 | 0 |
+| kostova1999 | 58 | 58 | 0 | 33 | 9 | 16 | 0 |
+| paper | 1 | 1 | 0 | 1 | 0 | 0 | 0 |
+| peng2009 | 54 | 58 | 0 | 54 | 4 | 0 | 0 |
+| suchman1995 | 83 | 82 | 0 | 38 | 0 | 44 | 0 |
+| wry2013 | 52 | 52 | 0 | 44 | 0 | 4 | 4 |
+| york2018 | 130 | 94 | 0 | 84 | 1 | 0 | 9 |
+
+### Packet B: 44/44 page cases restored
+
+All boxed zooms were inspected in place, and their hashes and source-PDF hashes
+match Packet B. Every target occurrence survives, including duplicated “Strong”
+cells; no target source line remains in `stats["suppressed"]`. Figure ticks are
+checked in the figure-text comments, not confused with a different numeric
+occurrence in surrounding prose.
+
+Each diff below compares the actual Markdown lines that contain the case's
+target strings. Unchanged matches elsewhere on the page may appear as context;
+the boxed source-position lines were absent before. Full before/after pages
+and per-target occurrence counts are in the JSON. The literal escape in
+`2006\.` is Markdown syntax; standard normalization gives `2006.`.
+
+#### B01 — R02659, PDF p. 8
+
+table column-header row. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B01-R02659-p008-zoom.png>).
+
+Before: 9 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++**Variables** **N** **Min** **Max** **Mean** **SD** **p25** **Median** **p75**
+```
+
+#### B02 — S0004, PDF p. 7
+
+repeated continuation-table header row. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B02-S0004-p007-zoom.png>).
+
+Before: 6 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -1 +1,2 @@
++Authors Journal Signaler Signal Receiver Key Signaling Concepts
+ •• Unintended signals •• Signal temporal duration
+```
+
+#### B02 — S0004, PDF p. 8
+
+repeated continuation-table header row. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B02-S0004-p008-zoom.png>).
+
+Before: 6 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -1 +1,2 @@
++Authors Journal Signaler Signal Receiver Key Signaling Concepts
+ •• Signal inconsistency weakens signaling effectiveness depending on signaler status Seong & Godart (2018) AMJ Global high-end
+```
+
+#### B02 — S0004, PDF p. 9
+
+repeated continuation-table header row. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B02-S0004-p009-zoom.png>).
+
+Before: 6 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -1 +1,2 @@
++Authors Journal Signaler Signal Receiver Key Signaling Concepts
+ •• Signal ambiguity
+```
+
+#### B02 — S0004, PDF p. 10
+
+repeated continuation-table header row. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B02-S0004-p010-zoom.png>).
+
+Before: 6 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -1 +1,2 @@
++Authors Journal Signaler Signal Receiver Key Signaling Concepts
+ Shareholders •• Signaler performance influences receiver signal response •• Signal credibility Janney & Gove (2011) JMS Firms •• Corporate social responsibility Shareholders •• Identifies corporate social responsibility as a signal following signaler wrong-doing Okhmatovskiy & David
+```
+
+#### B02 — S0004, PDF p. 11
+
+repeated continuation-table header row. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B02-S0004-p011-zoom.png>).
+
+Before: 6 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -1 +1,2 @@
++Authors Journal Signaler Signal Receiver Key Signaling Concepts
+ | James & Vaaler (2018) | OS | Host countries | Noncontrolling but substantial | Shareholders | Signal dominance occurs when the value of one signal |
+```
+
+#### B02 — S0004, PDF p. 12
+
+repeated continuation-table header row. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B02-S0004-p012-zoom.png>).
+
+Before: 6 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -1 +1,2 @@
++Authors Journal Signaler Signal Receiver Key Signaling Concepts
+ | Wu & Reuer (2021) | JMS | Acquisition targets | Alliance partner prominence | Shareholders | Receiver experience shapes their attention to signals |
+```
+
+#### B02 — S0004, PDF p. 18
+
+repeated continuation-table header row. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B02-S0004-p018-zoom.png>).
+
+Before: 6 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -1 +1,2 @@
++Authors Journal Signaler Signal Receiver Key Signaling Concepts
+ | Ramaswami, Dreher, Bretz, | PP | Proteges | Mentor status | Prospective | Signal strength and visibility shape the benefits derived from a signal |
+```
+
+#### B02 — S0004, PDF p. 19
+
+repeated continuation-table header row. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B02-S0004-p019-zoom.png>).
+
+Before: 6 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -1 +1,2 @@
++Authors Journal Signaler Signal Receiver Key Signaling Concepts
+ •• Receiver-specific reputation shapes signal influence •• Receiver accountability increases signal attention and response to signal consistency Kilduff, Crossland, Tsai, &
+```
+
+#### B03 — R00263, PDF p. 10
+
+table final row. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B03-R00263-p010-zoom.png>).
+
+Before: 5 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -2 +2,2 @@
+ *Memorialized communication*: Evidence of formal communication documents such as memos, manuals, internal circulars, and instructions (archival data). *Absence of lateral* *communication*: “The process is quite straightforward. Basically, I work independently until I present the case to [the fund manager] . . . no, I think I have already mentioned that there is not much need to consult other case execs.” (SCE3)
++Evidence Strong Strong Moderate Strong
+```
+
+#### B03 — R00263, PDF p. 15
+
+table final row. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B03-R00263-p015-zoom.png>).
+
+Before: 4 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++Evidence Strong Moderate Strong
+```
+
+#### B03 — R00263, PDF p. 17
+
+table final row. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B03-R00263-p017-zoom.png>).
+
+Before: 4 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++Evidence Strong Strong Moderate
+```
+
+#### B04 — S0004, PDF p. 36
+
+reference-list line. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B04-S0004-p036-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++39: 432-478.
+```
+
+#### B05 — R00153, PDF p. 26
+
+reference-list line. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B05-R00153-p026-zoom.png>).
+
+Before: 5 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -12,3 +12,3 @@
+ camp: The dual identification of contract workers. Administrative Science Quarterly, 50: 68–99.
+-persistence and change: A framing perspective. Academy of Management Review, 31: 347–365.
++2006\. Cognitive underpinnings of institutional persistence and change: A framing perspective. Academy of Management Review, 31: 347–365.
+ K. G. 2013. Organizational identity formation and change. The Academy of Management Annals, 7: 123–193.
+```
+
+#### B06 — R00373, PDF p. 20
+
+reference-list line. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B06-R00373-p020-zoom.png>).
+
+Before: 6 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -6 +6,2 @@
+ Staw, B. M., McKechnie, P. I., & Puffer, S. M. 1983. The
++Useem, M. 1993. ***Executive*** ***defense:*** ***Shareholder***
+```
+
+#### B07 — R00860, PDF p. 47
+
+reference-list line. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B07-R00860-p047-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++39(4): 1024-1039.
+```
+
+#### B07 — R00860, PDF p. 48
+
+reference-list line. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B07-R00860-p048-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++653-669.
+```
+
+#### B08 — R00032, PDF p. 66
+
+body / citation fragment. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B08-R00032-p066-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++al., 2000).
+```
+
+#### B09 — S0004, PDF p. 7
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-S0004-p007-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++**Table 1  (continued)**
+```
+
+#### B09 — S0004, PDF p. 8
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-S0004-p008-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++**Table 1  (continued)**
+```
+
+#### B09 — S0004, PDF p. 9
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-S0004-p009-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++**Table 1  (continued)**
+```
+
+#### B09 — S0004, PDF p. 10
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-S0004-p010-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++**Table 1  (continued)**
+```
+
+#### B09 — S0004, PDF p. 11
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-S0004-p011-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++**Table 1  (continued)**
+```
+
+#### B09 — S0004, PDF p. 12
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-S0004-p012-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++**Table 1  (continued)**
+```
+
+#### B09 — S0009, PDF p. 18
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-S0009-p018-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++Table 6 (Continued)
+```
+
+#### B09 — S0009, PDF p. 19
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-S0009-p019-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++Table 6 (Continued)
+```
+
+#### B09 — S0009, PDF p. 20
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-S0009-p020-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++Table 6 (Continued)
+```
+
+#### B09 — S0009, PDF p. 21
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-S0009-p021-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++Table 6 (Continued)
+```
+
+#### B09 — R00263, PDF p. 11
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-R00263-p011-zoom.png>).
+
+Before: 2 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++### TABLE 2 Continued
+```
+
+#### B09 — R00263, PDF p. 12
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-R00263-p012-zoom.png>).
+
+Before: 2 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++### TABLE 2 Continued
+```
+
+#### B09 — R00263, PDF p. 16
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-R00263-p016-zoom.png>).
+
+Before: 2 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++**TABLE 3** **(Continued)**
+```
+
+#### B09 — R00263, PDF p. 17
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-R00263-p017-zoom.png>).
+
+Before: 2 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++**TABLE 3** **(Continued)**
+```
+
+#### B09 — R00263, PDF p. 18
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-R00263-p018-zoom.png>).
+
+Before: 2 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++**TABLE 3** **(Continued)**
+```
+
+#### B09 — R00263, PDF p. 19
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-R00263-p019-zoom.png>).
+
+Before: 2 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++**TABLE 3** **(Continued)**
+```
+
+#### B09 — R00263, PDF p. 20
+
+table / caption continuation label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B09-R00263-p020-zoom.png>).
+
+Before: 2 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++**TABLE 3** **(Continued)**
+```
+
+#### B10 — S0004, PDF p. 6
+
+table-foot continuation marker. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B10-S0004-p006-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++*(continued)*
+```
+
+#### B10 — S0004, PDF p. 7
+
+table-foot continuation marker. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B10-S0004-p007-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1,2 @@
++*(continued)*
++**Table 1  (continued)**
+```
+
+#### B10 — S0004, PDF p. 8
+
+table-foot continuation marker. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B10-S0004-p008-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1,2 @@
++*(continued)*
++**Table 1  (continued)**
+```
+
+#### B10 — S0004, PDF p. 17
+
+table-foot continuation marker. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B10-S0004-p017-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1 @@
++*(continued)*
+```
+
+#### B10 — S0004, PDF p. 18
+
+table-foot continuation marker. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B10-S0004-p018-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -1 +1,2 @@
+ **Table 2  (continued)**
++*(continued)*
+```
+
+#### B10 — S0004, PDF p. 19
+
+table-foot continuation marker. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B10-S0004-p019-zoom.png>).
+
+Before: 1 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -1 +1,2 @@
+ **Table 2  (continued)**
++*(continued)*
+```
+
+#### B11 — R00160, PDF p. 17
+
+figure axis tick label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B11-R00160-p017-zoom.png>).
+
+Before: 2 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1,2 @@
++<!-- figure text: -1 -->
++<!-- figure text: -4.5 -->
+```
+
+#### B11 — R00443, PDF p. 9
+
+figure axis tick label. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B11-R00443-p009-zoom.png>).
+
+Before: 2 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -0,0 +1,2 @@
++<!-- figure text: 5 -->
++<!-- figure text: 0 -->
+```
+
+#### B12 — R00446, PDF p. 10
+
+table data column (years) removed as line numbers. [Boxed source evidence](</home/galbl/unknown-knowns-markerlite-v0112/upstream/evidence/packet-B/B12-R00446-p010-zoom.png>).
+
+Before: 8 boxed source-line occurrence(s) suppressed. After: all retained; zero matching suppression records.
+
+```diff
+--- before Markdown
++++ after Markdown
+@@ -1 +1,2 @@
+ ine the adoption of the senior and staff attorney tracks in the principal offices of firms. The empirical analysis of this study thus deals with timevarying conditions that lead up to these adoptions. We used these models for analysis since our main data were collected from annual directories and we therefore did not know the exact time at which each law office adopted an innovation (Allison, 1982). Principal offices that did not adopt the innovation by 1994 were treated as "right-censored." Having adopted an innovation, an office was no longer at risk of adopting the practice, and it did not provide any additional observations.
++1987 1988 1989 1990 1991 1992 1993 1994
+```
+
+### SBTi: all 55 region decisions and cell checks
+
+Direct decision traces at the logging baseline and at `702607d` match in
+full: page, bbox, source digest, fallback decision, source-token count,
+caption/excluded-line counts, and reconstruction/output token diagnostics.
+The full trace and both 25-table cell-hash matrices are in the JSON. This is
+in addition to the byte-identical whole Markdown check. No restored row joins
+or alters a region.
+
+| Region | PDF page | Before → after | Cells/source |
+| --- | ---: | --- | --- |
+| 1 | 2 | reconstructed grid → reconstructed grid | every cell identical |
+| 2 | 3 | fallback prose → fallback prose | source identical |
+| 3 | 10 | reconstructed grid → reconstructed grid | every cell identical |
+| 4 | 11 | fallback prose → fallback prose | source identical |
+| 5 | 11 | fallback prose → fallback prose | source identical |
+| 6 | 12 | fallback prose → fallback prose | source identical |
+| 7 | 13 | fallback prose → fallback prose | source identical |
+| 8 | 14 | reconstructed grid → reconstructed grid | every cell identical |
+| 9 | 15 | reconstructed grid → reconstructed grid | every cell identical |
+| 10 | 16 | reconstructed grid → reconstructed grid | every cell identical |
+| 11 | 16 | reconstructed grid → reconstructed grid | every cell identical |
+| 12 | 16 | fallback prose → fallback prose | source identical |
+| 13 | 17 | fallback prose → fallback prose | source identical |
+| 14 | 17 | fallback prose → fallback prose | source identical |
+| 15 | 19 | reconstructed grid → reconstructed grid | every cell identical |
+| 16 | 20 | fallback prose → fallback prose | source identical |
+| 17 | 20 | reconstructed grid → reconstructed grid | every cell identical |
+| 18 | 22 | fallback prose → fallback prose | source identical |
+| 19 | 24 | reconstructed grid → reconstructed grid | every cell identical |
+| 20 | 25 | reconstructed grid → reconstructed grid | every cell identical |
+| 21 | 25 | fallback prose → fallback prose | source identical |
+| 22 | 26 | reconstructed grid → reconstructed grid | every cell identical |
+| 23 | 26 | fallback prose → fallback prose | source identical |
+| 24 | 27 | reconstructed grid → reconstructed grid | every cell identical |
+| 25 | 29 | fallback prose → fallback prose | source identical |
+| 26 | 29 | fallback prose → fallback prose | source identical |
+| 27 | 30 | reconstructed grid → reconstructed grid | every cell identical |
+| 28 | 31 | reconstructed grid → reconstructed grid | every cell identical |
+| 29 | 32 | reconstructed grid → reconstructed grid | every cell identical |
+| 30 | 34 | fallback prose → fallback prose | source identical |
+| 31 | 35 | reconstructed grid → reconstructed grid | every cell identical |
+| 32 | 36 | reconstructed grid → reconstructed grid | every cell identical |
+| 33 | 36 | fallback prose → fallback prose | source identical |
+| 34 | 40 | reconstructed grid → reconstructed grid | every cell identical |
+| 35 | 42 | reconstructed grid → reconstructed grid | every cell identical |
+| 36 | 43 | fallback prose → fallback prose | source identical |
+| 37 | 44 | fallback prose → fallback prose | source identical |
+| 38 | 45 | fallback prose → fallback prose | source identical |
+| 39 | 45 | fallback prose → fallback prose | source identical |
+| 40 | 46 | fallback prose → fallback prose | source identical |
+| 41 | 47 | fallback prose → fallback prose | source identical |
+| 42 | 48 | fallback prose → fallback prose | source identical |
+| 43 | 49 | fallback prose → fallback prose | source identical |
+| 44 | 53 | fallback prose → fallback prose | source identical |
+| 45 | 54 | reconstructed grid → reconstructed grid | every cell identical |
+| 46 | 55 | fallback prose → fallback prose | source identical |
+| 47 | 56 | reconstructed grid → reconstructed grid | every cell identical |
+| 48 | 57 | reconstructed grid → reconstructed grid | every cell identical |
+| 49 | 58 | reconstructed grid → reconstructed grid | every cell identical |
+| 50 | 60 | fallback prose → fallback prose | source identical |
+| 51 | 60 | reconstructed grid → reconstructed grid | every cell identical |
+| 52 | 61 | fallback prose → fallback prose | source identical |
+| 53 | 61 | reconstructed grid → reconstructed grid | every cell identical |
+| 54 | 62 | fallback prose → fallback prose | source identical |
+| 55 | 63 | fallback prose → fallback prose | source identical |
+
+Validation commands: `python tests/regress.py` (all fixtures and additional
+checks pass, with Tesseract available) and the `capture()` function in
+`tests/audit_table_recovery.py` for the SBTi decision/cell trace. Baseline
+converter code was loaded from Git into memory, never into a scratch checkout;
+all PDFs were read from the source paths in the JSON. Historical bisection
+results are separately retained in `tests/suppression-history.json`.
