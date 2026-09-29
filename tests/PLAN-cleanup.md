@@ -53,6 +53,7 @@ entry contains only:
 - a stable logical document ID;
 - the source PDF SHA-256 and page count;
 - the conversion mode and behavior-changing flags;
+- the PyMuPDF version and, for OCR entries, the Tesseract version;
 - the emitted Markdown SHA-256;
 - a SHA-256 of `stats` serialized as canonical JSON with sorted keys and
   compact separators;
@@ -72,6 +73,12 @@ Markdown. Existing readable expected Markdown stays in place because it gives
 useful review diffs; hashes add a single command that proves byte identity
 across a large corpus.
 
+Native-text entries compare on every supported environment. OCR entries
+compare only when the running Tesseract version exactly matches the version in
+the manifest; a mismatch is reported explicitly rather than accepted as a
+hash difference or silently skipped. The PyMuPDF version is always reported
+with a verification result so extraction-library drift is visible.
+
 Proposed commands:
 
 ```text
@@ -90,6 +97,16 @@ Every function or branch not executed by the survey is listed below. “Test”
 means reachable behavior that needs a named test before it moves. “Keep” means
 a defensive path whose triggering library or OS failure must be simulated.
 No production function is classified as dead from coverage alone.
+
+Phase 1 also audits **unobservable code**: code that executes but whose result
+cannot reach either rendered Markdown or serialized stats. Candidates include
+compute-then-discard locals, the unused `detect_tables` score, and grid/HTML
+construction reachable only through output paths that fallback-to-prose no
+longer emits. For each candidate, create a temporary scratch branch, delete
+only that candidate, and run the fixture and full-corpus golden suite. The
+Phase 1 report records the candidate, why it is unobservable, the hash result,
+and estimated lines saved. Only candidates with every hash unchanged become
+Phase 2 deletions; the scratch branches are not merged.
 
 ### Extraction, OCR, and document setup
 
@@ -187,19 +204,15 @@ No production function is classified as dead from coverage alone.
 ### GUI
 
 All GUI methods were unexecuted because `tkinter` was unavailable in the WSL
-interpreter. They are reachable product code and remain in scope:
+interpreter. GUI automation is deliberately limited to pure logic plus a real
+Windows executable smoke test:
 
 | Methods | Disposition and proposed test |
 |---|---|
-| `App.__init__`, `_style`, `_build`, `_sync_out` | Construct with fake Tk objects in `test_gui.py`; retain a Windows real-Tk smoke test. |
-| `_work_area`, `_fit_to_screen`, `_set_icon` | Unit-test Windows API success/failure and bounds calculations; smoke-test both monitor scaling modes manually before a release. |
-| `_check_tesseract`, `_enable_drop` | Mock executable discovery and DnD registration; `--diag` must report both in the built executable. |
-| `on_drop`, `browse`, `browse_folder`, `add`, `clear`, `pick_out`, `outdir_for` | Test paths with spaces, duplicates, invalid files, cancellation, and output routing. |
-| `start`, `_worker`, nested `log`, `_drain`, `_finish` | Test option snapshots, queued progress, one-file failure, batch completion, and warning propagation without a live event loop. |
-| `_warnings`, `_summary`, `_provenance_of` | Assert these remain thin calls to core stats/provenance behavior. |
-| `_tree_motion`, `_show_tip`, `_hide_tip`, `on_select`, `_set_preview` | Test warning tooltip and preview state transitions with fake widgets. |
-| `_reveal`, `open_out`, `open_log`, `open_md`, `open_math` | Mock Windows shell calls, missing paths, and error dialogs. |
-| `write_diagnostics`, GUI `main` | Test diagnostic content and add a packaged `markerlite.exe --diag` smoke test. |
+| `outdir_for`, `_warnings`, `_summary`, `_provenance_of` | Test as pure functions/helpers without constructing widgets. |
+| `start` option capture | Extract or call the option-snapshot logic without a live widget tree and assert the worker receives immutable values. |
+| `write_diagnostics`, GUI `main`, icon loading | Cover with a packaged Windows `markerlite.exe --diag` launch and assert its diagnostics and embedded icon resources. |
+| Widget layout, tooltips, dialogs, monitor fitting, drag/drop and shell-open methods | No fake-widget tests. Preserve `check_gui.py`, the Windows launch smoke test, and focused manual checks when these methods change. |
 
 `check_gui.py` remains mandatory after every GUI edit. The Windows smoke test
 must also assert that the executable contains the seven icon resources that
@@ -385,8 +398,10 @@ then only with an explicit migration path.
 ## 7. `pyproject.toml`, pytest, Ruff, and CI
 
 Add `pyproject.toml` only after the golden suite exists. It defines the
-package, CLI entry point, Python floor, and direct dependencies pinned to the
-versions used by the successful v0.1.14 Windows build:
+package, CLI entry point, Python floor, and compatible direct-dependency
+ranges. Exact resolved versions belong in `requirements-lock.txt`, used by CI,
+the PyInstaller build, and the documented pinned-pipeline installation. The
+initial lock records the successful v0.1.14 Windows build versions:
 
 - NumPy 2.5.3
 - PyMuPDF 1.28.2
@@ -396,6 +411,10 @@ versions used by the successful v0.1.14 Windows build:
 - tkinterdnd2 0.6.3
 - PyInstaller 6.22.3 and pyinstaller-hooks-contrib 2026.7 in the build extra
 - pytest, coverage 7.10.7, and Ruff 0.13.2 in the development extra
+
+Expose one version source as `markerlite.__version__`. `--version`, serialized
+stats, package metadata, and release checks all read it and require it to
+match the release tag. Creating or pushing that tag remains a user action.
 
 Move the regression entry point under pytest without discarding its readable
 fixture diffs. Keep a small `tests/regress.py` compatibility wrapper during
@@ -430,7 +449,8 @@ copy:
 Install an exact released revision so a later table or OCR rule cannot change
 an existing corpus unexpectedly:
 
-    python -m pip install "markerlite @ git+https://github.com/GalBlatman/markerlite.git@v0.1.15"
+    curl -O https://raw.githubusercontent.com/GalBlatman/markerlite/v0.1.15/requirements-lock.txt
+    python -m pip install -c requirements-lock.txt "markerlite @ git+https://github.com/GalBlatman/markerlite.git@v0.1.15"
     python -c "import markerlite; print(markerlite.__version__)"
 
 Record the tag and keep the generated Markdown and stats hashes with the
@@ -455,7 +475,8 @@ Add the golden manifest/runner, freeze the v0.1.14 fixture hashes, add the
 optional in-place corpus command and local hashes for all 36 documents, and
 commit the reproducible coverage report. Add only the minimum tests needed to
 make the safety harness itself trustworthy; the report retains every gap in
-section 2 for later test work.
+section 2 for later test work. Run the unobservable-code scratch-branch audit
+described in section 2 and include its complete candidate/results table.
 
 Estimated production removal: **0 lines**. Expected test/report addition:
 roughly 500-800 lines.
@@ -463,6 +484,7 @@ roughly 500-800 lines.
 ### Phase 2 — delete confirmed dead code
 
 Delete only the items in section 3 that the Phase 1 suite proves inert, and
+the unobservable candidates whose scratch deletions left all hashes unchanged;
 repair the associated stale comments. Do not format or move surrounding code
 in this commit. If any hash moves, restore the code and report the item as
 misclassified.
@@ -475,7 +497,10 @@ Create the module layout in section 4 and move functions without logic edits.
 Preserve the processor sequence explicitly, keep compatibility imports in
 root `markerlite.py` and `table_wrap.py`, and keep `table_recon.py` untouched.
 Record its SHA-256 before and after. Do not extract thresholds or replace stats
-dicts in this phase.
+dicts in this phase. Before and after the move, compute a normalized AST hash
+for every function and method, excluding source location attributes. Report
+every mismatch; the mismatch table must be empty except for explicitly listed
+compatibility shim and import lines, which contain no moved function bodies.
 
 Estimated root-file removal: **3,900-4,100 lines moved**, leaving a roughly
 30-60 line root compatibility entry point. Estimated actual deletion:
@@ -491,13 +516,25 @@ exact existing dictionary field names and values at the public boundary.
 Estimated production removal: **30-60 lines** of repeated key initialization
 and local constants, offset by typed declarations and calibration comments.
 
-### Phase 5 — tooling, CI, and documentation
+### Formatting commit — after Phase 3
+
+Run `ruff format` in its own golden-verified commit after the mechanical move.
+It is never mixed with moved functions or behavior edits. This commit is
+separate from the numbered behavior-preserving phases.
+
+### Phase 5a — tooling, CI, and documentation
 
 Add `pyproject.toml`, pinned dependencies and console entry point; migrate the
 runner to pytest while retaining its compatibility wrapper; enable the stated
 Ruff rules; and update CI, README, INSTALL, CLAUDE.md, generated AGENTS.md,
-and a one-page `ARCHITECTURE.md`. Add direct tests for the reachable gaps in
-section 2, including math handoff, CLI, GUI pure logic, and defensive paths.
+and a one-page `ARCHITECTURE.md`. Use compatible dependency ranges in
+`pyproject.toml` and the exact lock file everywhere reproducibility matters.
+
+### Phase 5b — coverage-gap tests
+
+Add direct tests for the reachable gaps in section 2, including math handoff,
+CLI, the limited GUI pure logic named above, and defensive paths. Do not add
+fake-widget tests of layout, tooltips, dialogs, drag/drop, or monitor fitting.
 The final report covers imports, CLI output, GUI diagnostics, hashes, stats,
 Windows CI, local WSL, executable build/launch, and `check_gui.py`.
 
