@@ -6,7 +6,6 @@ from markerlite.stats import (
     summarize,
 )
 
-
 EXPECTED_STATS_KEYS = {
     "suppressed",
     "pages",

@@ -1,5 +1,9 @@
 """Offline, deterministic PDF-to-Markdown conversion."""
 
+from pathlib import Path
+
+__version__ = Path(__file__).with_name("VERSION").read_text(encoding="ascii").strip()
+
 from . import model as model
 from . import extraction as extraction
 from . import classification as classification

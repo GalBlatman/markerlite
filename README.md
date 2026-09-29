@@ -118,8 +118,8 @@ and tick "add to PATH".
 Nothing is unsigned here because you run the code with your own Python.
 
 ```bash
-pip install pymupdf scikit-learn rapidfuzz regex numpy
-pip install tkinterdnd2          # optional: drag-and-drop in the GUI
+python -m pip install -e .
+python -m pip install -e ".[gui]"  # optional: drag-and-drop in the GUI
 # optional, for scanned PDFs:
 #   apt install tesseract-ocr      (Linux / WSL)
 #   brew install tesseract         (macOS)
@@ -133,6 +133,34 @@ python markerlite_gui.py
 ```
 
 or use the command line, below.
+
+## Pin markerlite in a pipeline
+
+Use a release tag that contains `pyproject.toml` and `requirements-lock.txt`.
+The lock fixes the converter and build dependencies; the project metadata
+keeps compatible ranges for ordinary installs.
+
+```bash
+TAG=<packaged-release-tag>
+curl -O "https://raw.githubusercontent.com/GalBlatman/markerlite/${TAG}/requirements-lock.txt"
+python -m pip install -c requirements-lock.txt \
+  "markerlite @ git+https://github.com/GalBlatman/markerlite.git@${TAG}"
+markerlite --version
+```
+
+Until a packaged release is tagged, use an exact source commit instead:
+
+```bash
+git clone https://github.com/GalBlatman/markerlite.git
+cd markerlite
+git checkout <commit>
+python -m pip install -c requirements-lock.txt -e .
+markerlite --version
+```
+
+Record the tag or commit and keep the generated Markdown and stats hashes with
+the pipeline run. Upgrade deliberately and compare those hashes on a sample
+before processing the full corpus again.
 
 ## Use
 
@@ -150,6 +178,7 @@ do what they say. When a batch finishes, the status line reports it as
 ### The command line
 
 ```bash
+markerlite paper.pdf -o md_out
 python3 markerlite.py paper.pdf -o md_out
 python3 markerlite.py *.pdf -o md_out --images --page-markers
 python3 markerlite.py paper.pdf -o md_out --flag-math

@@ -2,29 +2,12 @@
 
 from __future__ import annotations
 
-import argparse
-import json
-import math
 import pathlib
-import re
-import sys
-import warnings
-from collections import Counter, defaultdict
-from dataclasses import dataclass, field, replace
-from html import escape, unescape
-from html.parser import HTMLParser
-from itertools import groupby
-from statistics import median
-from typing import List, Optional, Tuple
+from typing import Tuple
 
-import numpy as np
 import pymupdf
-import regex
-from rapidfuzz import fuzz
-from sklearn.cluster import KMeans
-from sklearn.exceptions import ConvergenceWarning
 
-from .model import *
+from .classification import body_font_size, classify
 from .extraction import (
     _drop_ocr_notice,
     _drop_provenance_lines,
@@ -32,8 +15,17 @@ from .extraction import (
     detect_provenance,
     extract_page,
 )
-from .tables import detect_tables, propose_tables_from_text
-from .classification import body_font_size, classify
+from .figures import (
+    _attach_figure_source_text,
+    _figures_from_captions,
+    _prepare_figure_zones,
+    _promote_figure_captions,
+    _route_raster_equations,
+    flag_figures,
+    flag_math,
+    place_figures,
+)
+from .model import *
 from .processors import (
     _protect_numeric_records,
     proc_blockquote,
@@ -49,18 +41,9 @@ from .processors import (
     proc_reflow,
     proc_section_levels,
 )
-from .figures import (
-    _attach_figure_source_text,
-    _figures_from_captions,
-    _prepare_figure_zones,
-    _promote_figure_captions,
-    _route_raster_equations,
-    flag_figures,
-    flag_math,
-    place_figures,
-)
 from .render import render
 from .stats import build_stats
+from .tables import detect_tables, propose_tables_from_text
 
 
 def convert(
@@ -154,6 +137,12 @@ def convert(
         manifest["figures"] = flag_figures(doc, pages, outdir, path.stem, link=images)[
             "regions"
         ]
+
+    # Version is conversion metadata, kept beside rather than inside the
+    # hash-locked public stats dictionary.
+    from . import __version__
+
+    manifest["version"] = __version__
 
     md = render(pages, page_markers=page_markers)
     if provenance:

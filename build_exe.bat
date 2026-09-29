@@ -5,7 +5,7 @@ rem GitHub Actions workflow in .github\workflows\build-windows.yml).
 setlocal
 
 echo Installing build dependencies...
-python -m pip install --quiet --upgrade pyinstaller pymupdf scikit-learn rapidfuzz regex numpy tkinterdnd2
+python -m pip install --quiet -c "%~dp0requirements-lock.txt" -e "%~dp0[gui,build]"
 if errorlevel 1 goto :fail
 
 echo.
@@ -17,6 +17,7 @@ python -m PyInstaller --noconfirm --onedir --windowed ^
   --icon "%~dp0assets\icon.ico" ^
   --add-data "assets;assets" ^
   --add-data "markerlite.py;." ^
+  --add-data "markerlite/VERSION;markerlite" ^
   --add-data "table_recon.py;." ^
   "%~dp0markerlite_gui.py"
 if errorlevel 1 goto :fail

@@ -2,10 +2,10 @@
 
 import copy
 import pathlib
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
-import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 

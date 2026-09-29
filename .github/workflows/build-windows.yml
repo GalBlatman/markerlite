@@ -6,7 +6,9 @@ name: build-windows-exe
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
+    branches: [main]
     tags: ["v*"]
 
 permissions:
@@ -31,7 +33,20 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller pymupdf scikit-learn rapidfuzz regex numpy tkinterdnd2
+          python -m pip install -c requirements-lock.txt -e ".[dev,gui,build]"
+
+      - name: Check version tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: test "$(python -c 'import markerlite; print(markerlite.__version__)')" = "${GITHUB_REF_NAME#v}"
+
+      - name: Ruff
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Unit tests
+        run: pytest -q
 
       - name: Check GUI method references
         run: python check_gui.py
@@ -40,6 +55,9 @@ jobs:
         # Converts tests/fixtures/*.pdf and diffs against tests/expected/.
         # The runner has no Tesseract, so the OCR fixture reports SKIP.
         run: python tests/regress.py
+
+      - name: Golden fixture hashes
+        run: python tests/golden.py verify --scope fixtures
 
       - name: Build
         run: |
@@ -50,6 +68,7 @@ jobs:
             --icon assets/icon.ico `
             --add-data "assets;assets" `
             --add-data "markerlite.py;." `
+            --add-data "markerlite/VERSION;markerlite" `
             --add-data "table_recon.py;." `
             markerlite_gui.py
 
@@ -57,11 +76,14 @@ jobs:
         run: python -c "import markerlite; print('import ok')"
 
       - name: Check the build launches
-        # --windowed builds print nothing, so just confirm the exe and its
-        # bundled runtime are present and the entry point resolves.
         run: |
           if (!(Test-Path dist\markerlite\markerlite.exe)) { throw "exe missing" }
-          Get-ChildItem dist\markerlite | Measure-Object | Select-Object -Expand Count
+          & dist\markerlite\markerlite.exe --diag
+          if (!(Test-Path dist\markerlite\markerlite-diag.txt)) { throw "diagnostics missing" }
+          Select-String -Path dist\markerlite\markerlite-diag.txt -Pattern "frozen=True", "TkinterDnD.Tk\(\)  OK"
+
+      - name: Check embedded icon resources
+        run: python tools/check_exe_icon.py dist\markerlite\markerlite.exe assets\icon.ico
 
       - name: Ship license texts with the build
         # Apache-2.0 requires the license and NOTICE to accompany redistributions.

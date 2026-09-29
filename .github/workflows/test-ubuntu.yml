@@ -1,0 +1,50 @@
+name: test-ubuntu
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install Tesseract
+        run: sudo apt-get update && sudo apt-get install -y tesseract-ocr
+
+      - name: Install locked dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -c requirements-lock.txt -e ".[dev]"
+
+      - name: Check generated agent instructions
+        run: |
+          python tools/sync_agents.py
+          git diff --exit-code AGENTS.md
+
+      - name: Ruff
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Tests with coverage
+        run: coverage run --branch -m pytest -q
+
+      - name: Fixture regression
+        run: coverage run --branch --append tests/regress.py
+
+      - name: Golden fixture hashes
+        run: python tests/golden.py verify --scope fixtures
+
+      - name: Coverage report
+        run: coverage report --include='markerlite/*.py,markerlite_gui.py,table_wrap.py'

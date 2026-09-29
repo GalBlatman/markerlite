@@ -6,10 +6,10 @@ Numeric tables, incomplete recoveries, and uncertain row layouts keep the
 original reconstruction and its existing downstream fallback decision.
 """
 
+import re
 from bisect import bisect_right
 from collections import Counter
 from html import unescape
-import re
 from statistics import median
 
 from .thresholds import (

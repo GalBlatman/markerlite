@@ -9,9 +9,6 @@ edit or copy the converter. Match regions by page, bbox, and source_digest.
 """
 
 import argparse
-from collections import Counter
-from hashlib import sha256
-from html import unescape
 import inspect
 import json
 import pathlib
@@ -20,6 +17,9 @@ import shutil
 import sys
 import tempfile
 import unicodedata
+from collections import Counter
+from hashlib import sha256
+from html import unescape
 from unittest.mock import patch
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]

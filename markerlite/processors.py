@@ -2,32 +2,19 @@
 
 from __future__ import annotations
 
-import argparse
-import json
 import math
-import pathlib
 import re
-import sys
-import warnings
-from collections import Counter, defaultdict
-from dataclasses import dataclass, field, replace
-from html import escape, unescape
-from html.parser import HTMLParser
-from itertools import groupby
 from statistics import median
-from typing import List, Optional, Tuple
+from typing import List
 
 import numpy as np
-import pymupdf
-import regex
 from rapidfuzz import fuzz
 from sklearn.cluster import KMeans
-from sklearn.exceptions import ConvergenceWarning
 
-from .model import *
-from .extraction import _bbox_of
-from .tables import _overlap_frac
 from .classification import _symbol_is_notation, footnote_label, note_text_size
+from .extraction import _bbox_of
+from .model import *
+from .tables import _overlap_frac
 
 
 def _protect_numeric_records(page):

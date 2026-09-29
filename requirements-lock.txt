@@ -1,0 +1,24 @@
+# Exact environment used by CI, local pinned pipelines, and the Windows build.
+altgraph==0.17.5
+coverage==7.10.7
+cloudpickle==3.1.2
+iniconfig==2.3.0
+joblib==1.6.0
+narwhals==2.26.0
+numpy==2.5.3
+packaging==26.3
+pefile==2024.8.26
+pluggy==1.6.0
+pygments==2.21.0
+pyinstaller==6.22.3
+pyinstaller-hooks-contrib==2026.7
+pymupdf==1.28.2
+pytest==8.4.2
+rapidfuzz==3.14.6
+regex==2026.9.29
+ruff==0.13.2
+scikit-learn==1.9.1
+scipy==1.18.1
+setuptools==81.0.0
+threadpoolctl==3.6.0
+tkinterdnd2==0.6.3

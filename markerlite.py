@@ -8,6 +8,5 @@ The implementation lives in the ``markerlite`` package. Existing commands
 from markerlite import *  # noqa: F401,F403
 from markerlite.cli import main
 
-
 if __name__ == "__main__":
     main()

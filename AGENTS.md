@@ -20,9 +20,10 @@ v0.1.14 (`/releases/latest` is the download link the README and blog use).
 ## Layout
 
 ```
-markerlite.py        the converter (CLI + `convert()` API). ~2000 lines.
+markerlite/          owned converter package, split by pipeline stage.
+markerlite.py        compatibility CLI/import shim for source checkouts.
 markerlite_gui.py    Tk drag-and-drop front end. Runs from source or as the exe.
-table_wrap.py        markerlite-owned wrapped-cell attachment around the winning grid.
+table_wrap.py        compatibility shim; implementation is markerlite/table_wrap.py.
 table_recon.py       VENDORED from Marker (Apache-2.0). Table grid reconstruction.
                      Do not "improve" it; treat as third-party.
 check_gui.py         static check: every `self.x()` in App resolves to a method.
@@ -35,6 +36,9 @@ build_exe.bat        local PyInstaller onedir build (Windows)
                      a GitHub Release with markerlite-windows.zip (idempotent -
                      replaces the zip if the release already exists)
 README.md            public landing page. INSTALL.md (WSL), WINDOWS-GUI.md (app).
+ARCHITECTURE.md      module ownership and verification map.
+pyproject.toml       compatible ranges and the `markerlite` console entry point.
+requirements-lock.txt exact CI, Windows-build and pinned-pipeline environment.
 LICENSE, NOTICE      Apache-2.0 for markerlite; NOTICE carries Marker attribution.
 third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
                      detects exactly one license).
@@ -185,6 +189,11 @@ The downstream bump protocol consumes these field names; keep them stable.
 
 - After editing CLAUDE.md, run python tools/sync_agents.py and commit AGENTS.md
   with it. Never edit AGENTS.md directly.
+- `markerlite/VERSION` is the one version source. Packaging and
+  `markerlite.__version__` read it; `markerlite --version`, conversion metadata,
+  and release CI all use that value, and a `v*` tag must match it.
+- `pyproject.toml` carries compatible dependency ranges. CI, `build_exe.bat`,
+  and pinned pipelines install through `requirements-lock.txt`.
 - Commit messages: imperative subject, body explains WHY. Every commit ends
   with the Co-Authored-By / Claude-Session trailer.
 - Push after committing (`git pull --rebase` first if the remote is ahead).
@@ -220,10 +229,12 @@ separate pass, first-line indents, running head drawn last).
 amsmath display equations, booktabs table, itemize, two footnotes); it is
 rebuilt from `tests/generators/paper.tex` by `make_paper.sh`.
 
-`python tests/regress.py` converts every fixture and diffs against
+`pytest -q` runs focused unit tests. `python tests/regress.py` converts every
+fixture and diffs against
 `tests/expected/`; non-zero on any difference. `--update` rewrites the
 expected files - only for an intended behaviour change, committed together
-with the code change. `scanned` needs Tesseract and is SKIPPED (not failed)
+with the code change. `python tests/golden.py verify --scope fixtures` checks
+the complete Markdown/stats hashes. `scanned` needs Tesseract and is SKIPPED (not failed)
 without it; regenerate its expected output from WSL, where Tesseract 5.5.0
 is installed, not from Windows. CI runs `check_gui.py` and `regress.py`
 before the PyInstaller build.

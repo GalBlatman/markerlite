@@ -137,6 +137,7 @@ def check_journal_front_matter(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     a real data table; every variant also runs alone as PDF page 1.
     """
     from unittest.mock import patch
+
     import pymupdf
 
     expected = [
@@ -211,11 +212,13 @@ def check_fallback_prose(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     reconstruction (wrapped recovery disabled) keeps every source token as prose.
     Also exercise the unavailable-reconstruction branch without changing the PDF.
     """
+    import unicodedata
     from collections import Counter
     from unittest.mock import patch
-    import unicodedata
 
-    normalize = lambda text: Counter(unicodedata.normalize("NFKC", text).split())
+    def normalize(text):
+        return Counter(unicodedata.normalize("NFKC", text).split())
+
     original_render = markerlite_api.render
     original_recon = markerlite_tables.reconstruct_table_html
     directory = workdir / "fallback-prose"
@@ -721,6 +724,7 @@ def main(argv=None) -> int:
 
     if not args.names or "all_text_wrapped" in args.names:
         import unittest
+
         from test_table_wrap import WrappedCellsTests
 
         suite = unittest.defaultTestLoader.loadTestsFromTestCase(WrappedCellsTests)

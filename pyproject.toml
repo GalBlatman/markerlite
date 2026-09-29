@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=69,<82"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "markerlite"
+dynamic = ["version"]
+description = "Offline, deterministic PDF-to-Markdown conversion"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{name = "Gal Blatman"}]
+dependencies = [
+  "numpy>=2.0,<3",
+  "pymupdf>=1.24,<2",
+  "rapidfuzz>=3.9,<4",
+  "regex>=2024.0,<2027",
+  "scikit-learn>=1.5,<2",
+]
+
+[project.optional-dependencies]
+gui = ["tkinterdnd2>=0.4,<1"]
+build = [
+  "pyinstaller>=6,<7",
+  "pyinstaller-hooks-contrib>=2025,<2027",
+  "pefile>=2024.8.26,<2027",
+]
+dev = [
+  "coverage>=7.10,<8",
+  "pytest>=8,<9",
+  "ruff>=0.13,<0.14",
+]
+
+[project.scripts]
+markerlite = "markerlite.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/GalBlatman/markerlite"
+Repository = "https://github.com/GalBlatman/markerlite"
+
+[tool.setuptools]
+packages = ["markerlite"]
+py-modules = ["table_recon"]
+
+[tool.setuptools.dynamic]
+version = {file = "markerlite/VERSION"}
+
+[tool.setuptools.package-data]
+markerlite = ["VERSION"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+exclude = ["table_recon.py"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"markerlite/__init__.py" = ["E402", "I001"]
+"markerlite/*.py" = ["F403", "F405"]
+"markerlite.py" = ["F403"]
