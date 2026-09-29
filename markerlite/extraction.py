@@ -6,6 +6,7 @@ import os
 import pathlib
 import re
 import shutil
+import subprocess
 import sys
 from collections import defaultdict
 from dataclasses import replace
@@ -78,6 +79,29 @@ def discover_tesseract(
         ):
             return found
     return None
+
+
+def tesseract_version(
+    executable: str, *, run: Callable[..., subprocess.CompletedProcess] = subprocess.run
+) -> str:
+    """Return Tesseract's first version line for status and diagnostics."""
+    try:
+        flags = (
+            {"creationflags": subprocess.CREATE_NO_WINDOW}
+            if sys.platform == "win32"
+            else {}
+        )
+        proc = run(
+            [executable, "--version"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            **flags,
+        )
+        first = (proc.stdout or proc.stderr).strip().splitlines()
+        return first[0].strip() if first else "tesseract (version unknown)"
+    except Exception:
+        return "tesseract (version unknown)"
 
 
 def _bbox_of(items) -> Tuple[float, float, float, float]:
@@ -240,7 +264,6 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = OCR_DPI) -> Optional
     Tesseract's own page segmentation, which is what keeps a two-column scan
     from interleaving.
     """
-    import subprocess
     import tempfile
 
     try:

@@ -1,6 +1,6 @@
 import pytest
 
-from markerlite.extraction import discover_tesseract
+from markerlite.extraction import discover_tesseract, tesseract_version
 
 
 def fake_which(paths):
@@ -72,3 +72,18 @@ def test_missing_tesseract_returns_none():
         )
         is None
     )
+
+
+def test_version_reports_first_line_and_unknown_on_failure():
+    class Result:
+        stdout = "tesseract 5.5.0\n leptonica"
+        stderr = ""
+
+    assert tesseract_version(
+        "/opt/tesseract", run=lambda *_args, **_kwargs: Result()
+    ) == ("tesseract 5.5.0")
+
+    def fail(*_args, **_kwargs):
+        raise OSError
+
+    assert tesseract_version("/missing", run=fail) == "tesseract (version unknown)"

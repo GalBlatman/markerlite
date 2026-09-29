@@ -13,7 +13,9 @@ from .extraction import (
     _drop_provenance_lines,
     _remap_pi_fonts,
     detect_provenance,
+    discover_tesseract,
     extract_page,
+    tesseract_version,
 )
 from .figures import (
     _attach_figure_source_text,
@@ -143,6 +145,11 @@ def convert(
     from . import __version__
 
     manifest["version"] = __version__
+    tesseract = discover_tesseract()
+    manifest["tesseract"] = {
+        "path": tesseract,
+        "version": tesseract_version(tesseract) if tesseract else None,
+    }
 
     md = render(pages, page_markers=page_markers)
     if provenance:

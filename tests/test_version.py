@@ -38,3 +38,9 @@ def test_conversion_metadata_uses_the_package_version_without_changing_stats():
         )
     assert info["version"] == markerlite.__version__
     assert "version" not in info["stats"]
+    assert set(info["tesseract"]) == {"path", "version"}
+    if info["tesseract"]["path"]:
+        assert info["tesseract"]["version"].startswith("tesseract ")
+    else:
+        assert info["tesseract"]["version"] is None
+    assert "tesseract" not in info["stats"]

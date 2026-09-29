@@ -14,7 +14,6 @@ from __future__ import annotations
 import os
 import pathlib
 import queue
-import shutil
 import subprocess
 import sys
 import threading
@@ -22,6 +21,7 @@ import tkinter as tk
 import traceback
 from tkinter import filedialog, ttk
 
+from markerlite.extraction import discover_tesseract, tesseract_version
 from markerlite.gui_logic import (
     ConversionOptions,
     output_directory,
@@ -155,33 +155,16 @@ class App:
 
     def _check_tesseract(self) -> bool:
         """Show Tesseract's version in the status bar, or a warning when it
-        is not on PATH. Called at startup and again when Convert is pressed,
+        is unavailable. Called at startup and again when Convert is pressed,
         because the user may install it while the window is open."""
-        exe = shutil.which("tesseract")
-        version = ""
+        exe = discover_tesseract()
         if exe:
-            try:
-                flags = (
-                    {"creationflags": subprocess.CREATE_NO_WINDOW}
-                    if sys.platform == "win32"
-                    else {}
-                )
-                proc = subprocess.run(
-                    [exe, "--version"],
-                    capture_output=True,
-                    text=True,
-                    timeout=5,
-                    **flags,
-                )
-                first = (proc.stdout or proc.stderr).strip().splitlines()
-                version = first[0].strip() if first else "tesseract"
-            except Exception:
-                version = "tesseract (version unknown)"
-        if version:
-            self.tess_label.configure(text=f"OCR: {version}", style="Ok.TLabel")
+            version = tesseract_version(exe)
+            self.tess_label.configure(text=f"OCR: {version} ({exe})", style="Ok.TLabel")
             return True
         self.tess_label.configure(
-            text="Tesseract not found \u2014 scanned PDFs will produce no text",
+            text="Tesseract not found \u2014 install Tesseract, or set "
+            "TESSERACT_CMD to tesseract.exe",
             style="Warn.TLabel",
         )
         return False
@@ -881,6 +864,12 @@ def write_diagnostics() -> pathlib.Path:
         f"HAVE_DND    {HAVE_DND}",
         f"DND_ERROR   {DND_ERROR or '-'}",
     ]
+    tesseract = discover_tesseract()
+    lines.append(
+        f"tesseract   {tesseract_version(tesseract)}  path={tesseract}"
+        if tesseract
+        else "tesseract   not found"
+    )
     try:
         import tkinter
 
