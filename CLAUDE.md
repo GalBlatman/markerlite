@@ -201,9 +201,9 @@ before the PyInstaller build.
 1. Tables with tall multi-line cells assign content to wrong rows
    (`_attach_wrapped_lines` only fires when a numeric header transition is
    found). README lists tables under "partial" for this reason. Since the
-   text-loss guard (below) the words are no longer LOST - the geometric grid
-   takes over - but that grid can be an ugly many-column shred of a table
-   whose reconstruction had the right shape (SBTi pp. 26, 34).
+   text-loss guard (below) a failed reconstruction keeps the original source
+   paragraphs instead of a geometric grid. The words are retained but the
+   table layout is lost (SBTi pp. 26, 34).
 2. Heading recovery on journals that style all headings identically with no
    numbering: some headings render as paragraphs.
 3. ScholarOne cover sheets (rotated/clipped submission metadata) produce junk
@@ -325,16 +325,24 @@ parentheses fails if the fix is undone):
   description out: it is not the document's text.
 - text-loss guard in `detect_tables`: a reconstruction that keeps fewer than
   `TABLE_FALLBACK_MIN_KEEP` (0.9) of the words in PyMuPDF's geometric cells
-  loses to those cells (`tall_cell`). The geometric grid is filled from the
-  table's own member tokens (`_grid_from_members`), not `tbl.extract()`, so
-  it neither duplicates text shared with an overlapping candidate nor carries
-  the rotated watermark glyphs. `info["stats"]["tables_fallback"]` counts the
-  decisions; summarize() prints "N of M tables fell back to cell text".
+  keeps its original source paragraphs as prose (`tall_cell` regression also
+  disables wrapped recovery to exercise the lossy reconstruction). Existing
+  fallbacks for unusable reconstruction do the same. The marker is
+  `<!-- table p. N: reconstruction failed; text kept as prose -->`.
+  Source block/line stream order and token identity are retained without
+  dehyphenation. The geometric grid remains the guard's reference, filled
+  from the table's own members, not `tbl.extract()`. Internally the block
+  remains Table with `fallback_paragraphs`, so processors cannot consume or
+  reclassify it. `tables_fallback` and the GUI column keep counting these
+  decisions; summarize() prints "N of M tables kept as prose". This sacrifices
+  five usable SBTi fallback grids as well as the shredded grids: measured
+  spanned-line shares could not separate them (tests/REPORT-batchC-block1.md).
 
 ## Open items
 
 - Table work follows tests/PLAN-tables.md; items 0, 1, 7, 8, 11b done;
-  5,6,2,3,4 then 9,10,11a,11c pending review; 12 is evidence only. Items 2 and 5 carry extra
+  fallback-to-prose implemented in batch C; item 5 evidence check and item 6
+  remain outstanding; 2,3,4 then 9,10,11a,11c pending review; 12 is evidence only. Items 2 and 5 carry extra
   evidence from five journal articles (tests/REPORT-batch2.md).
 - Pipeline documents (R00443, R00030, R00087, R00639, R00077) are read in
   place from /home/galbl/unknown-knowns/ in WSL and never copied here. Four of

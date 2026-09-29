@@ -36,7 +36,7 @@ import sys
 import warnings
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field, replace
-from html import unescape
+from html import escape, unescape
 from html.parser import HTMLParser
 from itertools import groupby
 from statistics import median
@@ -208,6 +208,9 @@ class Block:
     has_continuation: bool = False
     ignore_for_output: bool = False
     html: Optional[str] = None
+    # Keep the table identity for processors/captions and statistics, but
+    # render failed reconstruction from the untouched source, not a bad grid.
+    fallback_paragraphs: List[str] = field(default_factory=list)
     code: Optional[str] = None
     image_path: Optional[str] = None
     needs_vision: bool = False
@@ -284,7 +287,7 @@ class Page:
     ocr_used: bool = False
     # table_recon vs. geometric-cell decisions on this page (see
     # TABLE_FALLBACK_MIN_KEEP): how many tables were emitted, and how many of
-    # them took PyMuPDF's cell text because the reconstruction lost words.
+    # them keep source prose because reconstruction failed or lost words.
     tables_emitted: int = 0
     tables_fell_back: int = 0
     # Caption isolation and row extent (PLAN-tables item 7): tables whose
@@ -509,7 +512,7 @@ def _emitted_words(page: Page) -> int:
     for blk in page.blocks:
         if blk.ignore_for_output or blk.btype in ("PageHeader", "PageFooter", "ImageMarker"):
             continue
-        if blk.btype == "Table":
+        if blk.btype == "Table" and not blk.fallback_paragraphs:
             total += _html_word_count(blk.html or "")
         else:
             total += len(blk.text.split())
@@ -566,7 +569,7 @@ def stat_warnings(stats: dict) -> List[str]:
         out.append(f"{len(lossy)} lossy page{'s' * (len(lossy) != 1)} ({shown})")
     if stats.get("tables_fallback"):
         n = stats["tables_fallback"]
-        out.append(f"{n} of {stats.get('tables', n)} table{'s' * (n != 1)} fell back to cell text")
+        out.append(f"{n} of {stats.get('tables', n)} table{'s' * (n != 1)} kept as prose")
     if stats.get("proposals_kept_prose"):
         n = stats["proposals_kept_prose"]
         out.append(f"{n} text-table proposal{'s' * (n != 1)} kept as prose")
@@ -1399,7 +1402,12 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
             page_idx=page.page_idx,
             char_pos=min(m.char_pos for m in members),
             btype="Table",
-            html=html,
+            html=html if not fell_back else None,
+            # Preserve original block/line stream order. In particular, do
+            # not dehyphenate: conservation is a source-token multiset check.
+            fallback_paragraphs=["\n".join(ln.text.strip() for ln in m.lines
+                                           if ln.text.strip())
+                                 for m in members if m.text.strip()] if fell_back else [],
         )
         new_blocks.append(tb)
 
@@ -2758,6 +2766,13 @@ def _is_list_line(chunk: str) -> bool:
     return bool(re.match(r"^(-|\d{1,3}\.)\s", last))
 
 
+def fallback_prose(blk: Block) -> List[str]:
+    """Source paragraphs, with soft line breaks and no grid or token repairs."""
+    return ["\n".join(_escape_list_start(escape(line, quote=False).replace("|", "&#124;"))
+                      for line in paragraph.splitlines())
+            for paragraph in blk.fallback_paragraphs]
+
+
 def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
     out: List[str] = []
     pending_paragraph = ""
@@ -2841,7 +2856,12 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                 for cap in blk.children:
                     if cap.leads:
                         out.append("*" + block_text(cap, plain=True) + "*")
-                out.append(md or (blk.html or ""))
+                if blk.fallback_paragraphs:
+                    out.append(f"<!-- table p. {page.page_idx + 1}: "
+                               "reconstruction failed; text kept as prose -->")
+                    out.extend(fallback_prose(blk))
+                else:
+                    out.append(md or (blk.html or ""))
                 for cap in blk.children:
                     if not cap.leads:
                         out.append("*" + block_text(cap, plain=True) + "*")

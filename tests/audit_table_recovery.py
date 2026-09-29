@@ -33,7 +33,7 @@ def words(text):
 
 
 def html_words(text):
-    return words(re.sub(r"<[^>]*>", " ", text or ""))
+    return words(re.sub(r"</?[A-Za-z][A-Za-z0-9]*(?:\s[^<>]*)?>", " ", text or ""))
 
 
 def digest(value):
@@ -88,7 +88,8 @@ def capture(pdf, directory):
                 "lines_excluded": state.get("lines_excluded", 0),
                 "fallback": state["fell_back"],
                 "reconstruction": errors(counts, reconstruction[0] if reconstruction else ""),
-                "output": errors(counts, state["html"]),
+                "output": errors(counts, "\n".join(block.text for block in state["members"])
+                                 if state["fell_back"] else state["html"]),
             })
         return trace
 
@@ -97,7 +98,7 @@ def capture(pdf, directory):
     def render(pages, **kwargs):
         for page in pages:
             for block in page.blocks:
-                if block.btype == "Table" and not block.ignore_for_output:
+                if block.btype == "Table" and not block.ignore_for_output and not block.fallback_paragraphs:
                     parser = markerlite._TableParser()
                     parser.feed(block.html)
                     cells.append({"page": page.page_idx + 1, "bbox": list(block.bbox),

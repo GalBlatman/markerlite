@@ -63,6 +63,59 @@ def check_ocr_markers(pdf: pathlib.Path, workdir: pathlib.Path, plain: str) -> i
     return 1
 
 
+def check_fallback_prose(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
+    """The tall-cell fixture keeps its successful grid; its original lossy
+    reconstruction (wrapped recovery disabled) keeps every source token as prose.
+    Also exercise the unavailable-reconstruction branch without changing the PDF.
+    """
+    from collections import Counter
+    from unittest.mock import patch
+    import unicodedata
+    normalize = lambda text: Counter(unicodedata.normalize("NFKC", text).split())
+    original_render = markerlite.render
+    original_recon = markerlite.reconstruct_table_html
+    directory = workdir / "fallback-prose"
+    directory.mkdir(exist_ok=True)
+    for unavailable in (False, True):
+        captured = []
+        def spy(pages, **kwargs):
+            for page in pages:
+                for block in page.blocks:
+                    if block.fallback_paragraphs:
+                        raw = "\n".join(ln.text for ln in block.lines)
+                        prose = "\n\n".join(markerlite.fallback_prose(block))
+                        captured.append((normalize(raw), normalize(prose), prose))
+            return original_render(pages, **kwargs)
+        with patch.object(markerlite, "recover_wrapped_lines", lambda lines, res, *args: res), \
+                patch.object(markerlite, "reconstruct_table_html",
+                             None if unavailable else original_recon), \
+                patch.object(markerlite, "render", spy):
+            output, info = markerlite.convert(pdf, directory)
+        text = output.read_text(encoding="utf-8")
+        marker = "<!-- table p. 1: reconstruction failed; text kept as prose -->"
+        if (len(captured) != 1 or captured[0][0] != captured[0][1]
+                or "|" in captured[0][2] or "<table" in captured[0][2]
+                or captured[0][2] not in text
+                or text != (EXPECTED / "tall_cell_fallback.md").read_text(encoding="utf-8")
+                or text.count(marker) != 1 or "|" in text
+                or info["stats"]["tables"] != 1 or info["stats"]["tables_fallback"] != 1
+                or "1 of 1 table kept as prose" not in markerlite.summarize(info["stats"])):
+            print("FAIL  fallback-prose: source tokens, marker, or statistics")
+            return 1
+        # Fixture has distinct row labels and wrapped phrases: their source
+        # sequence must remain intact, rather than sorting all lines by y.
+        prose = captured[0][2]
+        ordered = ["Criterion", "Requirement", "Assessment", "C1 Boundary",
+                   "consolidation approach", "Met if all included", "C2 Gases",
+                   "Met if none excluded", "C3 Scopes", "Met if both covered"]
+        positions = [prose.index(word) for word in ordered]
+        if positions != sorted(positions):
+            print("FAIL  fallback-prose: source reading order")
+            return 1
+    print("ok    fallback-prose   lossy/unavailable reconstruction: tokens, order, marker, stats")
+    return 0
+
+
 def check_proposal_guard(pdf: pathlib.Path, workdir: pathlib.Path, guarded: str) -> int:
     """justified_scan: with the proposal-path text-loss guard the justified
     prose stays prose with every word, and the control page's real table is
@@ -345,6 +398,8 @@ def main(argv=None) -> int:
                 print(f"SKIP  {stem:16s} needs tesseract on PATH")
                 continue
             got = convert_to_string(pdf, workdir)
+            if stem == "tall_cell":
+                failures += check_fallback_prose(pdf, workdir)
             if stem == "justified_scan":
                 failures += check_proposal_guard(pdf, workdir, got)
             if stem == "isolated_ocr_page":

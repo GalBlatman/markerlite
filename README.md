@@ -42,9 +42,12 @@ the failure modes are quiet ones.
 
 **Tables.** Sometimes excellent, sometimes wrong. Borderless and scanned tables
 often reconstruct correctly; tables with tall multi-line cells can assign
-content to the wrong row, which shifts values silently. Sanity checks reject the
-worst reconstructions, but not all of them. **Verify any table you intend to
-read as data.** This is not yet a feature to advertise.
+content to the wrong row, which shifts values silently. When reconstruction
+fails or keeps fewer than 90% of the geometric grid's words, the region's source
+text is kept as ordered prose with a `<!-- table p. N: reconstruction failed;
+text kept as prose -->` marker. This preserves text but loses the table layout,
+even when the geometric grid was usable. Successful reconstructions can still
+misassign cells. **Verify any table you intend to read as data.**
 
 **Figures.** markerlite does not read figures; it hands them to something that
 can. Every figure it finds leaves a placeholder at its position in the text,
