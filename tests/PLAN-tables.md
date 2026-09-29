@@ -177,6 +177,20 @@ including empty cells and real row transitions; matching total words is not enou
 
 ### 2. Recover Table 1's alternating fragments and Table 2's logical rows
 
+**Additional batch C evidence:** fallback-to-prose sacrifices five usable SBTi
+grid layouts: regions 2 (PDF p. 3), 43 (p. 49), 44 (p. 53), 52 (p. 61), and
+55 (p. 63). Their words survive; recovering their cell relationships remains
+structural work. Kostova Figure 1 (PDF p. 7) still becomes a successful false
+table proposal, swallowing its label with no figure placeholder. See
+REPORT-batchC-block1.md for rendered evidence and matrices.
+
+Packet A (79 table-structure cases) is additional batch C evidence, read in
+place at `/home/galbl/unknown-knowns-markerlite-v0112/upstream/markerlite-v0.1.12-PACKET-A-table-structure.md`
+and its JSON twin. In particular, R00087 PDF p. 10 loses **“U.S.”** from
+“Standard & Poor's 1500 in / U.S.” inside a text-table proposal; no furniture
+pass suppresses it. This is structural recovery, outside Packet B's
+source-line suppression task. Do not conflate the two packets.
+
 **Observed mechanism:** SBTi Table 1 begins on p. 7. Pages 7–9 emit no detected
 table; pp. 10–11 alternate prose/list runs and reconstructed fragments instead
 of retaining the three-column criterion/requirement/assessment relationship.
