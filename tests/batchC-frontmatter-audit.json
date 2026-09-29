@@ -1,0 +1,3637 @@
+{
+  "Target-Validation-Protocol": {
+    "before_item6_words": 18425,
+    "after_item6_words": 18425,
+    "markdown_identical": true,
+    "retained_cells_identical": true,
+    "tables": [
+      {
+        "page": 2,
+        "bbox": [
+          54.239999771118164,
+          173.72001139322916,
+          572.7605285644531,
+          713.0880126953125
+        ],
+        "cells": [
+          [
+            "Version",
+            "Change/update description",
+            "Date finalized",
+            "Effective Dates"
+          ],
+          [
+            "1.0",
+            "The first version of the Target Validation Protocol",
+            "April 2019",
+            "From April 2019 to July 2020"
+          ],
+          [
+            "2.0",
+            "Updated to align with SBTi criteria V4.1 and to provide further information on frequently requested topics, including target classification, resubmission and sector-specific guidance.",
+            "April 2020",
+            "July 2020 to March 2021"
+          ],
+          [
+            "2.1",
+            "Minor updates to provide further clarification and context to existing rules, and criterion, including the following: Section 3: updated to reflect how Financial Institutions are treated during initial screening stage. Section 6: refined the target classification rules to provide further clarity on how multiple approved targets can be aggregated to produce a temperature rating. Section 8: the criteria table has been updated to reflect modifications to criteria wording, with minor changes made to text for clarification purposes. Section 9: updated to provide additional information from the 1) electric utility sector update from June 2020, 2) release of the financial institution guidance in October 2020 and 3) current practices related to companies in the oil and gas sector",
+            "April 2021",
+            "April 2021 to July 14, 2022"
+          ],
+          [
+            "3.0",
+            "Updated to align with SBTi criteria V5.0. Some sections that were previously included within the Target Validation Protocol have been moved to the Corporate Manual. These sections are as follows as previously called under 2.1: Section 2 The SBTi and its target validation process Section 3 Target validation process",
+            "December 6, 2021",
+            "July 15, 2022 to March 14, 2023"
+          ]
+        ]
+      },
+      {
+        "page": 10,
+        "bbox": [
+          546.1199951171875,
+          349.5881072998047,
+          788.1599731445312,
+          526.1042114257813
+        ],
+        "cells": [
+          [
+            "Criterion met if:"
+          ],
+          [
+            "\u25cf No GHG emissions are excluded from the S1 and S2 inventory or target boundary. OR"
+          ],
+          [
+            "\u25cf GHG exclusions of S1 and S2 combined in the inventory and target boundary represent less than 5% of total S1 and S2 emissions. AND"
+          ],
+          [
+            "\u25cf If exclusions include specific regions or business, the company confirms it will follow the C26 and C27 recalculation criteria and will not include these specifications in the official target language."
+          ]
+        ]
+      },
+      {
+        "page": 14,
+        "bbox": [
+          298.55999755859375,
+          141.25878429412842,
+          536.1600341796875,
+          320.010009765625
+        ],
+        "cells": [
+          [
+            "\u25cf Companies must use correct target setting methods for their sector."
+          ],
+          [
+            "\u25cf The latest version of the method/tool must be used to set targets."
+          ],
+          [
+            "\u25cf Older versions of a method or a tool can only be used within 6 months of the publication of an updated version unless otherwise noted."
+          ],
+          [
+            "\u25cf The SBTi recommends using the most ambitious decarbonization scenarios that lead to the earliest reductions and the least cumulative emissions."
+          ]
+        ]
+      },
+      {
+        "page": 15,
+        "bbox": [
+          298.55999755859375,
+          117.84432983398438,
+          536.1600341796875,
+          335.0400085449219
+        ],
+        "cells": [
+          [
+            "steam related emissions as if they were part of their direct emissions, i.e., scope 1."
+          ],
+          [
+            "\u25cf If companies are using a method that does not already embed efficiency gains for the specific sector, market \u2013 and the decarbonization projected for the power sector is based on a 1.5\u00b0C scenario \u2013 these factors should be considered when modeling electricity-related scope 2 targets."
+          ],
+          [
+            "\u25cf Companies are encouraged to report both"
+          ],
+          [
+            "market and location-based scope 2"
+          ],
+          [
+            "emissions, however, companies setting renewable electricity sourcing targets that will"
+          ],
+          [
+            "be achieved through market-based mechanisms must report and track using market-based scope 2 emissions."
+          ]
+        ]
+      },
+      {
+        "page": 16,
+        "bbox": [
+          546.1199951171875,
+          117.84425136021206,
+          788.1599731445312,
+          255.9840087890625
+        ],
+        "cells": [
+          [
+            "Criterion not met if:"
+          ],
+          [
+            "\u25cf A complete S3 inventory is not conducted for all relevant categories. OR"
+          ],
+          [
+            "\u25cf Clear justification is not provided for categories that are deemed not applicable. OR"
+          ],
+          [
+            "\u25cf Scope 3 emission sources are reported with significant exclusions above the allowable thresholds as per C5."
+          ]
+        ]
+      },
+      {
+        "page": 16,
+        "bbox": [
+          546.1199951171875,
+          378.6234774382218,
+          788.1599731445312,
+          531.8399963378906
+        ],
+        "cells": [
+          [
+            "Criterion met if:"
+          ],
+          [
+            "\u25cf Bioenergy is not being used and no emissions/removals are reported. OR"
+          ],
+          [
+            "\u25cf Bioenergy is being used and the related bioenergy emissions/removals are reported alongside the inventory and included in the target boundary. AND"
+          ],
+          [
+            "\u25cf Companies agree to include the footnote with the target language. AND"
+          ],
+          [
+            "\u25cf Companies provide details on the bioenergy sources, the methods used to calculate"
+          ]
+        ]
+      },
+      {
+        "page": 19,
+        "bbox": [
+          546.1199951171875,
+          176.63188934326172,
+          788.1599731445312,
+          328.65000915527344
+        ],
+        "cells": [
+          [
+            "Criterion met if:"
+          ],
+          [
+            "\u25cf No use of avoided emissions is disclosed by the company in the submission form. AND"
+          ],
+          [
+            "\u25cf No sign of the use of avoided emissions in the inventory or the target boundary. Criterion not met if:"
+          ],
+          [
+            "\u25cf Submission reveals any use of avoided emissions, either as part of the inventory or the target setting process."
+          ]
+        ]
+      },
+      {
+        "page": 20,
+        "bbox": [
+          316.55999755859375,
+          117.892041015625,
+          788.210205078125,
+          528.9701283772787
+        ],
+        "cells": [
+          [
+            "C19) and renewable electricity targets (see C21) are exceptions."
+          ],
+          [
+            "\u25cf If the target is submitted for validation in the first half of the year (i.e., by the end of June),"
+          ],
+          [
+            "the timeframe includes the year of submission. If submitted in the second half of the year, the timeframe begins from the start of the following year."
+          ],
+          [
+            "\u25cf For example, for targets submitted for validation in the first half of 2023 the valid target years are between 2027 and 2032 inclusive. For those submitted in the second half of 2023 (from 1 July), the valid target years are between 2028 and 2033 inclusive."
+          ],
+          [
+            "\u25cf Long-term targets can only be validated in"
+          ],
+          [
+            "accordance with the Net-Zero Standard Criteria."
+          ],
+          [
+            "\u25cf Base years must cover a complete past calendar or financial year."
+          ],
+          [
+            "\u25cf Companies must select either a calendar year or a financial year and apply this consistently across the choice of base years for scopes 1, 2 and 3 (if relevant)."
+          ],
+          [
+            "\u25cf The choice of base year must be no earlier than 2015."
+          ],
+          [
+            "\u25cf It is recommended companies use the same base year and most recent year when reporting greenhouse gas inventories to the SBTi, but, if necessary, companies can report a different year for scope 3 when compared to"
+          ]
+        ]
+      },
+      {
+        "page": 24,
+        "bbox": [
+          50.48571286882673,
+          117.70786590576172,
+          793.0538126627604,
+          501.0
+        ],
+        "cells": [
+          [
+            "",
+            "Criterion not met if:"
+          ],
+          [
+            "\u25cf",
+            "For base years after 2020, the absolute"
+          ],
+          [
+            "",
+            "emissions reduction does not meet the minimum reduction value over the target period as set out below: Minimum value for absolute reduction target ="
+          ],
+          [
+            "\u25cf",
+            "For base years between 2015 and 2020 (inclusive), the absolute emissions reduction does not meet the minimum reduction value over the target period as set out below: Minimum value for absolute contraction target"
+          ],
+          [
+            "C17 - Intensity targets \u25cf For scope 1 and 2 intensity targets, the only",
+            "Criterion met if:"
+          ],
+          [
+            "available methodology is using sector-specific \u25cf",
+            "SDA pathway is representative of company"
+          ],
+          [
+            "Intensity targets for scope 1 and scope 2 emissions intensity convergence pathways aligned with",
+            "activities. AND"
+          ],
+          [
+            "are only eligible when they are modeled using an 1.5\u00b0C. \u25cf",
+            "The ambition between the base year and target"
+          ],
+          [
+            "approved 1.5\u00b0C sector pathway applicable to \u25cf The pathway must be representative of a",
+            "year is aligned with the minimum ambition"
+          ],
+          [
+            "companies\u2019 business activities. company\u2019s activities and the ambition must be aligned with the minimum ambition threshold",
+            "threshold of the relevant 1.5\u00b0C SDA pathway."
+          ],
+          [
+            "of the relevant 1.5\u00b0C SDA pathway between",
+            "Criterion not met if:"
+          ],
+          [
+            "the base year and target year. \u25cf",
+            "The choice of SDA pathway is not representative of company activities. OR"
+          ],
+          [
+            "\u25cf V.II Scope 3 near-term targets",
+            "The ambition between the base year and target year is not aligned with the minimum ambition threshold of the relevant 1.5\u00b0C SDA pathway."
+          ]
+        ]
+      },
+      {
+        "page": 25,
+        "bbox": [
+          546.1199951171875,
+          117.9045891394982,
+          788.1599731445312,
+          512.8200149536133
+        ],
+        "cells": [
+          [
+            "For absolute based percentage emission reduction targets, criterion met if:"
+          ],
+          [
+            "\u25cf For base years after 2020, the absolute"
+          ],
+          [
+            "emissions reduction meets the minimum reduction value over the target period as set out below: Minimum value for absolute contraction target"
+          ],
+          [
+            "\u25cf For base years between 2015 and 2020 (inclusive), the absolute emissions reduction meets the minimum reduction value over the target period as set out below: Minimum value for absolute contraction target For economic intensity-based percentage emission reduction targets, criterion met if:"
+          ],
+          [
+            "\u25cf GEVA is used as the chosen economic intensity metric and an acceptable formula has been used to calculate GEVA. AND"
+          ],
+          [
+            "\u25cf For base years after 2020, the economic"
+          ],
+          [
+            "intensity emissions reduction meets the minimum reduction value as set out below over the target period: Minimum value for economic intensity target ="
+          ],
+          [
+            "\u25cf For base years between 2015 and 2020 (inclusive), the economic intensity emissions reduction meets the minimum reduction value over the target period as set out below:"
+          ]
+        ]
+      },
+      {
+        "page": 26,
+        "bbox": [
+          298.55999755859375,
+          117.84996922810872,
+          536.1400248209635,
+          388.62000274658203
+        ],
+        "cells": [
+          [
+            "intensity: If target is based on reduction of physical"
+          ],
+          [
+            "\u25cf The physical intensity denominator must be representative of the company's emissions in the target boundary."
+          ],
+          [
+            "\u25cf The physical intensity denominator corresponds to a measurable product, output or level or service, it cannot be a unit of monetary or economic value. Companies are required to provide a clear definition of the physical intensity unit applied in this type of target."
+          ],
+          [
+            "\u25cf If an SDA pathway is available, the timeframe ambition must be aligned with the minimum ambition threshold of the relevant SDA pathway."
+          ],
+          [
+            "\u25cf If no SDA pathway is relevant, targets must drive ambitious physical intensity reduction to lead to at least a 7% physical intensity reduction in annual compounded terms."
+          ]
+        ]
+      },
+      {
+        "page": 27,
+        "bbox": [
+          564.1199951171875,
+          117.70786590576172,
+          788.10498046875,
+          523.1289728338069
+        ],
+        "cells": [
+          [
+            "does not meet the minimum reduction value over the target period as set out below: Minimum value for absolute contraction target = 2.5% x (Target year - base year) For economic intensity-based percentage emission reduction targets, criterion not met if:"
+          ],
+          [
+            "\u25cf GEVA is not used as the chosen economic intensity metric, or an acceptable formula has not been used to calculate GEVA. AND"
+          ],
+          [
+            "\u25cf For base years after 2020, the economic intensity emissions reduction does not meet the minimum reduction value as set out below over the target period: Minimum value for economic intensity target ="
+          ],
+          [
+            "\u25cf For base years between 2015 and 2020 (inclusive), the economic intensity emissions"
+          ],
+          [
+            "reduction does not meet the minimum reduction value over the target period as set out below: Minimum value for economic intensity target = For physical intensity-based percentage emission reduction targets, criterion not met if:"
+          ],
+          [
+            "\u25cf If an SDA pathway is available, the timeframe ambition is not aligned with the minimum"
+          ],
+          [
+            "ambition threshold of the relevant SDA pathway. OR"
+          ]
+        ]
+      },
+      {
+        "page": 30,
+        "bbox": [
+          50.531998825073245,
+          117.72488403320312,
+          793.058671431108,
+          435.4800033569336
+        ],
+        "cells": [
+          [
+            "can credibly influence these customers to set their own targets. V.III Combined targets",
+            ""
+          ],
+          [
+            "C20 \u2013 Combined scope targets \u25cf Targets combining S1+2 must be in line with",
+            "For combined S1+2 targets, criterion met if:"
+          ],
+          [
+            "the ambition criteria C14 and C15.",
+            "\u25cf Combined S1+2 portion meets criteria C14 and"
+          ],
+          [
+            "Targets that combine scopes (e.g., 1+2 or 1+2+3) are \u25cf For targets combining S1, S2, and scope 3",
+            "C15."
+          ],
+          [
+            "permitted. When submitting combined targets, the (S3): the S1+2 portion of the target must be in",
+            ""
+          ],
+          [
+            "scope 1+2 portion must be in line with at least a 1.5\u00b0C line with criteria C14 and C15 and the S3",
+            "For combined S1+2+3 targets, criterion met if:"
+          ],
+          [
+            "scenario and the scope 3 portion of the target must portion must be in line with criterion C18.",
+            "\u25cf The combined S1+2 ambition is in line with C14"
+          ],
+          [
+            "be in line with at least a well-below 2\u00b0C scenario. For",
+            "and C15. AND"
+          ],
+          [
+            "sectors where minimum target ambition is further specified for companies\u2019 scope 3 activities, C24",
+            "\u25cf The S3 portion is in line with criterion C18."
+          ],
+          [
+            "supersedes C20.",
+            "For combined S1+2 targets, criterion not met if:"
+          ],
+          [
+            "",
+            "\u25cf Combined S1+2 portion does not meet criteria C14 and C15. For combined S1+2+3 targets, criterion not met if:"
+          ],
+          [
+            "",
+            "\u25cf The combined S1+2 ambition is not in line with C14 and C15. OR"
+          ],
+          [
+            "V.IV Renewable electricity targets",
+            "\u25cf The S3 portion is not in line with criterion C18."
+          ]
+        ]
+      },
+      {
+        "page": 31,
+        "bbox": [
+          50.471998596191405,
+          117.90459148700421,
+          793.0805358886719,
+          441.8400192260742
+        ],
+        "cells": [
+          [
+            "C21 \u2013 Renewable electricity",
+            "\u25cf Targets should be formulated to specifically",
+            "Criterion met if:"
+          ],
+          [
+            "",
+            "address the active sourcing of renewable",
+            "\u25cf The active sourcing of renewable electricity in"
+          ],
+          [
+            "Targets to actively source renewable electricity at a",
+            "electricity.",
+            "the target year is at or above the minimum"
+          ],
+          [
+            "rate that is consistent with 1.5\u00b0C scenarios are an",
+            "\u25cf For more information, please consult the",
+            "share thresholds of at least 80% by 2025,"
+          ],
+          [
+            "acceptable alternative to scope 2 emission reduction",
+            "RE100 Technical Criteria and the Scope 2",
+            "100% by 2030, and/or intermediate targets in"
+          ],
+          [
+            "targets. The SBTi has identified 80% renewable",
+            "Quality Criteria in the GHG Protocol\u2019s Scope",
+            "line with this rate of reduction. AND"
+          ],
+          [
+            "electricity procurement by 2025 and 100% by 2030",
+            "2 Guidance.",
+            "\u25cf The target language explicitly refers to \u2018active"
+          ],
+          [
+            "as thresholds (portion of renewable electricity over",
+            "\u25cf Companies that are already actively sourcing",
+            "sourcing\u2019 of renewable electricity (please refer"
+          ],
+          [
+            "total electricity use) for this approach in line with the",
+            "renewable electricity at or above the minimum",
+            "to RE100\u2019s quality criteria for options for"
+          ],
+          [
+            "recommendations of RE100. Companies that already",
+            "thresholds must commit to maintain or",
+            "actively sourcing renewable electricity)."
+          ],
+          [
+            "source electricity at or above these thresholds shall",
+            "increase their use share of renewable",
+            ""
+          ],
+          [
+            "maintain or increase their use of renewable electricity",
+            "electricity to qualify.",
+            "Criterion not met if:"
+          ],
+          [
+            "to qualify.",
+            "\u25cf Targets that fall between 2025 and 2030 will",
+            "\u25cf The active sourcing of renewable electricity in"
+          ],
+          [
+            "",
+            "be accepted if they meet the linear",
+            "the target year is below the minimum share"
+          ],
+          [
+            "",
+            "progression of these requirements.",
+            "thresholds of at least 80% by 2025, 100% by"
+          ],
+          [
+            "",
+            "Specifically:",
+            "2030, and/or intermediate targets are not in line"
+          ],
+          [
+            "",
+            "\u25cf 84% by 2026;",
+            "with this rate of reduction. OR"
+          ],
+          [
+            "",
+            "\u25cf 88% by 2027;",
+            "\u25cf The target language does not explicitly refers"
+          ],
+          [
+            "",
+            "\u25cf 92% by 2028; or",
+            "to \u2018active sourcing\u2019 of renewable electricity"
+          ],
+          [
+            "",
+            "\u25cf 96% by 2029.",
+            "(please refer to RE100\u2019s quality criteria for"
+          ],
+          [
+            "",
+            "",
+            "options for actively souring renewable"
+          ]
+        ]
+      },
+      {
+        "page": 32,
+        "bbox": [
+          546.1199951171875,
+          117.9045891394982,
+          788.1599731445312,
+          295.04571533203125
+        ],
+        "cells": [
+          [
+            "Criterion met if:"
+          ],
+          [
+            "\u25cf At least one target covering the direct use phase emissions of fossil fuels sold, transmitted, or distributed is set. AND"
+          ],
+          [
+            "\u25cf Timeframe ambition in absolute terms is aligned with a 1.5\u00b0C pathway. Criterion not met if:"
+          ],
+          [
+            "\u25cf No target has been set that covers the direct use phase emissions of fossil fuels sold, transmitted, or distributed. OR"
+          ],
+          [
+            "\u25cf Timeframe ambition in absolute terms is not aligned with a 1.5\u00b0C pathway."
+          ]
+        ]
+      },
+      {
+        "page": 35,
+        "bbox": [
+          546.1199951171875,
+          117.84996922810872,
+          788.1599731445312,
+          213.60000610351562
+        ],
+        "cells": [
+          [
+            "Criterion not met if:"
+          ],
+          [
+            "\u25cf The company does not commit to publicly"
+          ],
+          [
+            "reporting its GHG inventory and target progress on an annual basis. OR"
+          ],
+          [
+            "\u25cf It is not stated where this information will be disclosed."
+          ]
+        ]
+      },
+      {
+        "page": 36,
+        "bbox": [
+          298.55999755859375,
+          271.0575075149536,
+          536.1075096130371,
+          516.8399963378906
+        ],
+        "cells": [
+          [
+            "Targets must be recalculated, as needed, to reflect significant changes that would compromise the relevance and consistency of the existing target. Targets should be recalculated as soon as possible to reflect significant changes to remain relevant to the current company structure and operations. The following changes would trigger a target recalculation:"
+          ],
+          [
+            "\u25cf Scope 3 emissions become 40% or more of scope 1, 2, and 3 emissions."
+          ],
+          [
+            "\u25cf Exclusions in the inventory or target boundary change significantly."
+          ],
+          [
+            "\u25cf Significant changes in company structure and"
+          ],
+          [
+            "activities (e.g., acquisition, divestiture, merger, insourcing or outsourcing, shifts in product or service offerings)."
+          ],
+          [
+            "\u25cf Significant adjustments to the base year"
+          ],
+          [
+            "inventory, data sources or calculation methodologies."
+          ]
+        ]
+      },
+      {
+        "page": 40,
+        "bbox": [
+          54.55999946594238,
+          126.48001098632812,
+          558.1593424479166,
+          256.4639831542969
+        ],
+        "cells": [
+          [
+            "",
+            "",
+            "",
+            "Scope 3"
+          ],
+          [
+            "Consistent with SDA",
+            "",
+            "",
+            "category 15"
+          ],
+          [
+            "application for companies, only",
+            "Near-term",
+            "All eligible",
+            "\u201cinvestments\u201d for"
+          ],
+          [
+            "10. SDA for financing to companies within",
+            "targets set",
+            "sectors",
+            "FIs. SDA sector"
+          ],
+          [
+            "portfolios the same sector are weighted",
+            "within 5-10",
+            "covered by",
+            "targets must"
+          ],
+          [
+            "to produce a portfolio level",
+            "years in the",
+            "SDA",
+            "cover eligible"
+          ],
+          [
+            "intensity target.",
+            "future.",
+            "pathways.",
+            "scopes required in the SDA tool for each sector."
+          ]
+        ]
+      },
+      {
+        "page": 42,
+        "bbox": [
+          55.567344188690186,
+          328.3603261311849,
+          563.759521484375,
+          427.0800018310547
+        ],
+        "cells": [
+          [
+            "Activity type examples",
+            "Activity unit examples"
+          ],
+          [
+            "Company size",
+            "Employee headcount, FTE, office/retail area, etc."
+          ],
+          [
+            "Production input",
+            "Amount procured of raw materials."
+          ],
+          [
+            "Production output",
+            "Volume of production, sales, built area."
+          ],
+          [
+            "Level of service",
+            "Payload or passenger distance, number of users/subscriptions, service output per unit."
+          ]
+        ]
+      },
+      {
+        "page": 54,
+        "bbox": [
+          59.63999938964844,
+          126.17999267578125,
+          532.3438720703125,
+          725.9400024414062
+        ],
+        "cells": [
+          [
+            "",
+            "utilize the Financial Institutions guidance"
+          ],
+          [
+            "Please note scope 3 must include emissions from use of sold products",
+            "for setting SBTs."
+          ],
+          [
+            "for architecture/design firms. When setting SBTs, companies are",
+            "The SBTi is developing guidance for companies operating in the built environment."
+          ],
+          [
+            "recommended to set absolute or",
+            "The SBTi has released guidance to aid"
+          ],
+          [
+            "Cement intensity targets using the cement",
+            "companies in the cement industry in"
+          ],
+          [
+            "pathway, or cross-sector pathway (absolute targets only).",
+            "setting science-based targets. The SBTi is developing guidance for companies in the chemicals sector. Companies that produce or sell fluoro-"
+          ],
+          [
+            "When setting SBTs, companies can",
+            "gases (or products that use HFCs) must"
+          ],
+          [
+            "Chemical set targets using the cross-sector",
+            "account for and report emissions during"
+          ],
+          [
+            "pathway (absolute targets only). Sufficient ambition if in line with the",
+            "the use of these gases in cooling units/refrigerants or in industrial applications in their GHG inventory under scope 3 category 11 \u201cuse of sold products\u201d."
+          ],
+          [
+            "cross-sector pathway (absolute",
+            "The SBTi guidance for financial institutions"
+          ],
+          [
+            "targets only) or relevant SDA",
+            "outlines in detail the target setting"
+          ],
+          [
+            "pathways (e.g., Services/",
+            "requirements for setting both scope 1+2"
+          ],
+          [
+            "Commercial buildings).",
+            "and scope 3 targets for investment and"
+          ],
+          [
+            "Financial Institutions Sector-specific criteria and methods",
+            "lending activities."
+          ],
+          [
+            "are available for financial institutions",
+            "The SBTi also has separate guidance"
+          ],
+          [
+            "to align their investments and lending with Paris-aligned climate stabilization pathways.",
+            "developed for private equity firms."
+          ],
+          [
+            "Companies with significant FLAG",
+            "The following companies are required to"
+          ],
+          [
+            "emissions are required to set targets",
+            "set FLAG targets:"
+          ],
+          [
+            "(see criteria in the next table column).",
+            "1) Companies with FLAG emissions that"
+          ],
+          [
+            "These are separate from their SBTs",
+            "total 20% or more of overall emissions"
+          ],
+          [
+            "that cover all non-FLAG emissions.",
+            "across scopes."
+          ],
+          [
+            "Forest, Land and FLAG targets must use the FLAG-",
+            "2) Companies in the following sectors:"
+          ],
+          [
+            "Agriculture (FLAG) sector pathway (absolute targets) or",
+            "Forest and Paper Products\u2013"
+          ],
+          [
+            "a commodity pathway (intensity",
+            "Forestry, Timber, Pulp and Paper,"
+          ],
+          [
+            "targets).",
+            "Rubber. Food Production\u2013 Agricultural"
+          ],
+          [
+            "Commodity pathways are available",
+            "Production."
+          ],
+          [
+            "for 11 commodities: beef, chicken,",
+            "Food Production\u2013 Animal Source."
+          ]
+        ]
+      },
+      {
+        "page": 56,
+        "bbox": [
+          185.39996337890625,
+          338.2799835205078,
+          547.42041015625,
+          722.3400039672852
+        ],
+        "cells": [
+          [
+            "",
+            "Companies in this sector include - but are not limited to - integrated oil and gas companies, integrated gascompanies, exploration and production pure players, refining and marketing pure players, oil products distributors, gas distributors and retailers and traditional oil and gas service companies. Please see the Oil and Gas sector webpage for more information."
+          ],
+          [
+            "The SBTi is developing a new",
+            "The SBTi will assess companies on a"
+          ],
+          [
+            "methodology for companies in the oil",
+            "case-by-case basis to determine sector"
+          ],
+          [
+            "and gas sector to set science-based",
+            "classification for SBTi validation purposes."
+          ],
+          [
+            "targets. Currently, the SBTi is unable",
+            "Therefore, the SBTi reserves the right to"
+          ],
+          [
+            "to accept commitments or validate",
+            "not move forward with a company\u2019s"
+          ],
+          [
+            "targets for companies in the oil and",
+            "validation, until methods/guidance have"
+          ],
+          [
+            "gas or fossil fuels sectors. Please see our policy for further information",
+            "been developed/completed."
+          ],
+          [
+            "and those that are excluded from",
+            "About fossil fuel service companies:"
+          ],
+          [
+            "this.",
+            "Service companies are defined as companies that support exploration, extraction, mining or production of fossil fuels, and other significant activities along the fossil fuels value chain, not covered by sale, transportation or distribution category. The expectation is that such companies need to account for the indirect emissions"
+          ]
+        ]
+      },
+      {
+        "page": 57,
+        "bbox": [
+          185.3999786376953,
+          126.17999267578125,
+          540.720458984375,
+          722.3400039672852
+        ],
+        "cells": [
+          [
+            "",
+            "related to the fossil fuels directly or indirectly managed by the company. Given the limitation of accounting standards and target setting methods for these sectors, the SBTi reserves the right to not move forward with a company\u2019s validation. The SBTi expects that the oil and gas sector guidance will help inform the rules for these. About fossil fuel assets: Companies that have dormant or active fossil fuel assets (e.g., coal mine, lignite mine, etc.) for extraction activities with commercial purposes (meaning sales), cannot officially validate targets at this stage, until further specific methods and guidance. The SBTi recommends companies to decommission fossil fuel assets, instead of divesting, as this approach better reflects the need to phase-out fossil fuels in our global economy, as science indicates is necessary. If a company completely decommissions/divests from fossil fuel assets, they will no longer be considered under these rules, and can submit targets as per standard route. The SBTi recommends companies to follow the GHG Protocol for base year recalculations."
+          ],
+          [
+            "The intensity convergence method",
+            "Please see the Power/Electric utilities"
+          ],
+          [
+            "must be used by power generation",
+            "Guidance ."
+          ],
+          [
+            "companies, as specified in the",
+            "As explained in the guidance for electric"
+          ],
+          [
+            "Guidance for Electric Utilities. For",
+            "utilities, power generation companies are"
+          ],
+          [
+            "power sector companies, long-term",
+            "expected to set at least two targets. The"
+          ],
+          [
+            "science-based targets must reduce",
+            "first is a scope 1 target over all electricity"
+          ],
+          [
+            "emissions to a residual level in line",
+            "generation modelled using the 1.5\u00b0C"
+          ],
+          [
+            "with 1.5\u00b0C scenarios by no later than",
+            "aligned power SDA that is expressed in"
+          ],
+          [
+            "2040 using the Sectoral",
+            "terms of MWh energy generated. The"
+          ]
+        ]
+      },
+      {
+        "page": 58,
+        "bbox": [
+          54.19199981689453,
+          126.17999267578125,
+          557.8080078125,
+          630.7796401977539
+        ],
+        "cells": [
+          [
+            "",
+            "Decarbonization Approach.",
+            "second is an all sold electricity target covering the portion of scope 1 and direct biogenic CO2 and scope 3 category 3 emissions associated with all sold electricity. This target must also be modelled using the 1.5\u00b0C aligned power SDA and expressed in intensity terms. For power generation companies that distribute and sell fossil fuels, a third target must be set covering 100% of emissions from downstream use of fossil fuels. This should be an absolute target that aligns with a 1.5\u00b0C mitigation pathway. In order to meet the 67% scope 3 coverage threshold, power companies may need to set a target over other scope 3 categories as well."
+          ],
+          [
+            "Pulp and Paper",
+            "When setting SBTs, companies can set targets using the cross-sector pathway (absolute targets only).",
+            "Guidance is being developed for the pulp and paper sector and is currently in the scoping phase."
+          ],
+          [
+            "Road and rail",
+            "When setting SBTs, companies can set targets using the cross-sector pathway (absolute targets only).",
+            "Target setting guidance will be updated along with sector trajectory but you can view the transport sector guidance here. For all transport-related emissions across all sectors, companies shall report these emissions on a well-to-wheel (WTW) basis in their GHG inventory (well-to-wake for aviation and maritime transport)."
+          ],
+          [
+            "Transport OEMs/Automakers",
+            "The SBTi is temporarily pausing near- and long-term target validations and target updates for automakers until 1.5\u00b0C scope 3 targets for use- phase emissions from new road vehicles are developed and approved. Please see our policy for further information.",
+            "This applies to automakers. Auto part manufacturers can still set targets using the cross-sector absolute reduction."
+          ]
+        ]
+      },
+      {
+        "page": 60,
+        "bbox": [
+          54.08749892494895,
+          415.89561157226564,
+          562.5381802645596,
+          718.8799845377604
+        ],
+        "cells": [
+          [
+            "Target formulations",
+            "Classification description"
+          ],
+          [
+            "Absolute or intensity scope 1 and 2 combined targets modelled using the cross- sector absolute reduction approach",
+            "These targets are classified using the cross-sector absolute reduction thresholds (column 2 in Table 7 above)."
+          ],
+          [
+            "Scope 1 and 2 combined intensity targets modelled using the sector-specific intensity convergence approach",
+            "Scope 1 and 2 intensity targets modelled using the sector-specific intensity convergence approach are compared and classified against the 1.5\u00b0C Scenario in the Science-based Target-setting Tool and/or the SDA Transport tool. If the absolute reduction of emissions results in a higher ambition classification under the cross-sector absolute reduction approach, then the higher of the classifications is used to classify the target."
+          ],
+          [
+            "Single scope targets",
+            "If single scope 1 or scope 2 targets are submitted in addition to combined scope 1 and 2, the classification is based on the combined scope 1 and 2 target. If single scope 1 or scope 2 targets are submitted, the classification is based on the reduction of scope 1 and 2 emissions combined."
+          ],
+          [
+            "Renewable electricity targets",
+            "If renewable electricity targets are additional to absolute/intensity scope 1 and 2 targets the classification is based on the scope 1 and 2 targets and not the renewable electricity target. Renewable electricity targets that are in line with our current thresholds are 1.5\u00b0C aligned."
+          ]
+        ]
+      },
+      {
+        "page": 61,
+        "bbox": [
+          54.096198844909665,
+          613.7279907226563,
+          562.5719970703125,
+          720.0796508789062
+        ],
+        "cells": [
+          [
+            "Target type",
+            "Recommended target language"
+          ],
+          [
+            "Absolute targets",
+            "[Company name] commits to reduce absolute [enter scopes] GHG emissions [percent reduction] % by [target year] from a [base year] base year."
+          ],
+          [
+            "Intensity targets",
+            "[Company name] commits to reduce [enter scopes] GHG emissions [percent reduction] % per [unit] by [target year] from a [base year] base year."
+          ]
+        ]
+      }
+    ],
+    "fallback_count": 30,
+    "fallback_source_multisets_conserved": true,
+    "markdown_sha256": "7081a55efa1ae3747e236c4a68b2dddc4a62cf78c6c14008754a0a37b9ab2147"
+  },
+  "Ragins craft of clear writing 2012": {
+    "before_item6_words": 6625,
+    "after_item6_words": 6625,
+    "markdown_identical": true,
+    "retained_cells_identical": true,
+    "tables": [
+      {
+        "page": 1,
+        "bbox": [
+          97.97999572753906,
+          227.8499984741211,
+          514.0800018310547,
+          327.15000915527344
+        ],
+        "cells": [
+          [
+            "Journal:",
+            "Academy of Management Review"
+          ],
+          [
+            "Manuscript ID:",
+            "AMR-2012-0165-FTE"
+          ],
+          [
+            "Manuscript Type:",
+            "From the Editor (AMR Editors Only)"
+          ],
+          [
+            "Keyword:",
+            "Abilities (Individual), Adaptation/Change, Attitudes/Beliefs/Values"
+          ]
+        ]
+      }
+    ],
+    "fallback_count": 0,
+    "fallback_source_multisets_conserved": true,
+    "markdown_sha256": "51f9bd4318dcd629890027e35ae615b63b6a189d72f7d073d7047f02dd02e180"
+  },
+  "peng2009": {
+    "before_item6_words": 12046,
+    "after_item6_words": 12046,
+    "markdown_identical": true,
+    "retained_cells_identical": true,
+    "tables": [
+      {
+        "page": 14,
+        "bbox": [
+          61.52604675292969,
+          513.4949951171875,
+          532.9287719726562,
+          711.114990234375
+        ],
+        "cells": [
+          [
+            "Areas in Strategy Teaching",
+            "Recommended Institution-Based Topics and Debates"
+          ],
+          [
+            "Industry-based view (\ufb01ve forces)",
+            "\u25cfFormal: Competition policy (e.g., Microsoft\u2019s antitrust issues) \u25cfInformal: Norms governing a cost leadership strategy (e.g., the Wal-Mart effect)"
+          ],
+          [
+            "Resource-based view",
+            "\u25cfGovernment intervention in the determination of value (e.g., bailouts in 2008\u20132009)"
+          ],
+          [
+            "Market entry",
+            "\u25cfAntidumping laws in host countries"
+          ],
+          [
+            "Competitive dynamics",
+            "\u25cfCollusion versus competition"
+          ],
+          [
+            "Strategic alliances",
+            "\u25cfAntitrust considerations (especially when collaborating with competitors)"
+          ],
+          [
+            "Mergers and acquisitions",
+            "\u25cfAntitrust scrutiny, which may come from abroad (e.g., the proposed merger of two U.S.-based \ufb01rms, GE and Honeywell, was torpedoed by the EU)"
+          ],
+          [
+            "Product diversi\ufb01cation",
+            "\u25cfPersistence of business groups (conglomerates) in emerging economies"
+          ],
+          [
+            "Organization structure",
+            "\u25cfLocation of key units (such as R&D)\u2014do they have to be in the home country?"
+          ],
+          [
+            "Corporate governance",
+            "\u25cfFormal laws and informal norms governing executive compensation (e.g., Wall Street bonuses in 2008\u20132009)"
+          ],
+          [
+            "Corporate social responsibility",
+            "\u25cfFormal: Environmental regulations (\u201crace to the bottom\u201d versus \u201crace to the top\u201d) \u25cfInformal: Norms governing domestic and overseas social responsibility"
+          ]
+        ]
+      }
+    ],
+    "fallback_count": 1,
+    "fallback_source_multisets_conserved": true,
+    "markdown_sha256": "216abcbc36e83c4155eb45b2d4111795cb817594e373c16d1ea2764724ce1640"
+  },
+  "greenwood2006": {
+    "before_item6_words": 14777,
+    "after_item6_words": 14777,
+    "markdown_identical": true,
+    "retained_cells_identical": true,
+    "tables": [
+      {
+        "page": 11,
+        "bbox": [
+          45.676002502441406,
+          83.625,
+          549.7158813476562,
+          228.625
+        ],
+        "cells": [
+          [
+            "",
+            "(3a) Market Share",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "Firm",
+            "1987",
+            "1988",
+            "1989",
+            "1990",
+            "1991",
+            "1992",
+            "1993",
+            "1994",
+            "1995",
+            "1996",
+            "1997",
+            "1998",
+            "1999"
+          ],
+          [
+            "Big Five",
+            "70",
+            "n.a.",
+            "70",
+            "72",
+            "75",
+            "75",
+            "75",
+            "76",
+            "79",
+            "78",
+            "78",
+            "79",
+            "79"
+          ],
+          [
+            "Next 25",
+            "30",
+            "n.a.",
+            "30",
+            "28",
+            "25",
+            "25",
+            "25",
+            "24",
+            "21",
+            "22",
+            "22",
+            "21",
+            "21"
+          ],
+          [
+            "Firm",
+            "1987b",
+            "1988",
+            "1989",
+            "1990",
+            "1991",
+            "1992",
+            "1993",
+            "1994",
+            "1995",
+            "1996",
+            "1997",
+            "1998",
+            "1999"
+          ],
+          [
+            "Big Five",
+            "14.3%",
+            "13.1%",
+            "12.2%",
+            "13.0%",
+            "4.6%",
+            "2.1%",
+            "(0.1)%",
+            "4.5%",
+            "4.3%",
+            "9.8%",
+            "15.6%",
+            "9.4%",
+            "9.3%c"
+          ],
+          [
+            "Next 25",
+            "12.6%",
+            "n.a.",
+            "11.0%",
+            "(2.7)%",
+            "(7.2)%",
+            "3.2%",
+            "(2.5)%",
+            "(8.1)%",
+            "(6.1)%",
+            "17.1%",
+            "3.8%",
+            "12.4%",
+            "12.2%"
+          ]
+        ]
+      }
+    ],
+    "fallback_count": 2,
+    "fallback_source_multisets_conserved": true,
+    "markdown_sha256": "22c61527070d53526f7334386ff71ce21a769e1367a7bfe62f3a1db1889fc45a"
+  },
+  "wry2013": {
+    "before_item6_words": 18441,
+    "after_item6_words": 18441,
+    "markdown_identical": true,
+    "retained_cells_identical": true,
+    "tables": [
+      {
+        "page": 37,
+        "bbox": [
+          59.98109436035156,
+          445.7964782714844,
+          372.02447509765625,
+          598.7929077148438
+        ],
+        "cells": [
+          [
+            "1.",
+            "Note that the data for 2011 are only through September of that year."
+          ],
+          [
+            "2.",
+            "Though there is an acknowledged success bias in published research, we note that less than 5% of studies which tested some aspect of RD failed to \ufb01nd support for at least one of its predictions."
+          ],
+          [
+            "3.",
+            "The network data are available from the authors upon request."
+          ],
+          [
+            "4.",
+            "A stream of research on family ownership argues that because these owners tend to be more risk averse, have a greater desire for control, and place a particular empha- sis on obtaining regular income from the enterprise through high dividend rates, family owned and controlled \ufb01rms are thought to be more conservative and less likely to make long-term investments into the \ufb01rm (Gomez-Mejia, Haynes, Nunez-Nickel, Jacobson, & Moyano-Fuentes, 2007; Morck & Yeung, 2004)."
+          ],
+          [
+            "5.",
+            "We also believe that scholars should be wary of trying to backstop the interests of all groups with a logics framework. For instance, interests in social responsibility do"
+          ]
+        ]
+      },
+      {
+        "page": 46,
+        "bbox": [
+          59.978363037109375,
+          398.89173889160156,
+          372.03173828125,
+          585.8928833007812
+        ],
+        "cells": [
+          [
+            "Journal",
+            "n",
+            "Citations Percentage of total"
+          ],
+          [
+            "Academy of Management Annals",
+            "5",
+            "0.28"
+          ],
+          [
+            "Academy of Management Executive",
+            "2",
+            "0.11"
+          ],
+          [
+            "Academy of Management Journal",
+            "209",
+            "11.79"
+          ],
+          [
+            "Academy of Management Perspectives",
+            "3",
+            "0.17"
+          ],
+          [
+            "Academy of Management Review",
+            "166",
+            "9.37"
+          ],
+          [
+            "Administration & Society",
+            "32",
+            "1.81"
+          ],
+          [
+            "Administrative Science Quarterly",
+            "167",
+            "9.42"
+          ],
+          [
+            "American Journal of Sociology",
+            "27",
+            "1.52"
+          ],
+          [
+            "American Sociological Review",
+            "43",
+            "2.43"
+          ],
+          [
+            "Annual Review of Psychology",
+            "2",
+            "0.11"
+          ],
+          [
+            "Annual Review of Sociology",
+            "20",
+            "1.13"
+          ],
+          [
+            "Corporate Governance",
+            "45",
+            "2.54"
+          ]
+        ]
+      },
+      {
+        "page": 47,
+        "bbox": [
+          59.98161315917969,
+          118.11184692382812,
+          346.098876953125,
+          334.0911560058594
+        ],
+        "cells": [
+          [
+            "Human Relations",
+            "62",
+            "3.50"
+          ],
+          [
+            "Industrial and Corporate Change",
+            "13",
+            "0.73"
+          ],
+          [
+            "Journal of Applied Psychology",
+            "13",
+            "0.73"
+          ],
+          [
+            "Journal of Business Ethics",
+            "76",
+            "4.29"
+          ],
+          [
+            "Journal of Business Venturing",
+            "40",
+            "2.26"
+          ],
+          [
+            "Journal of International Business Studies",
+            "57",
+            "3.22"
+          ],
+          [
+            "Journal of Management",
+            "100",
+            "5.64"
+          ],
+          [
+            "Journal of Management Inquiry",
+            "13",
+            "0.73"
+          ],
+          [
+            "Journal of Management Studies",
+            "134",
+            "7.56"
+          ],
+          [
+            "Management Science",
+            "40",
+            "2.26"
+          ],
+          [
+            "Organization Science",
+            "108",
+            "6.09"
+          ],
+          [
+            "Organization Studies",
+            "106",
+            "5.98"
+          ],
+          [
+            "Personnel Psychology",
+            "5",
+            "0.28"
+          ],
+          [
+            "Research in Organizational Behavior",
+            "32",
+            "1.81"
+          ],
+          [
+            "Research Policy",
+            "19",
+            "1.07"
+          ],
+          [
+            "Social Forces",
+            "19",
+            "1.07"
+          ],
+          [
+            "Strategic Management Journal",
+            "210",
+            "11.85"
+          ],
+          [
+            "Strategic Organization",
+            "4",
+            "0.23"
+          ],
+          [
+            "Total",
+            "1772",
+            ""
+          ]
+        ]
+      }
+    ],
+    "fallback_count": 0,
+    "fallback_source_multisets_conserved": true,
+    "markdown_sha256": "d19ef4696ad7d53122d6c34b071819b7baf0847efe0be6c22db5f31b0a1594b7"
+  },
+  "jay2013": {
+    "before_item6_words": 16377,
+    "after_item6_words": 16377,
+    "markdown_identical": true,
+    "retained_cells_identical": true,
+    "tables": [
+      {
+        "page": 6,
+        "bbox": [
+          316.32000732421875,
+          117.52300262451172,
+          529.0879516601562,
+          210.1690216064453
+        ],
+        "cells": [
+          [
+            "CEA executives and staff",
+            "2"
+          ],
+          [
+            "Consultants to CEA",
+            "6"
+          ],
+          [
+            "City officials",
+            "3"
+          ],
+          [
+            "Potential and actual C&I clients",
+            "11"
+          ],
+          [
+            "Energy service company partners",
+            "8"
+          ],
+          [
+            "Utility representative",
+            "1"
+          ],
+          [
+            "Related organizations and initiatives in",
+            "7"
+          ],
+          [
+            "Related initiatives outside MA, talking about CEA",
+            "^"
+          ]
+        ]
+      },
+      {
+        "page": 6,
+        "bbox": [
+          316.0799865722656,
+          306.88299560546875,
+          540.3675537109375,
+          358.4889831542969
+        ],
+        "cells": [
+          [
+            "Strategy meetings",
+            "Sporadic",
+            "9"
+          ],
+          [
+            "Board of directors meetings",
+            "Every 6-8 weeks",
+            "9"
+          ],
+          [
+            "Core group meetings",
+            "Every 2 weeks",
+            "27"
+          ],
+          [
+            "Observation in office",
+            "Sporadic",
+            "80 (days)"
+          ]
+        ]
+      }
+    ],
+    "fallback_count": 0,
+    "fallback_source_multisets_conserved": true,
+    "markdown_sha256": "cc3dd76afbee4def088db1ec16e2181a7ae30a4be89ec269883b22e50ea17436"
+  },
+  "york2018": {
+    "before_item6_words": 19930,
+    "after_item6_words": 19930,
+    "markdown_identical": true,
+    "retained_cells_identical": true,
+    "tables": [
+      {
+        "page": 12,
+        "bbox": [
+          69.6171875,
+          148.67689514160156,
+          653.4973754882812,
+          454.53489685058594
+        ],
+        "cells": [
+          [
+            "Variables",
+            "Mean",
+            "SD",
+            "VIF",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16"
+          ],
+          [
+            "1",
+            "LEED-Certified Buildings",
+            "3.77",
+            "15.08",
+            "2.22",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "2",
+            "Population Density (in thousands)",
+            "0.27",
+            "0.31",
+            "1.95",
+            "0.46",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "3",
+            "GDP Per Capita (in millions)",
+            "0.04",
+            "0.01",
+            "1.35",
+            "0.26",
+            "0.33",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "4",
+            "MSA Size (logged)",
+            "0.48",
+            "0.24",
+            "1.44",
+            "0.26",
+            "\u22120.02",
+            "0.12",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "5",
+            "Party Legislative Control",
+            "1.83",
+            "0.73",
+            "1.11",
+            "\u22120.07",
+            "\u22120.06",
+            "\u22120.04",
+            "\u22120.04",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "6",
+            "Energy Cost",
+            "1.03",
+            "0.31",
+            "1.41",
+            "0.12",
+            "0.35",
+            "0.16",
+            "0.01",
+            "\u22120.24",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "7",
+            "Water Usage (logged)",
+            "2.15",
+            "0.91",
+            "1.34",
+            "0.24",
+            "0.26",
+            "0.14",
+            "0.39",
+            "\u22120.12",
+            "0.14",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "8",
+            "Environmental Activism (logged)",
+            "\u22120.00",
+            "0.93",
+            "1.29",
+            "0.28",
+            "0.18",
+            "0.23",
+            "0.13",
+            "\u22120.07",
+            "0.18",
+            "0.14",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "9",
+            "Pro-Environmental Attitudes",
+            "3.82",
+            "3.30",
+            "1.49",
+            "0.14",
+            "0.30",
+            "0.18",
+            "\u22120.05",
+            "\u22120.16",
+            "0.30",
+            "0.09",
+            "0.25",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "10",
+            "Commercial Construction Area (logged)",
+            "5.10",
+            "2.23",
+            "1.18",
+            "0.19",
+            "0.10",
+            "0.14",
+            "0.13",
+            "\u22120.06",
+            "0.05",
+            "0.20",
+            "0.09",
+            "0.07",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "11",
+            "Mimetic Isomorphism (cumulative prior adoption logged)",
+            "0.44",
+            "0.61",
+            "2.04",
+            "0.62",
+            "0.35",
+            "0.26",
+            "0.27",
+            "\u22120.09",
+            "0.11",
+            "0.28",
+            "0.30",
+            "0.16",
+            "0.37",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "12",
+            "Economic Incentive Policies (logged)",
+            "0.02",
+            "0.10",
+            "1.52",
+            "0.45",
+            "0.42",
+            "0.21",
+            "0.20",
+            "\u22120.07",
+            "0.16",
+            "0.20",
+            "0.18",
+            "0.16",
+            "0.16",
+            "0.29",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "13",
+            "TSMOs (per 100,000 people)",
+            "0.48",
+            "0.83",
+            "1.89",
+            "0.17",
+            "0.17",
+            "0.21",
+            "0.07",
+            "\u22120.08",
+            "0.09",
+            "0.14",
+            "0.28",
+            "0.22",
+            "0.21",
+            "0.21",
+            "0.31",
+            "",
+            "",
+            ""
+          ],
+          [
+            "14",
+            "Market Intermediaries (per 100,000 people)",
+            "1.27",
+            "2.56",
+            "1.98",
+            "0.27",
+            "0.17",
+            "0.26",
+            "0.11",
+            "\u22120.08",
+            "0.02",
+            "0.17",
+            "0.25",
+            "0.21",
+            "0.23",
+            "0.34",
+            "0.33",
+            "0.65",
+            "",
+            ""
+          ],
+          [
+            "15",
+            "Environmental Entrepreneurs (logged)",
+            "0.04",
+            "0.12",
+            "1.42",
+            "0.39",
+            "0.42",
+            "0.24",
+            "0.23",
+            "\u22120.04",
+            "0.14",
+            "0.21",
+            "0.17",
+            "0.15",
+            "0.12",
+            "0.28",
+            "0.38",
+            "0.22",
+            "0.20",
+            ""
+          ],
+          [
+            "16",
+            "Market Logic",
+            "\u22120.00",
+            "1.00",
+            "1.65",
+            "\u22120.11",
+            "\u22120.26",
+            "\u22120.15",
+            "0.13",
+            "0.01",
+            "\u22120.16",
+            "\u22120.10",
+            "\u22120.19",
+            "\u22120.47",
+            "\u22120.06",
+            "\u22120.14",
+            "\u22120.13",
+            "\u22120.18",
+            "\u22120.20",
+            "\u22120.09"
+          ],
+          [
+            "17",
+            "Community Logic",
+            "\u22120.00",
+            "1.00",
+            "1.61",
+            "\u22120.07",
+            "\u22120.04",
+            "0.26",
+            "\u22120.19",
+            "0.18",
+            "\u22120.22",
+            "\u22120.13",
+            "0.16",
+            "0.09",
+            "\u22120.04",
+            "\u22120.09",
+            "\u22120.06",
+            "0.08",
+            "0.10",
+            "\u22120.04 \u22120.35"
+          ]
+        ]
+      },
+      {
+        "page": 14,
+        "bbox": [
+          45.920562744140625,
+          97.3988037109375,
+          540.329833984375,
+          653.3010864257812
+        ],
+        "cells": [
+          [
+            "Variables Population Density (in thousands) GDP Per Capita (in millions) MSA Size (logged) Party legislative control Democrat-Controlled State Legislature Republican-Controlled State Legislature Energy Cost Water Usage (logged) Environmental Activism (logged) Pro-Environmental Attitudes Commercial Construction Area (logged) Mimetic Isomorphism (cumulative prior adoption) Market Logic Community Logic Economic Incentive Policies (logged) TSMOs (per 100,000 people) Market Intermediaries (per 100,000 people) Environmental Entrepreneurs (logged) Economic Incentive Policies (logged) 3 Market Logic Economic Incentive Policies (logged) 3 Community Logic TSMOs (per 100,000 people) 3 Market Logic TSMOs (per 100,000 people) 3 Community Logic Market Intermediaries (per 100,000 people) 3 Market Logic Market Intermediaries (per 100,000 people) 3 Community Logic Environmental Entrepreneurs (logged) 3 Market Logic Environmental Entrepreneurs (logged) 3 Community Logic Constant Year dummies",
+            "(1) 0.55*** (0.10) 8.78** (2.98) 0.90*** (0.12) \u22120.09 (0.06) \u22120.03 (0.06) \u22120.06 (0.07) 0.10** (0.04) 0.03* (0.02) 0.02* (0.01) 0.13** (0.04) 1.64*** (0.06) \u22126.76*** (0.75) Yes",
+            "(2) 0.54*** (0.10) 9.33** (3.09) 0.90*** (0.13) \u22120.08 (0.06) \u22120.01 (0.06) \u22120.08 (0.08) 0.10** (0.04) 0.03* (0.02) 0.01* (0.01) 0.13** (0.04) 1.63*** (0.06) \u22120.04 (0.03) \u22120.02 (0.03) \u22126.74*** (0.75) Yes",
+            "(3) 0.49*** (0.10) 9.14** (3.03) 0.86*** (0.13) \u22120.08 (0.06) \u22120.01 (0.06) \u22120.08 (0.08) 0.11** (0.04) 0.03* (0.02) 0.01* (0.01) 0.13** (0.04) 1.63*** (0.06) \u22120.04 (0.03) \u22120.02 (0.03) 0.26* (0.11) \u22126.71*** (0.75) Yes",
+            "(4) 0.52*** (0.09) 8.31** (3.03) 0.94*** (0.13) \u22120.10* (0.05) \u22120.03 (0.05) \u22120.08 (0.08) 0.10** (0.04) 0.00 (0.01) 0.01\u2020 (0.01) 0.13** (0.04) 1.57*** (0.06) \u22120.05\u2020 (0.03) \u22120.03 (0.03) 0.18*** (0.03) \u22126.70*** (0.75) Yes"
+          ],
+          [
+            "Observations (MSA-Year)",
+            "5110",
+            "5110",
+            "5110",
+            "5110"
+          ],
+          [
+            "MSAs",
+            "341",
+            "341",
+            "341",
+            "341"
+          ],
+          [
+            "x2",
+            "9046.95",
+            "9063.31",
+            "9409.31",
+            "10028.95"
+          ],
+          [
+            "McFadden\u2019s pseudo R2",
+            "0.35",
+            "0.35",
+            "0.35",
+            "0.36"
+          ],
+          [
+            "Log-likelihood",
+            "\u22125962.68",
+            "\u22125960.93",
+            "\u22125957.87",
+            "\u22125920.97"
+          ]
+        ]
+      },
+      {
+        "page": 15,
+        "bbox": [
+          61.00154113769531,
+          123.52835083007812,
+          548.0471801757812,
+          148.47401428222656
+        ],
+        "cells": [
+          [
+            "0.55***",
+            "0.49***",
+            "0.50***",
+            "0.53***",
+            "0.50***",
+            "0.50***",
+            "0.56***",
+            "0.57***"
+          ],
+          [
+            "(0.09)",
+            "(0.10)",
+            "(0.09)",
+            "(0.08)",
+            "(0.09)",
+            "(0.09)",
+            "(0.08)",
+            "(0.08)"
+          ],
+          [
+            "5.37\u2020",
+            "8.96**",
+            "5.61\u2020",
+            "5.99\u2020",
+            "5.62\u2020",
+            "5.63\u2020",
+            "6.02\u2020",
+            "5.90\u2020"
+          ]
+        ]
+      },
+      {
+        "page": 15,
+        "bbox": [
+          61.00149917602539,
+          150.45767211914062,
+          548.047119140625,
+          175.3457794189453
+        ],
+        "cells": [
+          [
+            "(3.14)",
+            "(3.08)",
+            "(3.09)",
+            "(3.21)",
+            "(3.02)",
+            "(3.06)",
+            "(3.21)",
+            "(3.19)"
+          ],
+          [
+            "0.95***",
+            "0.86***",
+            "0.92***",
+            "0.95***",
+            "0.91***",
+            "0.92***",
+            "0.97***",
+            "0.97***"
+          ],
+          [
+            "(0.12)",
+            "(0.13)",
+            "(0.13)",
+            "(0.13)",
+            "(0.13)",
+            "(0.13)",
+            "(0.12)",
+            "(0.13)"
+          ]
+        ]
+      },
+      {
+        "page": 15,
+        "bbox": [
+          57.48670196533203,
+          185.92950439453125,
+          540.3460083007812,
+          282.9494934082031
+        ],
+        "cells": [
+          [
+            "\u22120.10* (0.05) \u22120.02 (0.05) \u22120.03 (0.07) 0.10** (0.04)",
+            "\u22120.09 (0.06) \u22120.01 (0.06) \u22120.08 (0.08) 0.11** (0.04)",
+            "\u22120.11* (0.05) \u22120.03 (0.05) \u22120.04 (0.07) 0.11** (0.04)",
+            "\u22120.11* (0.05) \u22120.04 (0.05) \u22120.04 (0.07) 0.10** (0.04)",
+            "\u22120.11* (0.05) \u22120.03 (0.05) \u22120.04 (0.07) 0.11** (0.04)",
+            "\u22120.10* (0.05) \u22120.03 (0.05) \u22120.04 (0.07) 0.11** (0.04)",
+            "\u22120.11* (0.05) \u22120.03 (0.05) \u22120.04 (0.07) 0.10** (0.04)",
+            "\u22120.11* (0.05) \u22120.04 (0.05) \u22120.03 (0.07) 0.09* (0.04)"
+          ],
+          [
+            "0.02",
+            "0.03*",
+            "\u22120.00",
+            "0.00",
+            "0.00",
+            "0.00",
+            "0.00",
+            "0.01"
+          ],
+          [
+            "(0.01)",
+            "(0.02)",
+            "(0.01)",
+            "(0.01)",
+            "(0.01)",
+            "(0.01)",
+            "(0.02)",
+            "(0.01)"
+          ],
+          [
+            "0.01\u2020",
+            "0.01*",
+            "0.01\u2020",
+            "0.01\u2020",
+            "0.01\u2020",
+            "0.01\u2020",
+            "0.01",
+            "0.01\u2020"
+          ]
+        ]
+      },
+      {
+        "page": 15,
+        "bbox": [
+          45.92174530029297,
+          553.9409790039062,
+          548.035400390625,
+          650.5455322265625
+        ],
+        "cells": [
+          [
+            "\u22126.65*** (0.75) Yes",
+            "\u22126.71*** (0.75) Yes",
+            "\u22126.62*** (0.75) Yes",
+            "\u22126.63*** (0.75) Yes",
+            "\u22122.46*** (0.21) Yes",
+            "\u22122.45*** (0.21) Yes",
+            "(0.12) 0.47*** (0.14) \u22122.48*** (0.21) Yes",
+            "(0.11) 0.48*** (0.14) \u22122.44*** (0.21) Yes"
+          ],
+          [
+            "5110",
+            "5110",
+            "5110",
+            "5110",
+            "5110",
+            "5110",
+            "5110",
+            "5110"
+          ],
+          [
+            "341",
+            "341",
+            "341",
+            "341",
+            "341",
+            "341",
+            "341",
+            "341"
+          ],
+          [
+            "9094.90",
+            "9027.43",
+            "9878.15",
+            "9759.10",
+            "9849.65",
+            "10081.27",
+            "9416.71",
+            "9351.43"
+          ],
+          [
+            "0.36",
+            "0.35",
+            "0.36",
+            "0.36",
+            "0.36",
+            "0.36",
+            "0.36",
+            "0.360"
+          ],
+          [
+            "\u22125915.84",
+            "\u22125957.18",
+            "\u22125901.04",
+            "\u22125894.45",
+            "\u22125895.04",
+            "\u22125896.98",
+            "\u22125891.47",
+            "\u22125883.14"
+          ]
+        ]
+      },
+      {
+        "page": 22,
+        "bbox": [
+          69.61598205566406,
+          113.92389297485352,
+          662.79052734375,
+          500.9668884277344
+        ],
+        "cells": [
+          [
+            "Variables LEED-Certified Buildings (lagged DV) Population Density",
+            "Treatment Effects for Policies (1) 11.74*** (2.51)",
+            "(2) \u22120.11 (0.15)",
+            "(3) 1.34*** (0.19)",
+            "Actors (4) 0.47\u2020 (0.27)",
+            "(5) \u22120.20 (0.20)",
+            "(6) 0.95*** (0.03) 1.00 (1.44)",
+            "(7) 0.95*** (0.04) 5.44*** (1.49)",
+            "lagged dependent variable (8) 0.95*** (0.04) 4.45** (1.50)",
+            "(9) 0.92*** (0.04) 6.23*** (1.72)"
+          ],
+          [
+            "GDP Per Capita",
+            "8.36",
+            "8.43",
+            "\u2212174.87***",
+            "3.74",
+            "4.18\u2020",
+            "42.65\u2020",
+            "13.72",
+            "46.50",
+            "39.40"
+          ],
+          [
+            "",
+            "(34.30)",
+            "(5.45)",
+            "(49.85)",
+            "(2.58)",
+            "(2.44)",
+            "(22.94)",
+            "(36.99)",
+            "(31.76)",
+            "(37.34)"
+          ],
+          [
+            "MSA Size",
+            "4.64***",
+            "0.56**",
+            "2.48***",
+            "0.97***",
+            "0.40**",
+            "\u22121.87",
+            "\u22123.63",
+            "\u22123.84",
+            "\u22123.72"
+          ],
+          [
+            "Party legislative control",
+            "(1.10)",
+            "(0.20)",
+            "(0.43)",
+            "(0.21)",
+            "(0.14)",
+            "(1.53)",
+            "(2.52)",
+            "(2.49)",
+            "(2.71)"
+          ],
+          [
+            "Democrat-Controlled State",
+            "0.42",
+            "\u22120.11***",
+            "\u22120.66***",
+            "\u22120.15\u2020",
+            "\u22120.10",
+            "0.55*",
+            "\u22120.07",
+            "0.09",
+            "0.31"
+          ],
+          [
+            "Legislature",
+            "(0.52)",
+            "(0.03)",
+            "(0.19)",
+            "(0.08)",
+            "(0.07)",
+            "(0.28)",
+            "(0.24)",
+            "(0.25)",
+            "(0.32)"
+          ],
+          [
+            "Republican-Controlled State",
+            "\u22120.79\u2020",
+            "\u22120.01",
+            "0.25*",
+            "\u22120.05*",
+            "\u22120.00",
+            "\u22120.03",
+            "0.11",
+            "\u22120.08",
+            "\u22120.16"
+          ],
+          [
+            "Legislature",
+            "(0.41)",
+            "(0.05)",
+            "(0.11)",
+            "(0.03)",
+            "(0.04)",
+            "(0.20)",
+            "(0.18)",
+            "(0.21)",
+            "(0.21)"
+          ],
+          [
+            "Energy Cost",
+            "\u22120.97",
+            "\u22120.08",
+            "2.13***",
+            "\u22120.10",
+            "\u22120.07",
+            "\u22120.60",
+            "\u22121.14*",
+            "\u22121.08*",
+            "\u22120.87"
+          ],
+          [
+            "",
+            "(1.01)",
+            "(0.13)",
+            "(0.62)",
+            "(0.09)",
+            "(0.07)",
+            "(0.59)",
+            "(0.53)",
+            "(0.54)",
+            "(0.67)"
+          ],
+          [
+            "Water Usage (logged)",
+            "\u22120.72\u2020",
+            "0.13*",
+            "0.04",
+            "0.13*",
+            "0.12***",
+            "0.00",
+            "\u22120.11",
+            "\u22120.12",
+            "\u22120.25\u2020"
+          ],
+          [
+            "",
+            "(0.39)",
+            "(0.05)",
+            "(0.03)",
+            "(0.06)",
+            "(0.03)",
+            "(0.12)",
+            "(0.12)",
+            "(0.13)",
+            "(0.14)"
+          ],
+          [
+            "Environmental Activism (logged)",
+            "\u22120.48",
+            "0.01",
+            "\u22121.42***",
+            "\u22120.15*",
+            "0.01*",
+            "\u22120.26",
+            "\u22120.52\u2020",
+            "\u22120.78**",
+            "\u22120.52"
+          ],
+          [
+            "",
+            "(0.32)",
+            "(0.02)",
+            "(0.40)",
+            "(0.06)",
+            "(0.00)",
+            "(0.35)",
+            "(0.31)",
+            "(0.29)",
+            "(0.35)"
+          ],
+          [
+            "Pro-environmental Attitudes",
+            "\u22120.17*",
+            "0.02**",
+            "\u22120.08**",
+            "0.01",
+            "0.01*",
+            "\u22120.12\u2020",
+            "\u22120.13\u2020",
+            "\u22120.13*",
+            "\u22120.18**"
+          ],
+          [
+            "",
+            "(0.08)",
+            "(0.01)",
+            "(0.03)",
+            "(0.01)",
+            "(0.01)",
+            "(0.07)",
+            "(0.07)",
+            "(0.06)",
+            "(0.07)"
+          ],
+          [
+            "Commercial Construction Area (logged)",
+            "0.00",
+            "0.12***",
+            "0.07",
+            "0.12***",
+            "0.13***",
+            "0.04\u2020",
+            "0.02",
+            "\u22120.00",
+            "0.01"
+          ],
+          [
+            "",
+            "(0.07)",
+            "(0.03)",
+            "(0.07)",
+            "(0.02)",
+            "(0.04)",
+            "(0.02)",
+            "(0.03)",
+            "(0.03)",
+            "(0.03)"
+          ],
+          [
+            "Mimetic Isomorphism (cumulative prior",
+            "16.06***",
+            "1.31***",
+            "\u22129.77**",
+            "1.20***",
+            "1.31***",
+            "1.34*",
+            "1.70*",
+            "2.39***",
+            "2.63***"
+          ],
+          [
+            "adoption)",
+            "(1.88)",
+            "(0.09)",
+            "(3.06)",
+            "(0.15)",
+            "(0.06)",
+            "(0.57)",
+            "(0.68)",
+            "(0.66)",
+            "(0.73)"
+          ],
+          [
+            "Market Logic",
+            "0.56*",
+            "\u22120.02",
+            "\u22120.27***",
+            "\u22120.07***",
+            "\u22120.07*",
+            "0.18",
+            "0.17",
+            "0.09",
+            "0.28"
+          ],
+          [
+            "",
+            "(0.27)",
+            "(0.03)",
+            "(0.08)",
+            "(0.02)",
+            "(0.03)",
+            "(0.23)",
+            "(0.30)",
+            "(0.28)",
+            "(0.29)"
+          ],
+          [
+            "Community Logic",
+            "\u22120.17",
+            "0.01",
+            "\u22121.04***",
+            "\u22120.08",
+            "\u22120.01",
+            "\u22120.02",
+            "0.23",
+            "0.10",
+            "0.55\u2020"
+          ],
+          [
+            "",
+            "(0.20)",
+            "(0.04)",
+            "(0.26)",
+            "(0.05)",
+            "(0.04)",
+            "(0.26)",
+            "(0.28)",
+            "(0.28)",
+            "(0.31)"
+          ],
+          [
+            "EconomicIncentive PolicyTreatment (0/",
+            "6.38***",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "1)",
+            "(1.55)",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "Economic Incentive Policies (logged)",
+            "",
+            "6.26***",
+            "",
+            "",
+            "",
+            "23.47***",
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            "(1.40)",
+            "",
+            "",
+            "",
+            "(5.95)",
+            "",
+            "",
+            ""
+          ]
+        ]
+      },
+      {
+        "page": 23,
+        "bbox": [
+          69.6142578125,
+          118.6298942565918,
+          665.39794921875,
+          424.9702453613281
+        ],
+        "cells": [
+          [
+            "Variables Control function first-stage residuals for Economic Incentive Policies TSMOs (per 100,000 people) Control function first-stage residuals for TSMOs Market Intermediaries (per 100,000 people) Control function first-stage residuals for Market Intermediaries Environmental Entrepreneurs (logged) Control function first-stage residuals for Environmental Entrepreneurs Constant Year dummies",
+            "Treatment Effects for Policies (1) \u22122.64\u2020 (1.45) Yes",
+            "(2) \u22126.08*** (1.48) \u22126.43*** (0.84) Yes",
+            "(3) 5.91*** (1.60) \u22125.85*** (1.61) \u22122.89 (6.89) Yes",
+            "Actors (4) 1.12** (0.39) \u22120.95* (0.39) \u22126.57 (7.47) Yes",
+            "(5) 5.64*** (1.01) \u22125.51*** (0.98) \u22126.41*** (0.40) Yes",
+            "(6) Yes",
+            "(7) 0.49*** (0.11) Yes",
+            "lagged dependent variable (8) 0.98** (0.31) Yes",
+            "(9) 5.05* (2.33) \u22122.02 (1.37) Yes"
+          ],
+          [
+            "Observations (MSA-Year)",
+            "5110",
+            "5110",
+            "5110",
+            "5110",
+            "5110",
+            "4769",
+            "4769",
+            "4769",
+            "4769"
+          ],
+          [
+            "MSAs",
+            "341",
+            "341",
+            "341",
+            "341",
+            "341",
+            "341",
+            "341",
+            "341",
+            "341"
+          ],
+          [
+            "McFadden\u2019s pseudo R2",
+            "\u2014",
+            "0.35",
+            "0.36",
+            "0.36",
+            "0.36",
+            "\u2014",
+            "\u2014",
+            "\u2014",
+            "\u2014"
+          ],
+          [
+            "x2",
+            "382.45",
+            "769.59",
+            "735.34",
+            "716.53",
+            "775.32",
+            "7221.50",
+            "7044.73",
+            "5880.22",
+            "4828.81"
+          ],
+          [
+            "AR(1)",
+            "\u2014",
+            "\u2014",
+            "\u2014",
+            "\u2014",
+            "\u2014",
+            "\u22125.67***",
+            "\u22125.32***",
+            "\u22125.37***",
+            "\u22125.26***"
+          ],
+          [
+            "AR(2)",
+            "\u2014",
+            "\u2014",
+            "\u2014",
+            "\u2014",
+            "\u2014",
+            "1.12",
+            "1.27",
+            "1.108",
+            "1.311"
+          ],
+          [
+            "Instruments",
+            "\u2014",
+            "\u2014",
+            "\u2014",
+            "\u2014",
+            "\u2014",
+            "134",
+            "134",
+            "134",
+            "134"
+          ],
+          [
+            "Hansen\u2019s J",
+            "\u2014",
+            "\u2014",
+            "\u2014",
+            "\u2014",
+            "\u2014",
+            "102.97",
+            "101.30",
+            "99.83",
+            "106.17"
+          ]
+        ]
+      }
+    ],
+    "fallback_count": 0,
+    "fallback_source_multisets_conserved": true,
+    "markdown_sha256": "006efe3d415f565d6d3b5f5631db9d8c5f46d5fa156c9e57dfc4c0a7f260bc4c"
+  },
+  "kitchener2002": {
+    "before_item6_words": 13256,
+    "after_item6_words": 13256,
+    "markdown_identical": true,
+    "retained_cells_identical": true,
+    "tables": [
+      {
+        "page": 28,
+        "bbox": [
+          126.24,
+          290.15999999999997,
+          273.12,
+          334.08
+        ],
+        "cells": [
+          [
+            "1999",
+            "\u2018Decoupling",
+            "managerial",
+            "audit:"
+          ],
+          [
+            "Evidence",
+            "from the",
+            "local",
+            "authority"
+          ],
+          [
+            "children\u2019s",
+            "homes national Journal Management 12/4: 338-350.",
+            "sector\u2019. of Public",
+            "Inter- Sector"
+          ]
+        ]
+      }
+    ],
+    "fallback_count": 0,
+    "fallback_source_multisets_conserved": true,
+    "markdown_sha256": "5f03a881e37d147ff3d75a921c5e58ac504297156de8047b6591ac1e4306df1b"
+  },
+  "suchman1995": {
+    "before_item6_words": 16458,
+    "after_item6_words": 16458,
+    "markdown_identical": true,
+    "retained_cells_identical": true,
+    "tables": [],
+    "fallback_count": 0,
+    "fallback_source_multisets_conserved": true,
+    "markdown_sha256": "efd4a2a0109c0064964316d60c530376a1eef7dce2c3b665764a3bf99f0f265b"
+  },
+  "kostova1999": {
+    "before_item6_words": 11297,
+    "after_item6_words": 11297,
+    "markdown_identical": true,
+    "retained_cells_identical": true,
+    "tables": [
+      {
+        "page": 7,
+        "bbox": [
+          53.76,
+          82.56,
+          525.84,
+          395.28
+        ],
+        "cells": [
+          [
+            "1999",
+            "",
+            "Kostova and Zaheer FIGURE 1",
+            "69"
+          ],
+          [
+            "",
+            "Pl.",
+            "Regulatory/cognitive/",
+            ""
+          ],
+          [
+            "Envi tal",
+            "",
+            "normative domains",
+            ""
+          ],
+          [
+            "complexity",
+            "P2",
+            "Number and variety of countries",
+            ""
+          ],
+          [
+            "",
+            "> P3.",
+            "Institutional distance",
+            "MNE subunit Challenge to establishing"
+          ],
+          [
+            "",
+            "P4,.",
+            "External versus internal",
+            "and maintaining"
+          ],
+          [
+            "Organizational",
+            "",
+            "legitimacy",
+            "legitimacy"
+          ],
+          [
+            "complexity",
+            "P5.",
+            "Geocentric/polycentric/",
+            ""
+          ],
+          [
+            "",
+            "P6.",
+            "Liability of foreignness",
+            ""
+          ],
+          [
+            "",
+            "P7.",
+            "Visibility and size of MNE",
+            ""
+          ],
+          [
+            "Complexity of the",
+            "P8",
+            "Legitimacy of local firms",
+            "MNE"
+          ],
+          [
+            "legitimation process",
+            "PQ.",
+            "Legitimacy of other parts of",
+            "Challenge to"
+          ],
+          [
+            "",
+            ">",
+            "the MNE",
+            "maintaining"
+          ],
+          [
+            "",
+            "P10.",
+            "Legitimacy of classes of organizations",
+            "legitimacy"
+          ]
+        ]
+      },
+      {
+        "page": 10,
+        "bbox": [
+          67.92,
+          146.88,
+          252.48,
+          230.16
+        ],
+        "cells": [
+          [
+            "Proposition 3: The greater the institu-",
+            ""
+          ],
+          [
+            "tional distance between",
+            "the home"
+          ],
+          [
+            "country of an MNE and a",
+            "particular"
+          ],
+          [
+            "host country, the greater lenge an MNE subunit will face in es- tablishing and maintaining its legiti- macy in that host country.",
+            "the chal-"
+          ]
+        ]
+      }
+    ],
+    "fallback_count": 0,
+    "fallback_source_multisets_conserved": true,
+    "markdown_sha256": "c249a6a0e0f8a4b5c0504a1da92624374ececbdf37b94dd5c294d9de13d8c15e"
+  },
+  "R01285": {
+    "before_item6_words": 23063,
+    "after_item6_words": 23063,
+    "markdown_identical": false,
+    "retained_cells_identical": true,
+    "tables": [
+      {
+        "page": 6,
+        "bbox": [
+          37.587398529052734,
+          85.23797225952148,
+          557.75732421875,
+          176.1641082763672
+        ],
+        "cells": [
+          [
+            "Table 1",
+            "Institutional Logics",
+            ""
+          ],
+          [
+            "",
+            "Commercial Logic",
+            "Professional Logic"
+          ],
+          [
+            "Root Metaphor",
+            "Transactions and contracts",
+            "Professional network"
+          ],
+          [
+            "Sources of Legitimacy",
+            "Organizational market success",
+            "Royal Charter privilege, professional knowledge and expertise/Companies' Act"
+          ],
+          [
+            "Sources of Authority",
+            "Managing partners/senior management",
+            "Professional Body membership and association"
+          ],
+          [
+            "Sources of Identity",
+            "Firm brand/bureaucratic role in \ufb01rm hierarchy",
+            "Accreditation by Professional Bodies/personal reputation"
+          ],
+          [
+            "Basis of Norms",
+            "Firm socialisation practices and corporate employment",
+            "Professional membership and codes of professional behaviour"
+          ],
+          [
+            "Basis of Attention",
+            "Loyalty/commitment to \ufb01rm success",
+            "Commitment to Professional Body ethical codes"
+          ],
+          [
+            "Basis of Strategy",
+            "Corporate pro\ufb01t/managerial capitalism",
+            "Acting in the Public Interest and personal reputation"
+          ]
+        ]
+      },
+      {
+        "page": 7,
+        "bbox": [
+          158.11399841308594,
+          85.23797225952148,
+          451.1025085449219,
+          163.0585479736328
+        ],
+        "cells": [
+          [
+            "Table 2",
+            "Diversity Logic"
+          ],
+          [
+            "Root Metaphor",
+            "Equality and non-discrimination"
+          ],
+          [
+            "Sources of Legitimacy",
+            "State legislation and social movements/activism"
+          ],
+          [
+            "Sources of Authority",
+            "Moral commitments to diversity and inclusiveness/business case"
+          ],
+          [
+            "Sources of Identity",
+            "Membership of \u2018diverse\u2019/minority social groups"
+          ],
+          [
+            "Basis of Norms",
+            "Social group identi\ufb01cation or class membership"
+          ],
+          [
+            "Basis of Attention",
+            "Social group behavioural and cultural norms"
+          ],
+          [
+            "Basis of Strategy",
+            "Social group access to positions of economic and social status"
+          ]
+        ]
+      },
+      {
+        "page": 8,
+        "bbox": [
+          37.587398529052734,
+          95.51239013671875,
+          242.86949157714844,
+          570.2930704752604
+        ],
+        "cells": [
+          [
+            "Pseudonym",
+            "Position"
+          ],
+          [
+            "Charles",
+            "Ex-manager"
+          ],
+          [
+            "Jill",
+            "Partner"
+          ],
+          [
+            "Vivian",
+            "Senior Manager (retired)"
+          ],
+          [
+            "Judy",
+            "Diversity Practitioner"
+          ],
+          [
+            "Hannah",
+            "Chief Executive"
+          ],
+          [
+            "Flo",
+            "Senior manager e tax"
+          ],
+          [
+            "Diane",
+            "Tax partner"
+          ],
+          [
+            "Christopher",
+            "Partner London regional tax and people partner"
+          ],
+          [
+            "Anna",
+            "HR Partner"
+          ],
+          [
+            "Albert",
+            "Senior Associate"
+          ],
+          [
+            "Phyllis",
+            "Manager"
+          ],
+          [
+            "Alec",
+            "Senior Associate"
+          ],
+          [
+            "Phillip",
+            "Director"
+          ],
+          [
+            "Mohammed",
+            "Senior"
+          ],
+          [
+            "Kenneth",
+            "Partner"
+          ],
+          [
+            "Ashana",
+            "Senior"
+          ],
+          [
+            "Audrey",
+            "Director"
+          ],
+          [
+            "Arthur",
+            "Cash Management"
+          ],
+          [
+            "Yona",
+            "Graduate Trainee"
+          ],
+          [
+            "Lucille",
+            "Senior Manager"
+          ],
+          [
+            "Annie",
+            "Assistant"
+          ],
+          [
+            "Mark",
+            "Partner"
+          ],
+          [
+            "Amy",
+            "Graduate Trainee"
+          ],
+          [
+            "Alice",
+            "Trainee"
+          ],
+          [
+            "Robyn",
+            "Manager"
+          ],
+          [
+            "Ellie",
+            "Director"
+          ],
+          [
+            "Sanjay",
+            "Senior Manager"
+          ],
+          [
+            "Emma",
+            "Director"
+          ],
+          [
+            "Robin",
+            "Partner"
+          ],
+          [
+            "Eliza",
+            "Partner"
+          ],
+          [
+            "Gyorg",
+            "Senior"
+          ],
+          [
+            "Ian",
+            "Senior"
+          ],
+          [
+            "Danny",
+            "Manager"
+          ],
+          [
+            "Beatrice",
+            "Newly Quali\ufb01ed"
+          ],
+          [
+            "Petra",
+            "Forensic Accounting"
+          ],
+          [
+            "Andrea",
+            "Newly Quali\ufb01ed"
+          ],
+          [
+            "William",
+            "Director"
+          ],
+          [
+            "Gary",
+            "Partner"
+          ],
+          [
+            "Shirley",
+            "Recently quali\ufb01ed"
+          ],
+          [
+            "Jeff",
+            "Trainee, ex-small \ufb01rm"
+          ],
+          [
+            "Gillian",
+            "Chief Executive"
+          ],
+          [
+            "Charlotte",
+            "Ex-Auditor Manager"
+          ],
+          [
+            "Leonard",
+            "Knowledge & Network Services"
+          ],
+          [
+            "Joanna",
+            "HR Director"
+          ],
+          [
+            "Shahid",
+            "Ex Director of Diversity Consultant \ufb01rm"
+          ],
+          [
+            "Ravi",
+            "Director"
+          ],
+          [
+            "Raj",
+            "Manager"
+          ],
+          [
+            "Chloe",
+            "Profession"
+          ],
+          [
+            "Derek",
+            "Professional Body"
+          ],
+          [
+            "Louise",
+            "Audit Senior"
+          ],
+          [
+            "Tara",
+            "Ex-partner"
+          ],
+          [
+            "Daphne",
+            "Senior Manager"
+          ],
+          [
+            "Kate",
+            "NGO"
+          ]
+        ]
+      },
+      {
+        "page": 16,
+        "bbox": [
+          37.586517333984375,
+          85.23797225952148,
+          557.7490234375,
+          253.28541564941406
+        ],
+        "cells": [
+          [
+            "Table 4",
+            "DIVERSITY LOGIC, HYBRIDITY AND ORGANIZATIONAL RESPONSES"
+          ],
+          [
+            "Logics Segmentation",
+            "Logics Blending Identity Demarcation"
+          ],
+          [
+            "Situated Organizational i) (Online) Diversity Training",
+            "i) Recruitment Training (Extant) i) Performance Evaluation and Promotion Practices - and"
+          ],
+          [
+            "Practices and Responses (New)",
+            "ii) Client Service Training (Extant) limited effect on core practices of evaluation (Extant)"
+          ],
+          [
+            "Situated Temporality i) Sporadic training e every",
+            "i) Sporadic for Recruitment practices/HR i) Highly Sporadic- for Performance Evaluation processes"
+          ],
+          [
+            "three years for most \ufb01rms.",
+            "ii) Continuous for \u201cClient Service\u201d and decisions"
+          ],
+          [
+            "ii) Networked",
+            "events also"
+          ],
+          [
+            "Identity Scripts i) Diversity &",
+            "Inclusiveness i) Professional & Diversity: i) Professional: Core discourse of \u201cProfessional Merit\u201d"
+          ],
+          [
+            "(New script)",
+            "Recruitment and Access (Blended script) (Meritocracy); no identity script for Diversity"
+          ],
+          [
+            "ii) Legal Compliance",
+            "ii) Commercial & Diversity: expanding Client"
+          ],
+          [
+            "(New script)",
+            "Service (Blended script)"
+          ],
+          [
+            "iii) Diversity Networking",
+            "iii) Professional, Commercial & Diversity: The"
+          ],
+          [
+            "(New script)",
+            "Business Case for Diversity (Blended"
+          ],
+          [
+            "Basis of Practice Structured/Managed",
+            "Structured/Managed Cognitive demarcation"
+          ],
+          [
+            "Segmenting of new logic",
+            "Blending of new logic with old logics New logics and identity"
+          ]
+        ]
+      }
+    ],
+    "fallback_count": 0,
+    "fallback_source_multisets_conserved": true,
+    "markdown_sha256": "a6cedf6416309c2056f2ce417216145d7cc46de2452d8fa922b4e6cb3f211d3f"
+  },
+  "R02611": {
+    "before_item6_words": 15307,
+    "after_item6_words": 15307,
+    "markdown_identical": false,
+    "retained_cells_identical": true,
+    "tables": [
+      {
+        "page": 11,
+        "bbox": [
+          48.0,
+          44.197021484375,
+          354.0299987792969,
+          210.25
+        ],
+        "cells": [
+          [
+            "",
+            "Cognitive Legitimacy"
+          ],
+          [
+            "H1b Hybrid",
+            "H1b H1a Intent to"
+          ],
+          [
+            "For-Profit Core H2b",
+            "H2a Transact H3a H2b"
+          ],
+          [
+            "For-Profit H3b",
+            ""
+          ],
+          [
+            "Norm Field",
+            "Moral Legitimacy"
+          ]
+        ]
+      },
+      {
+        "page": 12,
+        "bbox": [
+          86.72649765014648,
+          95.0670166015625,
+          340.59300231933594,
+          321.60198974609375
+        ],
+        "cells": [
+          [
+            "Nonprofit Core Hybrid Npro\ufb01t and Bus Culture Npro\ufb01t partner MSW non-pro\ufb01t",
+            "Nonprofit Organization Npro\ufb01t culture Npro\ufb01t partner MSW non-pro\ufb01t"
+          ],
+          [
+            "For-Profit Core Hybrid Npro\ufb01t and Bus Culture Fpro\ufb01t partner MBA Inc.",
+            "For-Profit Business Bus culture Fpro\ufb01t partner MBA Inc."
+          ]
+        ]
+      },
+      {
+        "page": 18,
+        "bbox": [
+          41.968017578125,
+          78.74742126464844,
+          348.0308837890625,
+          160.88839721679688
+        ],
+        "cells": [
+          [
+            "",
+            "For-profit",
+            "For-profit",
+            "Nonprofit",
+            "Nonprofit"
+          ],
+          [
+            "",
+            "core hybrid",
+            "business",
+            "core hybrid",
+            "organization"
+          ],
+          [
+            "Variable",
+            "(N\u2009=\u2009187)",
+            "(N\u2009=\u2009185)",
+            "(N\u2009=\u2009176)",
+            "(N\u2009=\u2009186)"
+          ],
+          [
+            "Intent to transact",
+            "5.16 [4.96, 5.37]",
+            "4.91 [4.72, 5.10]",
+            "5.19 [5.01, 5.37]",
+            "5.40 [5.21, 5.59]"
+          ],
+          [
+            "Cognitive legitimacy",
+            "4.64 [4.42, 4.86]",
+            "4.66 [4.47, 4.86]",
+            "4.43 [4.22, 4.63]",
+            "4.41 [4.17, 4.64]"
+          ],
+          [
+            "Moral legitimacy",
+            "5.64 [5.46, 5.82]",
+            "5.35 [5.18, 5.53]",
+            "5.62 [5.45, 5.80]",
+            "5.89 [5.73, 6.04]"
+          ]
+        ]
+      },
+      {
+        "page": 25,
+        "bbox": [
+          62.497314453125,
+          128.068603515625,
+          526.093505859375,
+          268.068603515625
+        ],
+        "cells": [
+          [
+            "",
+            "",
+            "",
+            "Healthcare field",
+            ""
+          ],
+          [
+            "Variable",
+            "For-profit hybrid (N\u2009=\u2009101)",
+            "For-profit business (N\u2009=\u200998)",
+            "Nonprofit hybrid (N\u2009=\u2009108)",
+            "Nonprofit organization (N\u2009=\u2009100)"
+          ],
+          [
+            "Intent to transact",
+            "4.67 [4.45, 4.90]",
+            "4.47 [4.23, 4.70]",
+            "5.00 [4.77, 5.24]",
+            "5.09 [4.88, 5.29]"
+          ],
+          [
+            "Cognitive legitimacy",
+            "4.78 [4.56, 4.99]",
+            "4.55 [4.31, 4.80]",
+            "4.64 [4.39, 4.89]",
+            "4.63 [4.39, 4.88]"
+          ],
+          [
+            "Moral legitimacy",
+            "4.74 [4.53, 4.95]",
+            "4.14 [3.85, 4.43]",
+            "5.24 [5.04, 5.45] Banking field",
+            "5.35 [5.16, 5.55]"
+          ],
+          [
+            "",
+            "For-profit hybrid (N\u2009=\u2009101)",
+            "For-profit business (N\u2009=\u2009103)",
+            "Nonprofit hybrid (N\u2009=\u2009100)",
+            "Nonprofit organization (N\u2009=\u200991)"
+          ],
+          [
+            "Intent to transact",
+            "4.89 [4.65, 5.12]",
+            "4.51 [4.27, 4.76]",
+            "5.07 [4.86, 5.27]",
+            "5.05 [4.84, 5.25]"
+          ],
+          [
+            "Cognitive legitimacy",
+            "4.60 [4.38, 4.83]",
+            "4.94 [4.70, 5.18]",
+            "4.13 [3.90, 4.37]",
+            "3.90 [3.63, 4.18]"
+          ],
+          [
+            "Moral legitimacy",
+            "4.65 [4.46, 4.84]",
+            "4.36 [4.11, 4.62]",
+            "5.02 [4.82, 5.22]",
+            "5.21 [4.97, 5.44]"
+          ]
+        ]
+      }
+    ],
+    "fallback_count": 0,
+    "fallback_source_multisets_conserved": true,
+    "markdown_sha256": "38a63d81dfd35501910e12dcfc27ba42ce79e9548461278d42cd9246eedf1aa3"
+  },
+  "paper": {
+    "before_item6_words": 304,
+    "after_item6_words": 304,
+    "markdown_identical": true,
+    "retained_cells_identical": true,
+    "tables": [
+      {
+        "page": 1,
+        "bbox": [
+          369.9297790527344,
+          232.6729736328125,
+          497.1275939941406,
+          302.75201416015625
+        ],
+        "cells": [
+          [
+            "Condition",
+            "N",
+            "Mean",
+            "SD"
+          ],
+          [
+            "Baseline",
+            "120",
+            "41.2",
+            "3.4"
+          ],
+          [
+            "Treatment A",
+            "118",
+            "52.7",
+            "4.1"
+          ],
+          [
+            "Treatment B",
+            "121",
+            "48.9",
+            "3.9"
+          ],
+          [
+            "Pooled",
+            "359",
+            "47.6",
+            "6.2"
+          ]
+        ]
+      }
+    ],
+    "fallback_count": 0,
+    "fallback_source_multisets_conserved": true,
+    "markdown_sha256": "b0a174c8cb9e315cfcf01226f0742f15bf3a80ec8a794cd2850abd1a5bc716e4"
+  },
+  "hard": {
+    "before_item6_words": 1021,
+    "after_item6_words": 1021,
+    "markdown_identical": true,
+    "retained_cells_identical": true,
+    "tables": [
+      {
+        "page": 2,
+        "bbox": [
+          72.0,
+          84.0,
+          282.0,
+          168.0
+        ],
+        "cells": [
+          [
+            "Feature",
+            "Precision",
+            "Recall",
+            "N"
+          ],
+          [
+            "Two columns",
+            "0.98",
+            "0.97",
+            "12"
+          ],
+          [
+            "Running head",
+            "1.00",
+            "0.94",
+            "12"
+          ],
+          [
+            "Footnotes",
+            "0.91",
+            "0.88",
+            "9"
+          ],
+          [
+            "Ruled table",
+            "0.87",
+            "0.83",
+            "6"
+          ],
+          [
+            "Hyphenation",
+            "0.99",
+            "0.99",
+            "12"
+          ]
+        ]
+      }
+    ],
+    "fallback_count": 0,
+    "fallback_source_multisets_conserved": true,
+    "markdown_sha256": "84b9ccb52cf5be56ccd9bb14b8b6095423bd7a403c80f462fef75243463f5943"
+  }
+}

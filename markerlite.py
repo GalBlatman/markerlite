@@ -211,6 +211,10 @@ class Block:
     # Keep the table identity for processors/captions and statistics, but
     # render failed reconstruction from the untouched source, not a bad grid.
     fallback_paragraphs: List[str] = field(default_factory=list)
+    # A rejected journal candidate leaves these original blocks available
+    # for classification, but must not propose them as tables again.
+    journal_front_matter: bool = False
+    journal_title: bool = False
     code: Optional[str] = None
     image_path: Optional[str] = None
     needs_vision: bool = False
@@ -1267,6 +1271,38 @@ def _split_members(members: List[Block], caption: List[Line], excluded: List[Lin
     return grid_members, caption_block, leftovers, touched
 
 
+def _journal_front_matter(members: List[Block], context: List[Block]) -> bool:
+    """Require abstract prose, a distinct title, and publication metadata.
+
+    Page position is not evidence: an ordinary first-page data table, or a
+    submission cover's isolated key/value metadata, fails this conjunction.
+    Spaced-out publisher labels ("a b s t r a c t") count as labels too.
+    """
+    lines = [ln for b in members for ln in b.lines if ln.text.strip()]
+    labels = {re.sub(r"\s+", "", ln.text).rstrip(":").lower() for ln in lines}
+    if "abstract" not in labels:
+        return False
+    prose = [b for b in members if len(b.text.split()) >= 60]
+    if not prose:
+        return False
+    sizes = [sp.size for b in prose for sp in b.spans if sp.text.strip()]
+    if not sizes:
+        return False
+    body_size = median(sizes)
+    abstract_top = min(ln.bbox[1] for ln in lines
+                       if re.sub(r"\s+", "", ln.text).rstrip(":").lower() == "abstract")
+    title = any(4 <= len(b.text.split()) <= 40
+                and b.y_end <= abstract_top
+                and b.max_size() >= 1.25 * body_size for b in context)
+    if not title:
+        return False
+    text = "\n".join(b.text for b in members)
+    metadata = re.search(r"doi\s*[:.]|doi\.org/|journal(?:s| homepage)?|"
+                         r"article history|received.*\d{4}|corresponding author",
+                         text, re.I)
+    return bool(metadata or "keywords" in labels)
+
+
 def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
     """Find table regions with PyMuPDF, then rebuild the grid.
 
@@ -1317,6 +1353,17 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
         ]
         if not members:
             continue
+        if _journal_front_matter(members, page.blocks):
+            abstract_top = min(ln.bbox[1] for b in members for ln in b.lines
+                               if re.sub(r"\s+", "", ln.text).rstrip(":").lower() == "abstract")
+            preceding = [b for b in page.blocks if b.y_end <= abstract_top]
+            title_size = max(b.max_size() for b in preceding
+                             if 4 <= len(b.text.split()) <= 40)
+            for block in members + preceding:
+                block.journal_front_matter = True
+                block.journal_title = (4 <= len(block.text.split()) <= 40
+                                       and block.max_size() >= 0.95 * title_size)
+            continue  # original blocks remain for heading/paragraph classification
 
         # The caption and whatever stands under the bottom rule leave the
         # candidate before anything is reconstructed or counted. ``members``
@@ -1462,7 +1509,8 @@ def propose_tables_from_text(pages: List[Page], min_score=0.62) -> None:
         return
     for page in pages:
         for blk in page.blocks:
-            if blk.btype == "Table" or len(blk.lines) < 3 or blk.ignore_for_output:
+            if (blk.btype == "Table" or blk.journal_front_matter
+                    or len(blk.lines) < 3 or blk.ignore_for_output):
                 continue
             lines = _tokens_for_recon([blk], blk.bbox)
             multi = [ln for ln in lines if len(ln[0]) >= 2]
@@ -1527,6 +1575,13 @@ def classify(pages: List[Page], body_size: float) -> None:
             text = blk.text.strip()
             if not text:
                 blk.ignore_for_output = True
+                continue
+
+            if blk.journal_front_matter:
+                # Keep the original blocks. A narrow journal title may wrap
+                # beyond the ordinary three-line heading limit; author and
+                # DOI typography should remain prose, not headings/equations.
+                blk.btype = "SectionHeader" if blk.journal_title else "Text"
                 continue
 
             first = blk.lines[0].text.strip()

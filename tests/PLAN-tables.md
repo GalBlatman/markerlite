@@ -334,7 +334,12 @@ from detect_tables; Wry et al. 2013 p. 37 (six numbered endnotes emitted as a
 2-column table "| 1. | Note that the data for 2011 ...", from
 propose_tables_from_text, which also costs the document its footnotes).
 
-### 6. Reject journal-front-matter pseudo-tables (report 1)
+### 6. Reject journal-front-matter pseudo-tables (report 1) — DONE
+
+Verified on R01285 and R02611 p. 1, with original blocks preserved;
+`journal_front_matter.pdf` covers both layouts and page-1 data-table controls.
+All ten references and hard/paper outputs remain byte-identical to the
+fallback-to-prose step. See tests/REPORT-batchC-block1.md, step 4.
 
 **Observed mechanism:** R01285 and R02611 p. 1 still merge title, journal metadata,
 authors, and abstract into grids. Ragins p. 1's legitimate-looking key/value

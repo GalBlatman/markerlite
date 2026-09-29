@@ -1887,6 +1887,66 @@ def make_table_only_footer():
     pdf.out("table_only_footer.pdf")
 
 
+def make_journal_front_matter():
+    """Two publisher-style front pages with a lower data table, and booktabs.
+
+    Page 1 has a full-width title and separate abstract label; page 2 has a
+    five-line title beside journal/DOI metadata and an inline abstract label.
+    Regression also converts each page separately, so every control is page 1.
+    """
+    pdf = Doc()
+    titles = ["Organizations responding to competing demands",
+              "Evaluations of organizations across changing contexts"]
+    abstract = ("This study examines how researchers interpret organizational decisions "
+                "when different groups expect different outcomes. We compare several "
+                "independent observations and preserve the distinction between the "
+                "title, the author information, and the abstract itself. Our evidence "
+                "shows that a publication layout can resemble a table without containing "
+                "data records. The actual numerical table below reports separate results "
+                "and must retain its original cells, even when it appears on the first "
+                "page of a journal article.")
+    for variant in (0, 1):
+        pdf.add_page()
+        pdf.text_at(72, 35, "Publication archive record " + str(variant + 1), size=9)
+        # Rules reproduce a candidate spanning front matter. They supply no
+        # exemption to the semantic guard; the true table has its own region.
+        pdf.rect(55, 60, 502, 342)
+        for y in (154, 213):
+            pdf.line(55, y, 557, y)
+        if variant == 0:
+            pdf.text_at(62, 80, titles[0], size=17)
+            pdf.text_at(62, 161, "Alex Researcher and Morgan Author", size=12)
+            pdf.text_at(62, 192, "Journal of Organizational Studies; DOI: 10.1000/example", size=9)
+            pdf.text_at(62, 225, "a b s t r a c t", size=10)
+            body_y = 246
+        else:
+            for i, line in enumerate(("Evaluations of", "organizations", "across", "changing", "contexts")):
+                pdf.text_at(62, 65 + i * 17, line, style="B", size=16)
+            pdf.text_at(310, 80, "Journal of Organizational Studies", size=9)
+            pdf.text_at(310, 98, "DOI: 10.1000/second-layout", size=9)
+            pdf.text_at(62, 166, "Taylor Scholar and Jordan Researcher", style="B", size=12)
+            pdf.text_at(62, 225, "Abstract", style="B", size=10)
+            body_y = 237
+        pdf.set_font("Times", size=10)
+        pdf.set_xy(62, body_y)
+        pdf.multi_cell(483, 12, abstract)
+        pdf.text_at(62, 381, "Keywords: organizations, decisions, evidence", size=9)
+        ruled_table(pdf, 72, 465, [156, 156, 156], [
+            ["Group", "Observed", "Expected"], ["Alpha", "12", "15"],
+            ["Beta", "18", "21"], ["Gamma", "24", "27"]], row_h=24)
+    pdf.add_page()
+    pdf.text_at(72, 80, "First-page booktabs control", style="B", size=16)
+    for y in (190, 212, 276):
+        pdf.line(72, y, 540, y)
+    for i, row in enumerate((["Group", "Observed", "Expected"],
+                             ["Alpha", "12", "15"], ["Beta", "18", "21"],
+                             ["Gamma", "24", "27"])):
+        for x, text in zip((76, 232, 388), row):
+            pdf.text_at(x, 191 + i * 24, text, style="B" if i == 0 else "", size=10)
+    pdf.text_at(72, 320, "The measurements above are independent records.", size=10)
+    pdf.out("journal_front_matter.pdf")
+
+
 def make_tall_cell():
     """A bordered three-column table whose middle column wraps over three to
     four lines per row, between two prose paragraphs, with no watermark.
@@ -1949,6 +2009,7 @@ MAKERS = {
     "rotated_pages": make_rotated_pages,
     "provenance_pages": make_provenance_pages,
     "tall_cell": make_tall_cell,
+    "journal_front_matter": make_journal_front_matter,
     "table_only_footer": make_table_only_footer,
     "isolated_ocr_page": make_isolated_ocr_page,
     "all_text_wrapped": make_all_text_wrapped,

@@ -63,6 +63,60 @@ def check_ocr_markers(pdf: pathlib.Path, workdir: pathlib.Path, plain: str) -> i
     return 1
 
 
+def check_journal_front_matter(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
+    """Both journal layouts reject front matter, keeping original blocks and
+    a real data table; every variant also runs alone as PDF page 1.
+    """
+    from unittest.mock import patch
+    import pymupdf
+    expected = [["Group", "Observed", "Expected"], ["Alpha", "12", "15"],
+                ["Beta", "18", "21"], ["Gamma", "24", "27"]]
+    root = workdir / "journal-controls"
+    root.mkdir(exist_ok=True)
+    detect = markerlite.detect_tables
+    kept_blocks = []
+    def spy_detect(pm, page):
+        originals = list(page.blocks)
+        detect(pm, page)
+        kept_blocks.extend(b for b in originals if b.journal_front_matter)
+        assert all(any(b is after for after in page.blocks)
+                   for b in originals if b.journal_front_matter)
+    with patch.object(markerlite, "detect_tables", spy_detect):
+        stats, tables = table_cells(pdf, root / "combined")
+    if stats["tables"] != 3 or stats["tables_fallback"] or len(kept_blocks) < 8:
+        print("FAIL  journal-front: wrong candidates or original blocks consumed")
+        return 1
+    if len(tables) != 3 or any(t[2] != expected for t in tables):
+        print("FAIL  journal-front: data cells changed", tables)
+        return 1
+    text = (root / "combined" / "journal_front_matter.md").read_text()
+    titles = ("Organizations responding to competing demands",
+              "Evaluations of organizations across changing contexts")
+    if (any(not re.search(r"(?m)^#{1,6} " + re.escape(t) + r"$", text) for t in titles)
+            or "a b s t r a c t\n\nThis study" not in text
+            or "**Abstract** This study" not in text
+            or "<!-- table p." in text):
+        print("FAIL  journal-front: title or abstract classification")
+        return 1
+    with patch.object(markerlite, "_journal_front_matter", lambda *args: False):
+        disabled, _ = table_cells(pdf, root / "disabled")
+    if disabled["tables"] != 5 or disabled["tables_fallback"] != 2:
+        print("FAIL  journal-front: negative cases no longer reproduce the defect")
+        return 1
+    with pymupdf.open(pdf) as document:
+        for n in range(3):
+            single = root / f"journal_page_{n + 1}.pdf"
+            with pymupdf.open() as part:
+                part.insert_pdf(document, from_page=n, to_page=n)
+                part.save(single)
+            stats, tables = table_cells(single, root / str(n))
+            if stats["tables"] != 1 or stats["tables_fallback"] or tables[0][2] != expected:
+                print("FAIL  journal-front: page-one data/booktabs control", n + 1)
+                return 1
+    print("ok    journal-front    two negatives, original blocks, headings, abstract, page-one cells")
+    return 0
+
+
 def check_fallback_prose(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     """The tall-cell fixture keeps its successful grid; its original lossy
     reconstruction (wrapped recovery disabled) keeps every source token as prose.
@@ -398,6 +452,8 @@ def main(argv=None) -> int:
                 print(f"SKIP  {stem:16s} needs tesseract on PATH")
                 continue
             got = convert_to_string(pdf, workdir)
+            if stem == "journal_front_matter":
+                failures += check_journal_front_matter(pdf, workdir)
             if stem == "tall_cell":
                 failures += check_fallback_prose(pdf, workdir)
             if stem == "justified_scan":

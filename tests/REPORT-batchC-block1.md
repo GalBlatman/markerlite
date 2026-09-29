@@ -1263,3 +1263,490 @@ Method: enumerate every non-fallback Table at render, inspect its complete cell 
 **SBTi p. 48:** its former nine-column fallback is now source prose under the non-clean branch. This intentionally loses the parent-table layout, as authorized for every fallback, while preserving all its source tokens. This supersedes the older requirement to retain its geometric cells. Successful parent-table reconstructions elsewhere retain their cells.
 
 Step 3 changes documentation only. Step 4 (PLAN item 6) remains next.
+
+## Step 4: journal front matter (PLAN item 6)
+
+The candidate is rejected before caption isolation, reconstruction or block consumption when it contains an Abstract label (including spaced letters), a prose block of at least 60 words, publication metadata or a Keywords label, and has a preceding 4–40-word title whose maximum font size is at least 1.25 times the prose median. This conjunction has no page-number gate. Original blocks survive individually; the title receives heading classification, author/metadata/abstract blocks receive prose classification, and these rejected blocks cannot become text-table proposals again. Block stream order is unchanged.
+
+R01285 and R02611 were read in place from `/home/galbl/unknown-knowns/pilot/pdf/`. Their rendered first pages were checked against the resulting Markdown. Both titles are intact headings, authors are prose, and Abstract remains with its text. R01285's former fallback no longer counts as a table; R02611's first-page reconstructed pseudo-table is rejected. All other retained cell matrices match the original baseline.
+
+The synthetic `journal_front_matter.pdf` includes both publisher layouts, each with a real lower table, and a booktabs-only control. All three are also converted independently as page 1. With the guard: three tables, zero fallbacks, exact expected cell matrices. Disabling only the guard produces five tables and two fallbacks. The test checks object identity of preserved source blocks, both full title headings and abstract placement.
+
+### Standard content-word totals
+
+| Document | Before block 1 | After fallback-to-prose | After item 6 | Item 6 change |
+| --- | ---: | ---: | ---: | ---: |
+| Target-Validation-Protocol | 18,345 | 18,425 | 18,425 | +0 |
+| Ragins craft of clear writing 2012 | 6,625 | 6,625 | 6,625 | +0 |
+| peng2009 | 12,046 | 12,046 | 12,046 | +0 |
+| greenwood2006 | 14,777 | 14,777 | 14,777 | +0 |
+| wry2013 | 18,441 | 18,441 | 18,441 | +0 |
+| jay2013 | 16,377 | 16,377 | 16,377 | +0 |
+| york2018 | 19,930 | 19,930 | 19,930 | +0 |
+| kitchener2002 | 13,256 | 13,256 | 13,256 | +0 |
+| suchman1995 | 16,458 | 16,458 | 16,458 | +0 |
+| kostova1999 | 11,297 | 11,297 | 11,297 | +0 |
+| R01285 | 23,062 | 23,063 | 23,063 | +0 |
+| R02611 | 15,307 | 15,307 | 15,307 | +0 |
+| paper | 304 | 304 | 304 | +0 |
+| hard | 1,021 | 1,021 | 1,021 | +0 |
+
+The fallback-step gains (+80 SBTi, +1 R01285) are enumerated above and in `batchC-fallback-audit.json`. Item 6 has zero net content-word change in every document. R01285 rejoins `or- ganization,` → `organization,` and `be- tween` → `between` (−2), while superscript affiliation markup separates the commas from `a,` and `c,` (+2 under the unchanged whitespace-based metric). R02611 formats `Peifer1` / `Liu2` as `Peifer[^1]` / `Liu[^2]`, with no count change. No source word is removed.
+
+All ten reference Markdown files are byte-identical to step 2, as are `paper.pdf` and `hard.pdf` outputs. Thus SBTi still has **55 region decisions: 25 reconstructed grids, 30 prose fallbacks**; all 25 successful cell matrices/hashes are identical, all 30 source multisets conserved, and the full 55-region decision list above still applies. SBTi remains **18,425 content words**. No additional region change needs approval. Ragins p. 1 remains readable, complete, and unchanged, including its submission metadata table. The two controls' first-page cells remain identical.
+
+Known scope limits remain: the five usable fallback grids sacrifice layout under the authorized non-clean-margin branch. Kostova Figure 1's label is still swallowed by a successful proposal and no figure placeholder appears; this is the diagram-proposal defect recorded in step 3, not a fallback or boxed-paragraph exception.
+
+### Final page evidence and Markdown
+
+The following pairs compare immediately before item 6 (after fallback-to-prose) with the final output. Earlier sections retain the original grid-to-prose before/after and page evidence. Identical pairs are printed once and explicitly labeled.
+
+
+#### R01285, PDF p. 1
+
+![Rendered source page](/tmp/batchC-front/R01285.png)
+
+Before:
+
+```markdown
+<!-- figure: p. 1; caption: none found -->
+
+<!-- table p. 1: reconstruction failed; text kept as prose -->
+
+Organizational responses to multiple logics: Diversity, identity and the
+professional service ﬁrm*
+
+Fiona Anderson-Gough a, Carla Edgley b, *, Keith Robson c, Nina Sharma b
+
+a Warwick Business School, UK
+b Cardiff Business School, UK
+c HEC, Paris, France
+
+a r t i c l e
+i n f o
+
+Article history:
+Received 20 November 2018
+Received in revised form
+7 January 2022
+Accepted 11 January 2022
+Available online 6 April 2022
+
+Keywords:
+Multiple logics
+Hybrid organizations
+Diversity
+Identity scripts
+
+a b s t r a c t
+
+This paper is located within the research problematic of multiple logics with reference to professional
+service ﬁrms (PSFs), and in particular audit ﬁrms. Within this multi-logic (“hybrid”) and complex or-
+ganization, we are speciﬁcally concerned with the impacts of new institutional logics that reﬂect social
+and political movements - in this case diversity legislation - and how these new logics are absorbed and
+managed within the organizations’ structures and practices. Based upon a study of large and medium
+sized audit ﬁrms in the UK, we consider the organizational responses to the demands for improved
+diversity among ﬁrm members, especially the senior elite, in the context of the passing of the Equality
+Act, 2010, and subsequent legislation which both consolidated and extended UK laws on discrimination.
+Our study indicates how such organizational sites have value for demonstrating how the conﬂict be-
+tween logics shifts its terms of reference. While most of the conﬂict between logics of commercialism
+and professionalism has been successfully managed through mechanisms of hybridization, we bring to
+the fore how the struggles between ideas about merit and diversity in professional evaluation processes
+and practices are more intractable. Our work contributes to an understanding of both the dependencies
+(blending) and co-existences (separation) that can exist between diversity, commercial and professional
+logics of practice in multi-logic organizations. We further highlight the role of identity scripts that shape
+how individuals situationally demarcate their identities as they struggle with the demands for diversity
+that challenge dominant logics.
+
+© 2022 The Authors. Published by Elsevier Ltd. This is an open access article under the CC BY-NC-ND
+
+license (http://creativecommons.org/licenses/by-nc-nd/4.0/).
+
+Contents lists available at ScienceDirect
+
+Accounting, Organizations and Society
+
+journal homepage: www.elsevier.com/locate/aos
+
+<!-- figure: p. 1; caption: none found -->
+
+1\. Introduction
+
+“So, everything really, whenever you're asking for anything, everything needs to be put forward with a ‘business case’ and we've gone on it from the tack of LGBT clients, they're a massive untouched resource, and to them it can provide networking opportunities,” (Annie, Senior Administrator, female, MediumFirm; our emphasis added).
+
+“So, I'm worried that if I go (for promotion) - and the boys have sort of said this as well - I'm like, ‘I don't want to get promoted because I'm a woman,’” (Andrea, Manager, female, BigFirm).
+
+The quotations above derive from interviews conducted with audit professionals in the context of the impact of the introduction of the UK Equality Act, 2010 and subsequent legislation (Enterprise and Regulatory Reform Act, 2013 and the Equality Acts 2013) which consolidated and extended UK laws on discrimination. The 2010 Act followed the publication of governmental enquiries into the “access to the professions” (Milburn Report, 2009).[^1]The Milburn Report, and others (PARN, 2009), showed professional audit ﬁrms
+
+Accounting, Organizations and Society 103 (2022) 101336
+
+[^*]: The research project, from which this paper is one output, is generously sponsored by the Institute of Chartered Accountants of England and Wales (ICAEW) Charitable Trusts and the Interdisciplinary Perspectives on Accounting Research Group (IPARG), Cardiff Business School. Earlier drafts of the paper were presented at ESSEC, Paris, April 2016, and the Critical Perspectives on Accounting Conference, Quebec City, July 2017. Many thanks to Chiara Bottausci, Veronica Casarin, Bernard Leca, Ioana Lupu, Michael Power and the reviewers at Accounting, Organizations and Society for their many helpful comments and suggestions.
+
+[^*]: Corresponding author. E-mail address: EdgleyCR@cardiff.ac.uk (C. Edgley).
+
+[^1]: Professional service ﬁrms in the UK comply with this employment law to “prohibit victimisation”, “eliminate discrimination and other prohibited conduct”, and “create equality of opportunity” (Equality Act, 2010: Introduction). https://doi.org/10.1016/j.aos.2022.101336 0361-3682/© 2022 The Authors. Published by Elsevier Ltd. This is an open access article under the CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/).
+```
+
+After:
+
+```markdown
+<!-- figure: p. 1; caption: none found -->
+
+<!-- figure: p. 1; caption: none found -->
+
+## Organizational responses to multiple logics: Diversity, identity and the professional service ﬁrm*
+
+Fiona Anderson-Gough <sup>a</sup>, Carla Edgley <sup>b, *</sup>, Keith Robson <sup>c</sup>, Nina Sharma <sup>b</sup>
+
+a Warwick Business School, UK b Cardiff Business School, UK c HEC, Paris, France
+
+a r t i c l e i n f o
+
+Article history: Received 20 November 2018 Received in revised form 7 January 2022 Accepted 11 January 2022 Available online 6 April 2022
+
+Keywords: Multiple logics Hybrid organizations Diversity Identity scripts
+
+a b s t r a c t
+
+This paper is located within the research problematic of multiple logics with reference to professional service ﬁrms (PSFs), and in particular audit ﬁrms. Within this multi-logic (“hybrid”) and complex organization, we are speciﬁcally concerned with the impacts of new institutional logics that reﬂect social and political movements - in this case diversity legislation - and how these new logics are absorbed and managed within the organizations’ structures and practices. Based upon a study of large and medium sized audit ﬁrms in the UK, we consider the organizational responses to the demands for improved diversity among ﬁrm members, especially the senior elite, in the context of the passing of the Equality Act, 2010, and subsequent legislation which both consolidated and extended UK laws on discrimination. Our study indicates how such organizational sites have value for demonstrating how the conﬂict between logics shifts its terms of reference. While most of the conﬂict between logics of commercialism and professionalism has been successfully managed through mechanisms of hybridization, we bring to the fore how the struggles between ideas about merit and diversity in professional evaluation processes and practices are more intractable. Our work contributes to an understanding of both the dependencies (blending) and co-existences (separation) that can exist between diversity, commercial and professional logics of practice in multi-logic organizations. We further highlight the role of identity scripts that shape how individuals situationally demarcate their identities as they struggle with the demands for diversity that challenge dominant logics.
+
+© 2022 The Authors. Published by Elsevier Ltd. This is an open access article under the CC BY-NC-ND
+
+license (http://creativecommons.org/licenses/by-nc-nd/4.0/).
+
+1\. Introduction
+
+“So, everything really, whenever you're asking for anything, everything needs to be put forward with a ‘business case’ and we've gone on it from the tack of LGBT clients, they're a massive untouched resource, and to them it can provide networking opportunities,” (Annie, Senior Administrator, female, MediumFirm; our emphasis added).
+
+“So, I'm worried that if I go (for promotion) - and the boys have sort of said this as well - I'm like, ‘I don't want to get promoted because I'm a woman,’” (Andrea, Manager, female, BigFirm).
+
+The quotations above derive from interviews conducted with audit professionals in the context of the impact of the introduction of the UK Equality Act, 2010 and subsequent legislation (Enterprise and Regulatory Reform Act, 2013 and the Equality Acts 2013) which consolidated and extended UK laws on discrimination. The 2010 Act followed the publication of governmental enquiries into the “access to the professions” (Milburn Report, 2009).[^1]The Milburn Report, and others (PARN, 2009), showed professional audit ﬁrms
+
+Contents lists available at ScienceDirect
+
+## Accounting, Organizations and Society
+
+journal homepage: www.elsevier.com/locate/aos
+
+https://doi.org/10.1016/j.aos.2022.101336 0361-3682/© 2022 The Authors. Published by Elsevier Ltd. This is an open access article under the CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/).
+
+Accounting, Organizations and Society 103 (2022) 101336
+
+[^*]: The research project, from which this paper is one output, is generously sponsored by the Institute of Chartered Accountants of England and Wales (ICAEW) Charitable Trusts and the Interdisciplinary Perspectives on Accounting Research Group (IPARG), Cardiff Business School. Earlier drafts of the paper were presented at ESSEC, Paris, April 2016, and the Critical Perspectives on Accounting Conference, Quebec City, July 2017. Many thanks to Chiara Bottausci, Veronica Casarin, Bernard Leca, Ioana Lupu, Michael Power and the reviewers at Accounting, Organizations and Society for their many helpful comments and suggestions.
+
+[^*]: Corresponding author. E-mail address: EdgleyCR@cardiff.ac.uk (C. Edgley).
+
+[^1]: Professional service ﬁrms in the UK comply with this employment law to “prohibit victimisation”, “eliminate discrimination and other prohibited conduct”, and “create equality of opportunity” (Equality Act, 2010: Introduction).
+```
+
+#### R02611, PDF p. 1
+
+![Rendered source page](/tmp/batchC-front/R02611.png)
+
+Before:
+
+```markdown
+<!-- table p. 1: reconstruction failed; text kept as prose -->
+
+https://doi.org/10.1177/00076503251324062
+
+Business &amp; Society
+2026, Vol. 65(3) 579­–619
+© The Author(s) 2025
+Article reuse guidelines:
+sagepub.com/journals-permissions
+DOI: 10.1177/00076503251324062
+
+journals.sagepub.com/home/bas
+
+Evaluations of
+Organizational
+Configurations: Does
+Hybrid Form or Logic
+Content Matter?
+
+Jared L. Peifer1
+and Jing Liu2
+
+Abstract
+Hybrid organizing scholarship has considered various effects of organizational
+configurations, including evaluations from external audience members. Due
+to the particular focus of hybrid scholarship on organizations that are subject
+to market logic, however, it is difficult to determine whether hybrid form
+or market logic is most relevant to evaluators. We therefore conduct two
+online vignette experiments, one of which is preregistered. We confirm our
+hypothesis that the presence of market logic decreases evaluators intent
+to transact with the organization, mediated through moral legitimacy. We
+do not confirm our hypothesis, however, that hybrid form decreases intent
+to transact, mediated through cognitive legitimacy. We further find that
+the negative market logic effect does not vary by organizational field. Our
+explicit focus on market logic, and its moral legitimacy evaluations, forms
+our core contribution to hybrid organizing scholarship, which tends to
+heavily lean upon the categories scholarship to explain negative audience
+evaluations.
+
+Keywords
+hybrid organizing, institutional theory, legitimacy, market logic, moral values,
+organizational theory
+
+*Article*
+
+**1324062** BASXXX10.1177/00076503251324062Business & Society**Peifer and Liu** *research-article*2025
+
+[^1]: Franklin & Marshall College, Lancaster, PA, USA
+
+[^2]: Northern Kentucky University, Highland Heights, KY, USA **Corresponding Author:** Jared L. Peifer, Franklin & Marshall College, PO Box 3003, Lancaster, PA 17604-3003, USA. Email: jpeifer@fandm.edu
+```
+
+After:
+
+```markdown
+https://doi.org/10.1177/00076503251324062
+
+Business & Society 2026, Vol. 65(3) 579­–619 © The Author(s) 2025 Article reuse guidelines: sagepub.com/journals-permissions DOI: 10.1177/00076503251324062
+
+journals.sagepub.com/home/bas
+
+# Evaluations of Organizational Configurations: Does Hybrid Form or Logic Content Matter?
+
+**Jared L. Peifer**[^1] **and Jing Liu**[^2]
+
+**Abstract** Hybrid organizing scholarship has considered various effects of organizational configurations, including evaluations from external audience members. Due to the particular focus of hybrid scholarship on organizations that are subject to market logic, however, it is difficult to determine whether hybrid form or market logic is most relevant to evaluators. We therefore conduct two online vignette experiments, one of which is preregistered. We confirm our hypothesis that the presence of market logic decreases evaluators intent to transact with the organization, mediated through moral legitimacy. We do not confirm our hypothesis, however, that hybrid form decreases intent to transact, mediated through cognitive legitimacy. We further find that the negative market logic effect does not vary by organizational field. Our explicit focus on market logic, and its moral legitimacy evaluations, forms our core contribution to hybrid organizing scholarship, which tends to heavily lean upon the categories scholarship to explain negative audience evaluations.
+
+**Keywords** hybrid organizing, institutional theory, legitimacy, market logic, moral values, organizational theory
+
+*Article*
+
+**1324062** BASXXX10.1177/00076503251324062Business & Society**Peifer and Liu** *research-article*2025
+
+[^1]: Franklin & Marshall College, Lancaster, PA, USA
+
+[^2]: Northern Kentucky University, Highland Heights, KY, USA **Corresponding Author:** Jared L. Peifer, Franklin & Marshall College, PO Box 3003, Lancaster, PA 17604-3003, USA. Email: jpeifer@fandm.edu
+```
+
+#### Ragins craft of clear writing 2012, PDF p. 1
+
+Before and after: identical.
+
+```markdown
+### REFLECTIONS ON THE CRAFT OF CLEAR WRITING
+
+| Journal: | Academy of Management Review |
+| --- | --- |
+| Manuscript ID: | AMR-2012-0165-FTE |
+| Manuscript Type: | From the Editor (AMR Editors Only) |
+| Keyword: | Abilities (Individual), Adaptation/Change, Attitudes/Beliefs/Values |
+
+# Academy of Management Review
+```
+
+#### Target-Validation-Protocol, PDF p. 45
+
+Before and after: identical.
+
+```markdown
+<!-- table p. 45: reconstruction failed; text kept as prose -->
+
+NZA = Percentage reduction (%) required for reaching the sector’s emissions intensity in 2050 from
+
+the chosen target base year (depends on sector and base year intensity).
+
+A0
+= Minimum target ambition (%) based on the sector-specific intensity method before FLA
+
+adjustment.
+
+<!-- table p. 45: reconstruction failed; text kept as prose -->
+
+Option 2. The emissions intensity reduction between the most recent year and target year is
+consistent with intensity convergence between the most recent year and 2050.
+In other words, the target needs to be consistent with the ambition required from the sector-specific
+intensity method using most recent year data. In some cases, this will require a larger reduction than
+calculated by the sector-specific intensity convergence using base year data.
+```
+
+#### Target-Validation-Protocol, PDF p. 48
+
+Before and after: identical.
+
+```markdown
+As this issue has not been settled to date in the GHG Protocol process, the SBTi recommends a conservative approach at this time. Companies should only include emission reductions or removals (removals only in the case of FLAG targets) from “insetting” projects that use a corporate accounting approach and are wholly contained within their supply chains or the portion of a “partially-included” project that is within their supply chain and linked directly to sourcing. For further information, please see this resource. Further work is ongoing to standardize the definition of insetting/supply chain interventions and clear accounting methodologies. For these reasons, the SBTi will assess insetting on a case-by-case basis during the validation process and may not approve their use.
+
+<!-- table p. 48: reconstruction failed; text kept as prose -->
+
+Green gas/biogas
+
+The SBTi currently recommends that companies follow the guidance within the GHG
+Protocol and Corporate Standard on the use of green gas. Currently, the GHG Protocol
+does not allow the use of green gas certificates to reduce scope 1 emissions. However,
+this topic is being discussed as part of the current GHG Protocol land sector and bioenergy
+guidance development process.  As such, the SBTi cannot guarantee that these
+certificates would be a valid approach to meeting your science-based target.
+
+Accounting for emissions from non-rechargeable batteries
+
+Emissions from production and waste of non-rechargeable batteries must be accounted
+i.e., production emissions accounted for in scope 3 category 1 “purchased goods and
+services”, waste in operations accounted for in scope 3 category 5 “waste” and emissions
+from the end use of batteries accounted for in scope 3 category 12 “end-of-life treatment
+of sold products”.
+
+Renewable Energy Certificates (RECS)
+
+Companies may use Renewable Energy Certificates (RECs) as a measure to reduce
+scope 2 market-based emissions. However, the RECs need to be purchased and used
+within the same market, and cannot be used as a reduction mechanism for markets that
+the certificates were not purchased from. For more information please consult the RE100
+Technical Criteria and the Scope 2 Quality Criteria in the GHG Protocol’s Scope 2
+Guidance.
+
+Market-based scope 3 accounting
+The SBTi continues to follow Greenhouse Gas Protocol guidance, which has no
+framework for market-based scope 3 accounting. Therefore, the SBTi does not permit
+```
+
+#### kostova1999, PDF p. 7
+
+Before and after: identical.
+
+```markdown
+<!-- ocr page 7 -->
+
+| 1999 |  | Kostova and Zaheer FIGURE 1 | 69 |
+| --- | --- | --- | --- |
+|  | Pl. | Regulatory/cognitive/ |  |
+| Envi tal |  | normative domains |  |
+| complexity | P2 | Number and variety of countries |  |
+|  | > P3. | Institutional distance | MNE subunit Challenge to establishing |
+|  | P4,. | External versus internal | and maintaining |
+| Organizational |  | legitimacy | legitimacy |
+| complexity | P5. | Geocentric/polycentric/ |  |
+|  | P6. | Liability of foreignness |  |
+|  | P7. | Visibility and size of MNE |  |
+| Complexity of the | P8 | Legitimacy of local firms | MNE |
+| legitimation process | PQ. | Legitimacy of other parts of | Challenge to |
+|  | > | the MNE | maintaining |
+|  | P10. | Legitimacy of classes of organizations | legitimacy |
+
+the existence of multiple domains of the institutional environment, in this article we treat the legitimacy of an organization or of an organizational subunit as holistic in nature (ie., there is one overall legitimacy of an organizational unit), even though it may be affected by the different domains of the institutional environment in which the organization functions.
+
+We draw from institutional theory (Meyer & Rowan, 1977; Scott, 1995; Zucker, 1983) to suggest a set of institutional domains based on the three pillars of institutional environments suggested by Scott (1995): the regulatory, the cognitive, and the normative. The regulatory pillar is composed of regulatory institutions—that is, the rules and laws that exist to ensure stability and order in societies (North, 1990; Streek & Schmitter, 1985; Williamson, 1975, 1991). Organizations have to comply with the explicitly stated requirements of the regulatory system to be legitimate, although they do have the ability, particularly in the long run, to influence the regulatory domain through interest intermediation (Murtha & Lenway, 1994).
+
+The cognitive pillar draws from social psychology (Berger & Luckman, 1967) and the cognitive school of institutional theory (Meyer & Rowan, 1977; Zucker, 1983). Organizations have to conform to or be consistent with established cognitive structures in society to be legitimate. In other words, what is legitimate is what has a “taken for granted” status (Aldrich & Fiol, 1994; Suchman, 1995) in society.
+
+The normative pillar goes beyond regulatory rules and cognitive structures to the domain of social values (Selznick, 1957). Organizational legitimacy, in this view, accrues from congruence between the values pursued by the organization and wider societal values (Parsons, 1960). It is “the degree of cultural support for an organization,” which, presumably, will result from such congruence in values (Meyer & Scott, 1983: 201).
+
+The three domains are not necessarily independent. Values, for instance, may drive cognitive categorization and, in turn, influence and be influenced by regulation. The cognitive and normative domains emerge through processes of education and socialization, and the regulatory
+```
+
+#### paper, PDF p. 1
+
+Before and after: identical.
+
+```markdown
+# Nonlinear Throughput Response in Distributed Assembly
+
+### A. Researcher B. Coauthor
+
+## Abstract
+
+We examine throughput under varying load. A nonlinear response appears above a critical rate, consistent with standard queueing bounds. The effect is stable across three independent samples and is not an artifact of measurement granularity.
+
+## 1 Introduction
+
+Prior work has focused on static loads, which cannot separate capacity constraints from scheduling artifacts because the two produce observationally equivalent steady states. We extend the analysis to dynamic regimes, where the distinction becomes identifiable. Our contribution is threefold, and each part depends on an apparatus whose calibration is unusually delicate, so we describe it at length before turning to the estimation strategy that occupies the remainder of this section.
+
+## 2 Model
+
+Let *λ* denote the arrival rate and *µ* the service rate. The utilization is
+
+$$
+ρ = λ µ, 0 < ρ < 1. (1)
+$$
+
+Expected queue length follows the standard result
+
+$$
+E[L] = ρ2 1 −ρ + ρ = ∞ X n=1 n(1 −ρ)ρn. (2)
+$$
+
+The bound is tight as *ρ →*1<sup>−</sup>, which motivates the design below.
+
+## 3 Method
+
+Three conditions were run:
+
+- Baseline: nominal scheduling, no preemption.
+- Treatment A: preemptive scheduling enabled.
+- Treatment B: hybrid policy.
+
+Each condition comprised roughly 120 trials, randomized within block.[^1]
+
+## 4 Results
+
+Table 1 reports descriptives by condition. Both treatments exceed baseline, and Treatment A exceeds Treatment B.
+
+| Condition | N | Mean | SD |
+| --- | --- | --- | --- |
+| Baseline | 120 | 41.2 | 3.4 |
+| Treatment A | 118 | 52.7 | 4.1 |
+| Treatment B | 121 | 48.9 | 3.9 |
+| Pooled | 359 | 47.6 | 6.2 |
+
+*Table 1: Throughput by condition, pooled across blocks.*
+
+## 5 Discussion
+
+If the constraint were purely physical, preemption should not help; that it does help implies a scheduling component.[^2]Future work should examine attenuation at higher loads.
+
+[^1]: We thank two anonymous reviewers for helpful comments.
+
+[^2]: Replication materials are archived at the project site.
+```
+
+#### hard, PDF p. 1
+
+Before and after: identical.
+
+```markdown
+# Reading Order Under Adversarial Layout: A Synthetic Benchmark for Weight-Free PDF Conversion
+
+### Ada Lovelace and Charles Babbage
+
+*Analytical Engine Laboratory, London*
+
+**Abstract** Reading order is the first thing a converter gets wrong and the last thing a reader forgives. The character stream of a well-formed PDF already encodes the order in which the author expected the text to be read. Geometric sorting of blocks discards that signal and replaces it with a guess about columns. On two-column pages the guess fails at every figure, every table, and every footnote. Nothing in the pipeline depends on a downloaded model, which is the constraint that motivated the project. We report where the approach breaks so that a reader can decide whether it fits their documents.
+
+## 1 Introduction
+
+Reading order is the first thing a converter gets wrong and the last thing a reader forgives[^1]. The character stream of a well-formed PDF already encodes the order in which the author expected the text to be read. Geometric sorting of blocks discards that signal and replaces it with a guess about columns. On two-column pages the guess fails at every figure, every table, and every footnote.
+
+We therefore treat stream order as authoritative and only intervene where a page has no text layer at all. Running heads are the second source of noise, because they repeat on every page and sit exactly where a heading would. Position alone cannot separate the two: a section title drawn at the top margin looks like a header to any rule that only inspects coordinates. Repetition can, since a header recurs across pages while a title appears once.
+
+## 2 Related Work
+
+The benchmark documents in this study were built to exercise those two decisions and nothing else. Each document is short, synthetic, and free of copyright, so it can be redistributed[^2]with the converter. Hyphenation across a column break is a small case that reveals whether continuation logic inspects the trailing character of a line. A converter that joins lines with a space will emit a broken word at every such break.
+
+Tables were drawn with visible ruling lines so that the vector-based detector fires before the text-alignment fallback. Footnotes were set two points smaller than the body and anchored in the bottom fifth of the column. Their labels are superscript digits, and matching digits appear in the body at the point of reference. The abstract runs across the full measure while the body is set in two columns, which is the arrangement most journals use.
+
+The manuscripts we care about in practice are less tidy than this, and we return to them in the discussion. The text-layer path handles digital publications; a raster copy of the same file drives the recognition path. Both paths converge on the same block structure before any processor runs. Nothing in the pipeline depends on a downloaded model, which is the constraint that motivated the project.
+
+## 3 Benchmark Design
+
+Line heights are clustered to recover heading levels when a document has no section numbers. When numbers are present they win, because a numbered heading states its own depth. Captions are recognised by their leading label and attached to the nearest figure or table above them. Equations are left as images for a later pass rather than transcribed into notation that would be wrong half the time.
+
+The remaining processors are direct ports and are documented against the source files they come from. Every threshold in the code was set by looking at a failure, not by tuning against a corpus. That makes the thresholds easy to defend and easy to revise when a new failure appears. We report where the approach breaks so that a reader can decide whether it fits their documents.
+
+[^1]: Readers do forgive a wrong word; they rarely forgive a paragraph from the second column spliced into the first.
+
+[^2]: The footer zone is the bottom thirteen percent of the page in the reference implementation.
+```
+
+### Final validation
+
+`python tests/regress.py` passed: all fixtures match, including the new
+front-matter negative case, independently converted page-1 controls, and
+fallback-prose token/order/statistics checks. `git diff --check` is clean.
+`table_recon.py` and GUI code are unchanged. CLAUDE.md's pipeline and status
+pointer are updated; AGENTS.md was regenerated with tools/sync_agents.py.
+No release tag was created.

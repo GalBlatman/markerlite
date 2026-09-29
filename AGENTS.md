@@ -58,6 +58,9 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
 2. `detect_tables` — `find_tables` cascade (ruling lines, then
    `vertical_strategy="text", horizontal_strategy="lines"` for booktabs), then
    `reconstruct_table_html` from table_recon on word tokens re-split at gaps.
+   Journal front matter with an Abstract label, long prose, a larger preceding
+   title and publication metadata stays in its original blocks for heading/prose
+   classification (`journal_front_matter`); page-1 data tables remain eligible.
    `_table_sane` rejects absurd grids. Never use the whole-page `text/text`
    strategy: it matches every page.
 3. `classify` — order matters: Equation → Code → Caption → **Footnote before
@@ -343,7 +346,7 @@ parentheses fails if the fix is undone):
 
 - Table work follows tests/PLAN-tables.md; items 0, 1, 7, 8, 11b done;
   fallback-to-prose done; item 5 not needed after fallback-to-prose (no evidence
-  in 44 remaining reference regions); item 6 next; 2,3,4 then 9,10,11a,11c pending review; 12 is evidence only. Items 2 and 5 carry extra
+  in 44 remaining reference regions); item 6 done; 2,3,4 then 9,10,11a,11c pending review; 12 is evidence only. Items 2 and 5 carry extra
   evidence from five journal articles (tests/REPORT-batch2.md).
 - Pipeline documents (R00443, R00030, R00087, R00639, R00077) are read in
   place from /home/galbl/unknown-knowns/ in WSL and never copied here. Four of
