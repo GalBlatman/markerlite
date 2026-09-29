@@ -11,9 +11,9 @@ a change in behaviour; if the change is intended, rerun with --update and
 commit the new expected files together with the code change, so the review
 shows exactly what moved.
 
-Fixtures that need Tesseract (the OCR path) are skipped when ``tesseract`` is
-not on PATH, and say so; they never fail for that reason alone. The expected
-output for those was produced with Tesseract 5.5.0.
+Fixtures that need Tesseract (the OCR path) compare only with Tesseract 5.5.0,
+the version that produced their expected output. A missing or different
+version is skipped explicitly; separate smoke checks still require OCR to run.
 
 Comparison is newline-normalised: the converter writes with the platform's
 line ending and the expected files are stored with LF.
@@ -642,7 +642,11 @@ def main(argv=None) -> int:
         print(f"no fixtures found under {FIXTURES}")
         return 2
 
-    have_tesseract = markerlite.extraction.discover_tesseract() is not None
+    tesseract = markerlite.extraction.discover_tesseract()
+    tesseract_matches = bool(
+        tesseract
+        and markerlite.extraction.tesseract_version(tesseract) == "tesseract 5.5.0"
+    )
     EXPECTED.mkdir(parents=True, exist_ok=True)
     failures = 0
     with tempfile.TemporaryDirectory(prefix="markerlite-regress-") as td:
@@ -650,8 +654,8 @@ def main(argv=None) -> int:
         for pdf in pdfs:
             stem = pdf.stem
             exp_path = EXPECTED / f"{stem}.md"
-            if stem in NEEDS_TESSERACT and not have_tesseract:
-                print(f"SKIP  {stem:16s} needs tesseract on PATH")
+            if stem in NEEDS_TESSERACT and not tesseract_matches:
+                print(f"SKIP  {stem:16s} needs Tesseract 5.5.0")
                 continue
             got = convert_to_string(pdf, workdir)
             if stem in (
