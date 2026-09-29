@@ -1234,3 +1234,32 @@ calculated by the sector-specific intensity convergence using base year data.
 - [SBTi resulting Markdown](/tmp/batchC-prose/Target-Validation-Protocol.md)
 
 Boxed-prose evidence check (step 3) and journal front matter (step 4) follow this implementation commit. No release tag is authorized.
+
+## Step 3: reconstructed boxed-prose evidence check
+
+Checked after implementation commit `2103350`: **44 remaining reconstructed/proposed regions across all ten reference documents; no standalone boxed prose found.** Item 5 is marked exactly “not needed after fallback-to-prose, no evidence” in PLAN. No detection rule was implemented. This is a scoped negative result for these inputs, not a claim that all remaining reconstructed grids are structurally correct.
+
+Method: enumerate every non-fallback Table at render, inspect its complete cell matrix, render its source bounding box, and compare with the printed layout. Candidate fragments inside the SBTi criteria/sector parent tables are not treated as standalone boxes. Source crops and seven overview sheets are under `/tmp/batchC-box-review/`; the cell identities are also in the committed `tests/batchC-fallback-audit.json`.
+
+| Document | Remaining regions | Finding |
+| --- | ---: | --- |
+| Target-Validation-Protocol | 25 | Version history, criteria-table cells/fragments, numerical examples, and sector/guidance tables; bordered narrative cells belong to parent tables. |
+| Ragins craft of clear writing 2012 | 1 | p. 1 submission metadata is a genuine key/value table. |
+| peng2009 | 1 | p. 14 topic/debate table. |
+| greenwood2006 | 1 | p. 11 numerical market-share/revenue table fragment. |
+| wry2013 | 3 | p. 37 unboxed numbered endnotes remain a false proposal; pp. 46–47 journal/count tables. |
+| jay2013 | 2 | p. 6 interview counts and observation-frequency/count table. |
+| york2018 | 8 | Numerical correlation/regression tables or fragments on pp. 12, 14–15, 22–23. |
+| kitchener2002 | 1 | p. 28 unboxed bibliography entry remains a false proposal. |
+| suchman1995 | 0 | No remaining reconstructed/proposed table region. |
+| kostova1999 | 2 | p. 7 Figure 1 is a diagram, not a bordered prose paragraph; p. 10 Proposition 3 is unboxed text. Both remain false table proposals. |
+
+**Kostova Figure 1, PDF p. 7:** the label is still inside the proposed table. No figure placeholder appears on that page after step 2. Fallback-to-prose does not affect this successful text-table proposal. The source is an arrow diagram with labeled boxes, not a single flowing boxed paragraph. The independent unboxed Proposition 3 on p. 10 is likewise outside the replaced boxed-prose rule. These remaining defects are recorded rather than silently broadening item 5.
+
+![Kostova Figure 1](/tmp/batchC-box-review/kostova1999-1.png)
+
+![Kostova Proposition 3](/tmp/batchC-box-review/kostova1999-2.png)
+
+**SBTi p. 48:** its former nine-column fallback is now source prose under the non-clean branch. This intentionally loses the parent-table layout, as authorized for every fallback, while preserving all its source tokens. This supersedes the older requirement to retain its geometric cells. Successful parent-table reconstructions elsewhere retain their cells.
+
+Step 3 changes documentation only. Step 4 (PLAN item 6) remains next.

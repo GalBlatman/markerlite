@@ -290,6 +290,17 @@ dehyphenation and HTML escaping. `hard.pdf` numeric duplicates must remain disti
 
 ### 5. Separate boxed prose from one-column tables
 
+**Status: not needed after fallback-to-prose, no evidence.** After commit
+2103350, checked all 44 remaining reconstructed/proposed regions across the
+ten reference documents against their source-page crops and emitted cells.
+No standalone bordered paragraph remained. SBTi narrative cells belong to
+parent tables; remaining false proposals in Wry, Kitchener, and Kostova are
+unboxed notes/references/proposition or a diagram. No prose detector was added.
+See the step 3 evidence table in tests/REPORT-batchC-block1.md. The mechanism,
+proposed fix, and fixture below are historical, not an outstanding implementation
+instruction.
+
+
 **Observed mechanism:** SBTi p. 48's Table 4 contains boxed narrative continuation
 text in its upper-right cell. The real page is a two-column table; a `text/lines`
 candidate instead invents **nine columns** through the prose. This is a verified

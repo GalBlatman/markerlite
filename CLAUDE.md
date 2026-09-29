@@ -341,8 +341,8 @@ parentheses fails if the fix is undone):
 ## Open items
 
 - Table work follows tests/PLAN-tables.md; items 0, 1, 7, 8, 11b done;
-  fallback-to-prose implemented in batch C; item 5 evidence check and item 6
-  remain outstanding; 2,3,4 then 9,10,11a,11c pending review; 12 is evidence only. Items 2 and 5 carry extra
+  fallback-to-prose done; item 5 not needed after fallback-to-prose (no evidence
+  in 44 remaining reference regions); item 6 next; 2,3,4 then 9,10,11a,11c pending review; 12 is evidence only. Items 2 and 5 carry extra
   evidence from five journal articles (tests/REPORT-batch2.md).
 - Pipeline documents (R00443, R00030, R00087, R00639, R00077) are read in
   place from /home/galbl/unknown-knowns/ in WSL and never copied here. Four of
