@@ -1,14 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
-  <!-- markerlite: a page, and the one glyph that says "Markdown" -->
-  <rect x="0" y="0" width="256" height="256" rx="56" fill="#2b3a55"/>
-  <!-- page with folded corner -->
-  <path d="M72 40 h76 l40 40 v136 a8 8 0 0 1 -8 8 H80 a8 8 0 0 1 -8 -8 Z" fill="#faf9f7"/>
-  <path d="M148 40 v32 a8 8 0 0 0 8 8 h32 Z" fill="#c9c3ba"/>
-  <!-- hash: two verticals, two horizontals, drawn as strokes -->
-  <g stroke="#4a6fa5" stroke-width="16" stroke-linecap="round" fill="none">
-    <line x1="108" y1="100" x2="98" y2="196"/>
-    <line x1="150" y1="100" x2="140" y2="196"/>
-    <line x1="88" y1="128" x2="172" y2="128"/>
-    <line x1="82" y1="168" x2="166" y2="168"/>
+  <!-- markerlite mark: a slanted folder holding a page; the page's text
+       flows out to the right as detached lines. The lines are separated
+       from the page by a clear gap and sit fully above the folder edge,
+       so the mark does not collapse into an "E" and no line is lost. -->
+  <g transform="translate(-6 0) skewX(-14) translate(50 0)">
+    <!-- folder back with tab -->
+    <path fill="#2F4C8F" d="M30 70 h40 l8 -14 h32 l-6 14 h44 v104 h-118 z"/>
+    <!-- page -->
+    <rect x="50" y="54" width="94" height="146" fill="#FFFFFF" stroke="#2F4C8F" stroke-width="8" stroke-linejoin="round"/>
+    <path d="M144 54 v32 h-32 z" fill="#C9CFDA"/>
+    <!-- short text lines on the page itself -->
+    <g stroke="#2F4C8F" stroke-width="7" stroke-linecap="round">
+      <line x1="66" y1="106" x2="118" y2="106"/>
+      <line x1="66" y1="126" x2="126" y2="126"/>
+      <line x1="66" y1="146" x2="110" y2="146"/>
+    </g>
+    <!-- folder front flap -->
+    <path fill="#2F4C8F" d="M30 156 h118 v44 h-118 z"/>
+  </g>
+  <!-- text lines flowing out, detached from the page, above the flap -->
+  <g transform="translate(-6 0)" stroke="#2F4C8F" stroke-width="11" stroke-linecap="round">
+    <line x1="190" y1="86"  x2="236" y2="86"/>
+    <line x1="182" y1="112" x2="246" y2="112"/>
+    <line x1="176" y1="138" x2="234" y2="138"/>
   </g>
 </svg>

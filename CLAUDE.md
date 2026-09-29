@@ -26,7 +26,9 @@ table_recon.py       VENDORED from Marker (Apache-2.0). Table grid reconstructio
                      Do not "improve" it; treat as third-party.
 check_gui.py         static check: every `self.x()` in App resolves to a method.
                      RUN IT after any edit to markerlite_gui.py.
-assets/              icon.ico / icon.svg / icon-256.png
+assets/              icon.ico / icon.svg / icon-256.png / logo-wordmark.png.
+                     icon.svg is the vector source; the others are supplied
+                     files. Do not redraw or regenerate them.
 build_exe.bat        local PyInstaller onedir build (Windows)
 .github/workflows/build-windows.yml   CI: builds the exe; on a v* tag publishes
                      a GitHub Release with markerlite-windows.zip (idempotent -

@@ -1,4 +1,4 @@
-<img src="assets/icon-256.png" width="72" align="right" alt="">
+<img src="assets/logo-wordmark.png" width="480" alt="markerlite">
 
 # markerlite — Marker's document understanding, without the weights
 
