@@ -35,3 +35,19 @@ unchanged. The full before/after source audit remains in
 | 43 | 3 | `{"2030": 1, "100%": 1, "temperature": 1}` |
 | 45 | 2 | `{"is": 1, "data.": 1}` |
 | 62 | 5 | `{"and": 1, "year].": 1, "to": 1, "1,2": 1, "be": 1}` |
+
+## Step 1: visible suppression, unchanged Markdown
+
+Added `stats["suppressed"]` records with stable `page`, `bbox`, `text`, and
+`reason` fields. Whole-block removal records each source line separately;
+merged running-head removal records the removed line. Native provenance pages,
+OCR notice pages, provenance stamps and the extraction tilt filter are covered.
+Relocation into captions/footnotes is not suppression. summarize() reports the
+number of records. CLAUDE.md documents the contract; AGENTS.md is regenerated.
+
+The full fixture regression passes without updating any expected Markdown.
+Additional contract assertions cover field names, page numbering, bboxes,
+summary counts and the watermark, provenance, line-number and footer passes.
+Real-document suppression traces are captured before changing the rules for
+Packet B and the reference set; they are evidence for the subsequent fix,
+not a claim that the current suppressed lines are all furniture.

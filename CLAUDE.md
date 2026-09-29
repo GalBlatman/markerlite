@@ -152,6 +152,17 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
   words. A report cover with a full-page picture and a short title trips it
   (SBTi p1); that is a known false positive, not a bug in the count.
 
+### Suppression audit contract
+
+`info["stats"]["suppressed"]` is always a list. Each record has stable fields:
+`page` (one-based PDF page), `bbox` ([x0,y0,x1,y1] in points in the normalized
+page orientation), `text` (unformatted source-line text), and `reason` (pass
+name: `proc_line_numbers`, `proc_ignore_common`, `proc_marginalia`,
+`provenance`, or `tilt_filter`). Every removed furniture/provenance/tilted line
+is recorded, including lines cut from a retained block. Caption/footnote or
+paragraph relocation is not suppression. summarize() reports the list length.
+The downstream bump protocol consumes these field names; keep them stable.
+
 ## Workflow rules
 
 - After editing CLAUDE.md, run python tools/sync_agents.py and commit AGENTS.md

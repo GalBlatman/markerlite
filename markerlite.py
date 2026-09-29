@@ -288,6 +288,7 @@ class Page:
     height: float
     blocks: List[Block]
     images: List[dict] = field(default_factory=list)
+    suppressed: List[dict] = field(default_factory=list)
     ocr_used: bool = False
     # table_recon vs. geometric-cell decisions on this page (see
     # TABLE_FALLBACK_MIN_KEEP): how many tables were emitted, and how many of
@@ -784,6 +785,7 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
             return ocr_page
 
     counter = 0
+    suppressed = []
     blocks: List[Block] = []
     for b in raw.get("blocks", []):
         if b.get("type") != 0:
@@ -797,6 +799,11 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
             # processor sees it.
             direction = ln.get("dir", (1.0, 0.0))
             if len(direction) == 2 and abs(direction[1]) > max_line_tilt:
+                text = "".join("".join(c.get("c", "") for c in sp.get("chars", []))
+                               or sp.get("text", "") for sp in ln.get("spans", []))
+                if text.strip():
+                    suppressed.append({"page": page_idx + 1, "bbox": list(ln["bbox"]),
+                                       "text": text, "reason": "tilt_filter"})
                 continue
             spans: List[Span] = []
             for s in ln.get("spans", []):
@@ -842,6 +849,7 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
         width=page.rect.width,
         height=page.rect.height,
         blocks=blocks,
+        suppressed=suppressed,
         ocr_used=ocr_used,
         image_only=image_only,
         raster_covered=raster_covered,
@@ -1949,6 +1957,25 @@ def _title_case(words: List[str]) -> bool:
 TEXTISH = ("Text", "SectionHeader", "ListItem", "Caption", "Equation")
 
 
+def _record_suppressed(page: Page, lines, reason: str) -> None:
+    """Stable public audit records; PDF page is one-based, bbox is in points.
+
+    Record source lines, not formatted Markdown. Relocation into a caption,
+    table, footnote or another paragraph is not suppression.
+    """
+    for line in lines:
+        if line.text.strip():
+            page.suppressed.append({"page": page.page_idx + 1,
+                                    "bbox": list(line.bbox),
+                                    "text": line.text, "reason": reason})
+
+
+def _suppress_block(page: Page, block: Block, reason: str) -> None:
+    if not block.ignore_for_output:
+        _record_suppressed(page, block.lines, reason)
+        block.ignore_for_output = True
+
+
 def proc_line_numbers(pages: List[Page], margin_frac=0.14, min_count=8) -> None:
     """marker/processors/line_numbers.py - manuscript line numbers in the margin.
 
@@ -1986,13 +2013,13 @@ def proc_line_numbers(pages: List[Page], margin_frac=0.14, min_count=8) -> None:
             if (len(lines) >= min_count
                     and all(x.isdigit() and len(x) <= 4 for x in lines)
                     and _increasing([int(x) for x in lines])):
-                blk.ignore_for_output = True
+                _suppress_block(page, blk, "proc_line_numbers")
         if len(cands) < min_count:
             continue
         vals = [v for v, _ in sorted(cands, key=lambda c: c[1].y_start)]
         if _increasing(vals):
             for _v, blk in cands:
-                blk.ignore_for_output = True
+                _suppress_block(page, blk, "proc_line_numbers")
 
 
 def proc_ignore_common(pages: List[Page]) -> None:
@@ -2004,7 +2031,7 @@ def proc_ignore_common(pages: List[Page]) -> None:
             firsts.append(cand[0])
             lasts.append(cand[-1])
     for group in (firsts, lasts):
-        _filter_common(group)
+        _filter_common(group, pages=pages)
 
 
 def _clean_text(text: str) -> str:
@@ -2018,7 +2045,7 @@ def _clean_text(text: str) -> str:
     return text
 
 
-def _filter_common(blocks: List[Block], threshold=0.2, min_blocks=3, max_streak=3, match=90):
+def _filter_common(blocks: List[Block], threshold=0.2, min_blocks=3, max_streak=3, match=90, pages=()):
     if len(blocks) < min_blocks:
         return
     texts = [_clean_text(b.text) for b in blocks]
@@ -2034,7 +2061,8 @@ def _filter_common(blocks: List[Block], threshold=0.2, min_blocks=3, max_streak=
         return
     for t, b in zip(texts, blocks):
         if any(fuzz.ratio(t, c) > match for c in common):
-            b.ignore_for_output = True
+            page = next(p for p in pages if p.page_idx == b.page_idx)
+            _suppress_block(page, b, "proc_ignore_common")
 
 
 PAGE_NUMBER_ONLY = re.compile(r"^[\s\-\u2013\u2014|]*(?:\d{1,4}|[ivxlcdmIVXLCDM]{1,7})[\s\-\u2013\u2014|]*$")
@@ -2139,7 +2167,8 @@ def proc_marginalia(pages: List[Page], header_zone=0.08, footer_zone=0.13,
             continue  # never drop a heading on position alone
         if page_idx == 0 and not repeats and not bare_number:
             continue  # page 1 carries titles; require proof it is furniture
-        blk.ignore_for_output = True
+        page = next(p for p in pages if p.page_idx == page_idx)
+        _suppress_block(page, blk, "proc_marginalia")
 
     _strip_merged_running_heads(pages, groups, keys)
 
@@ -2175,6 +2204,7 @@ def _strip_merged_running_heads(pages: List[Page], groups: dict, keys: List[str]
                 (s.size for ln in blk.lines[1:] for s in ln.spans), default=0)
             if not (rest_size and head_size < 0.95 * rest_size):
                 continue
+            _record_suppressed(page, blk.lines[:1], "proc_marginalia")
             blk.lines = blk.lines[1:]
             blk.bbox = _bbox_of([ln.bbox for ln in blk.lines])
             blk.char_pos = blk.lines[0].char_pos
@@ -3746,7 +3776,7 @@ def _drop_ocr_notice(page: Page, provenance: List[str]) -> None:
     key = re.sub(r"[^a-z]", "", _EBSCO_PHRASE.lower())
     if key in squeezed and len(flat) < 700:
         for blk in page.blocks:
-            blk.ignore_for_output = True
+            _suppress_block(page, blk, "provenance")
         page.raster_covered = False     # nothing to yield: not a low-yield page
         page.source_words = 0           # dropped on purpose: not a lossy page
         comment = _ebsco_comment(flat)
@@ -3769,7 +3799,7 @@ def _drop_provenance_lines(page: Page, drop_lines: set) -> None:
         return bool(t) and all(w in pieces for w in t.split())
     for blk in page.blocks:
         if blk.lines and all(is_prov(ln.text) for ln in blk.lines):
-            blk.ignore_for_output = True
+            _suppress_block(page, blk, "provenance")
 
 
 def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
@@ -3787,8 +3817,13 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
         if i in drop_pages:
             # An aggregator cover: nothing on it is the article. Keep an
             # empty page so page numbers in markers stay true to the PDF.
+            removed = [{"page": i + 1, "bbox": list(ln["bbox"]),
+                        "text": "".join(sp["text"] for sp in ln["spans"]),
+                        "reason": "provenance"}
+                       for block in doc[i].get_text("dict")["blocks"]
+                       for ln in block.get("lines", [])]
             pages.append(Page(page_idx=i, width=doc[i].rect.width,
-                              height=doc[i].rect.height, blocks=[]))
+                              height=doc[i].rect.height, blocks=[], suppressed=removed))
             continue
         p = extract_page(doc[i], i)   # may turn a sideways page upright, in memory
         # On an OCR'd page the native layer is gone, but Tesseract reads the
@@ -3852,6 +3887,7 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
             lossy.append({"page": p.page_idx + 1, "source": p.source_words,
                           "emitted": emitted})
     manifest["stats"] = {
+        "suppressed": [record for page in pages for record in page.suppressed],
         "pages": len(pages),
         "bytes": len(md.encode("utf-8")),
         "words": content_words(md),
@@ -3901,6 +3937,7 @@ def summarize(stats: dict) -> str:
     # Warnings (image-only pages with no OCR, low-yield pages, table
     # fallbacks, provenance) come from stat_warnings so the CLI, the GUI
     # and the run log say the same thing. Silence here was the bug.
+    parts.append(f"{len(stats.get('suppressed', []))} source lines suppressed")
     parts.extend(stat_warnings(stats))
     return " · ".join(parts)
 

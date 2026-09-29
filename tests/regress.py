@@ -43,6 +43,16 @@ NEEDS_TESSERACT = {"scanned", "isolated_ocr_page", "scanned_with_stamp", "justif
 
 def convert_to_string(pdf: pathlib.Path, workdir: pathlib.Path) -> str:
     out, _info = markerlite.convert(pdf, workdir)
+    records = _info["stats"]["suppressed"]
+    for record in records:
+        assert set(record) == {"page", "bbox", "text", "reason"}
+        assert isinstance(record["page"], int) and record["page"] >= 1
+        assert len(record["bbox"]) == 4 and record["text"].strip()
+    assert f"{len(records)} source lines suppressed" in markerlite.summarize(_info["stats"])
+    required = {"watermark": "tilt_filter", "manuscript_numcol": "proc_line_numbers",
+                "provenance_pages": "provenance", "hard_footer_first": "proc_marginalia"}
+    if pdf.stem in required:
+        assert any(r["reason"] == required[pdf.stem] for r in records)
     return out.read_text(encoding="utf-8")  # universal newlines -> "\n"
 
 
