@@ -51,3 +51,81 @@ summary counts and the watermark, provenance, line-number and footer passes.
 Real-document suppression traces are captured before changing the rules for
 Packet B and the reference set; they are evidence for the subsequent fix,
 not a claim that the current suppressed lines are all furniture.
+
+## Step 2: historical bisection
+
+Historical converter revisions were loaded directly from Git into memory and run
+on the original PDFs. The working converter was not replaced and no PDF was
+copied. Binary searches over converter-changing commits trace the first new
+furniture suppression; adjacent tested converter revisions bracket each change.
+Rendered-output checks on `7945428` and `a891dda` expose an important earlier
+loss: **20 rotated-page cases became entirely blank at a891dda**. The later
+`ab57a91` rotation repair made their text readable again but exposed it to the
+furniture passes. Reporting ab57a91 alone as the first loss would be misleading.
+All 20 affected page outputs at a891dda are empty after their page marker.
+
+Thus 23 new cases first lose source content at **a891dda**, and seven at
+**5506fe7**. At the current furniture-pass level, 20 are exposed by ab57a91,
+seven by 5506fe7, and three by a891dda. The fourteen pre-existing cases all
+come from `proc_ignore_common` / `_filter_common`: repeated boundary text is
+suppressed regardless of caption/table context or edge position.
+
+- `a891dda`: removes the footer stream-order guard (axis tick `-1`, `5`, `0`);
+  removes tilted native lines (20 entire landscape-page cases); extends the
+  increasing-integer detector to a single multiline block (the Year column).
+- `5506fe7`: strips digit-bearing edge tokens from repetition keys. Numeric
+  fragments collapse to an empty key; content fragments falsely match other
+  edge text. R00160's second tick, `-4.5`, also joins the loss here; `-1` was
+  already lost at a891dda.
+- `ab57a91`: normalizes sideways pages, restoring their text into the normal
+  pipeline; unprotected repeated headers/captions and page-edge final rows
+  are then removed by the furniture passes.
+
+| Case | Document | PDF page | First source loss (or old rule) | Current furniture-path introduction | Suppressed distinct target strings: e419550 → HEAD |
+| --- | --- | ---: | --- | --- | ---: |
+| B01 | R02659 | 8 | 5506fe7 | 5506fe7 | 0 → 9 |
+| B02 | S0004 | 7 | a891dda (tilt; entire page) | ab57a91 | 0 → 6 |
+| B02 | S0004 | 8 | a891dda (tilt; entire page) | ab57a91 | 0 → 6 |
+| B02 | S0004 | 9 | a891dda (tilt; entire page) | ab57a91 | 0 → 6 |
+| B02 | S0004 | 10 | a891dda (tilt; entire page) | ab57a91 | 0 → 6 |
+| B02 | S0004 | 11 | a891dda (tilt; entire page) | ab57a91 | 0 → 6 |
+| B02 | S0004 | 12 | a891dda (tilt; entire page) | ab57a91 | 0 → 6 |
+| B02 | S0004 | 18 | a891dda (tilt; entire page) | ab57a91 | 0 → 6 |
+| B02 | S0004 | 19 | a891dda (tilt; entire page) | ab57a91 | 0 → 6 |
+| B03 | R00263 | 10 | a891dda (tilt; entire page) | ab57a91 | 0 → 3 |
+| B03 | R00263 | 15 | a891dda (tilt; entire page) | ab57a91 | 0 → 3 |
+| B03 | R00263 | 17 | a891dda (tilt; entire page) | ab57a91 | 0 → 3 |
+| B04 | S0004 | 36 | 5506fe7 | 5506fe7 | 0 → 1 |
+| B05 | R00153 | 26 | 5506fe7 | 5506fe7 | 0 → 5 |
+| B06 | R00373 | 20 | 5506fe7 | 5506fe7 | 0 → 6 |
+| B07 | R00860 | 47 | 5506fe7 | 5506fe7 | 0 → 1 |
+| B07 | R00860 | 48 | 5506fe7 | 5506fe7 | 0 → 1 |
+| B08 | R00032 | 66 | 5506fe7 | 5506fe7 | 0 → 1 |
+| B09 | S0004 | 7 | e419550: unpositioned repeated first/last block | already present | 1 → 1 |
+| B09 | S0004 | 8 | e419550: unpositioned repeated first/last block | already present | 1 → 1 |
+| B09 | S0004 | 9 | e419550: unpositioned repeated first/last block | already present | 1 → 1 |
+| B09 | S0004 | 10 | e419550: unpositioned repeated first/last block | already present | 1 → 1 |
+| B09 | S0004 | 11 | e419550: unpositioned repeated first/last block | already present | 1 → 1 |
+| B09 | S0004 | 12 | e419550: unpositioned repeated first/last block | already present | 1 → 1 |
+| B09 | S0009 | 18 | e419550: unpositioned repeated first/last block | already present | 1 → 1 |
+| B09 | S0009 | 19 | e419550: unpositioned repeated first/last block | already present | 1 → 1 |
+| B09 | S0009 | 20 | e419550: unpositioned repeated first/last block | already present | 1 → 1 |
+| B09 | S0009 | 21 | e419550: unpositioned repeated first/last block | already present | 1 → 1 |
+| B09 | R00263 | 11 | a891dda (tilt; entire page) | ab57a91 | 1 → 2 |
+| B09 | R00263 | 12 | a891dda (tilt; entire page) | ab57a91 | 1 → 2 |
+| B09 | R00263 | 16 | a891dda (tilt; entire page) | ab57a91 | 1 → 2 |
+| B09 | R00263 | 17 | a891dda (tilt; entire page) | ab57a91 | 1 → 2 |
+| B09 | R00263 | 18 | a891dda (tilt; entire page) | ab57a91 | 1 → 2 |
+| B09 | R00263 | 19 | a891dda (tilt; entire page) | ab57a91 | 1 → 2 |
+| B09 | R00263 | 20 | a891dda (tilt; entire page) | ab57a91 | 1 → 2 |
+| B10 | S0004 | 6 | e419550: unpositioned repeated first/last block | already present | 1 → 1 |
+| B10 | S0004 | 7 | a891dda (tilt; entire page) | ab57a91 | 0 → 1 |
+| B10 | S0004 | 8 | a891dda (tilt; entire page) | ab57a91 | 0 → 1 |
+| B10 | S0004 | 17 | e419550: unpositioned repeated first/last block | already present | 1 → 1 |
+| B10 | S0004 | 18 | e419550: unpositioned repeated first/last block | already present | 1 → 1 |
+| B10 | S0004 | 19 | e419550: unpositioned repeated first/last block | already present | 1 → 1 |
+| B11 | R00160 | 17 | a891dda | a891dda | 0 → 2 |
+| B11 | R00443 | 9 | a891dda | a891dda | 0 → 2 |
+| B12 | R00446 | 10 | a891dda | a891dda | 0 → 8 |
+
+Counts in this history table are distinct exact target strings, not content-word counts; repeated cells such as “Strong” count once. They describe the bisection predicate only. Validation below checks every source occurrence and its rendered evidence.
