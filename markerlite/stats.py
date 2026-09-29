@@ -52,6 +52,7 @@ class ConversionStats(TypedDict):
     table_lines_excluded: int
     proposals: int
     proposals_kept_prose: int
+    section_heads_emitted: list[dict]
 
 
 SUPPRESSION_REASONS = frozenset(
@@ -170,6 +171,9 @@ def build_stats(
         "proposals": sum(page.proposals_emitted for page in pages),
         "proposals_kept_prose": sum(page.proposals_kept_prose for page in pages),
     }
+    section_heads = [record for page in pages for record in page.section_heads_emitted]
+    if section_heads:
+        stats["section_heads_emitted"] = section_heads
     return stats
 
 

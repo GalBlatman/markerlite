@@ -93,6 +93,9 @@ MARGINALIA_HEADER_ZONE = 0.08
 MARGINALIA_FOOTER_ZONE = 0.13
 MARGINALIA_MAX_HEIGHT_FRAC = 0.035
 MARGINALIA_MAX_CHARS = 150
+# Capital IQ section runs; two-value alternating journal heads stay furniture.
+SECTIONED_HEAD_MIN_DISTINCT = 3
+SECTIONED_HEAD_MIN_RUN_PAGES = 2
 
 # Reflow/continuation: hard, manuscript, repro_tight, lists, and footnotes.
 REFLOW_MAX_GAP_LINES = 2.4

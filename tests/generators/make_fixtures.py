@@ -2609,6 +2609,34 @@ def make_tall_cell():
     pdf.out("tall_cell.pdf")
 
 
+def make_sectioned_running_heads():
+    """Three repeated section heads are content; an alternating pair is not."""
+    pdf = Doc()
+    heads = [
+        "Section Alpha | Records",
+        "Section Alpha | Records",
+        "Section Beta | Records",
+        "Section Beta | Records",
+        "Section Gamma | Records",
+        "Section Gamma | Records",
+        "Journal Author",
+        "Article Title",
+        "Journal Author",
+        "Article Title",
+    ]
+    for index, head in enumerate(heads):
+        pdf.add_page()
+        pdf.text_at(54, 20, head, size=9)
+        pdf.text_at(
+            72,
+            100,
+            f"Body page {index + 1} keeps ordinary prose below the running head.",
+            size=11,
+        )
+        pdf.centered(754, str(index + 1), size=9)
+    pdf.out("sectioned_running_heads.pdf")
+
+
 MAKERS = {
     "hard": make_hard,
     "repro": make_repro,
@@ -2643,6 +2671,7 @@ MAKERS = {
     "table_only_footer": make_table_only_footer,
     "isolated_ocr_page": make_isolated_ocr_page,
     "all_text_wrapped": make_all_text_wrapped,
+    "sectioned_running_heads": make_sectioned_running_heads,
     "scanned": make_scanned,  # last: depends on hard.pdf
     "scanned_with_stamp": make_scanned_with_stamp,
     "justified_scan": make_justified_scan,

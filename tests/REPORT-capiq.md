@@ -78,3 +78,32 @@ licensed footers, copyright/footer lines, and page counters), while the
 remaining net 101 is explained by lossless line-end joins and Markdown/table
 normalization. The multiset comparison is 4,070 source-only occurrences and
 97 output-only occurrences. No unrecorded content-loss class was found.
+
+## B1 — sectioned running heads
+
+Committed behavior promotes the first header in a contiguous repeated run
+when the document has at least three distinct qualifying run values and each
+run lasts at least two pages. The promoted block moves to the beginning of its
+source page and renders as a section heading; later copies in the run remain
+suppressed. A two-value alternating author/title pattern forms no two-page
+run, so ordinary journal furniture is unchanged.
+
+On the real export, `stats["section_heads_emitted"]` records **47** promoted
+heads at PDF pages 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60,
+64, 68, 72, 76, 79, 83, 87, 89, 93, 97, 101, 105, 109, 113, 117, 121, 125,
+129, 133, 136, 140, 143, 147, 150, 154, 158, 162, 166, 170, 174, 178, and
+182. Comparing the 47 raw contents lines with the 47 emitted headings gives an
+exact ordered match. Table decisions remain 47 total and two fallbacks.
+
+`sectioned_running_heads.pdf` covers three runs of two pages plus a four-page
+alternating author/title control. It emits exactly three headings and no
+alternating head text. The existing full suite is unchanged: **77/77**
+reference and Packet golden entries match, with zero OCR skips, so journal
+running heads and Packet B suppression lists retain their exact hashes.
+
+Content words rise from 56,419 to **56,652**, exactly the 233 tokens restored
+as one heading per section. Against the 60,392 native tokens, the net
+difference is now 3,740: 3,639 recorded furniture tokens plus the same 101
+lossless join/markup difference as B0. The multiset comparison is 3,837
+source-only and 97 output-only occurrences. No table output or other document
+content changed.

@@ -348,6 +348,41 @@ def proc_marginalia(
     if not candidates:
         return
 
+    # A report can use its running head as the only section label. Promote the
+    # first head in each repeated contiguous run when the document has at least
+    # three such values. Alternating author/title journal heads never form a
+    # two-page run and remain furniture.
+    header_runs = []
+    for idx, blk, norm in candidates:
+        page = next(p for p in pages if p.page_idx == idx)
+        if blk.y_end / (page.height or 1) > header_zone:
+            continue
+        if (
+            header_runs
+            and idx == header_runs[-1][-1][0] + 1
+            and norm == header_runs[-1][-1][2]
+        ):
+            header_runs[-1].append((idx, blk, norm))
+        else:
+            header_runs.append([(idx, blk, norm)])
+    eligible_runs = [
+        run for run in header_runs if len(run) >= SECTIONED_HEAD_MIN_RUN_PAGES
+    ]
+    promoted = set()
+    if len({run[0][2] for run in eligible_runs}) >= SECTIONED_HEAD_MIN_DISTINCT:
+        lookup = {p.page_idx: p for p in pages}
+        for run in eligible_runs:
+            idx, blk, _norm = run[0]
+            page = lookup[idx]
+            blk.btype = "SectionHeader"
+            blk.heading_level = 2
+            page.blocks.remove(blk)
+            page.blocks.insert(0, blk)
+            page.section_heads_emitted.append(
+                {"page": idx + 1, "text": blk.text.strip()}
+            )
+            promoted.add(id(blk))
+
     corpus = []
     lookup = {p.page_idx: p for p in pages}
     for idx, blk, norm in candidates:
@@ -389,6 +424,8 @@ def proc_marginalia(
             merged.append((page, blk, probe, norm))
     for idx, blk, norm in candidates:
         page = lookup[idx]
+        if id(blk) in promoted:
+            continue
         repeats = _positional_repeat(page, blk, norm, corpus)
         bare_number = bool(PAGE_NUMBER_ONLY.fullmatch(blk.text.strip()))
         if repeats or bare_number:

@@ -352,6 +352,7 @@ class Page:
     blocks: List[Block]
     images: List[dict] = field(default_factory=list)
     suppressed: List[dict] = field(default_factory=list)
+    section_heads_emitted: List[dict] = field(default_factory=list)
     table_zones: List[tuple] = field(default_factory=list)
     figure_zones: List[tuple] = field(default_factory=list)
     figure_cores: List[tuple] = field(default_factory=list)
