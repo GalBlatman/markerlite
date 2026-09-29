@@ -110,8 +110,10 @@ is not a detection. Click **More info**, then **Run anyway**. It asks once.
 The app does not include Tesseract, so scanned PDFs (no text layer) will fail
 with a clear message. Digital PDFs — nearly everything from a publisher — work
 without it. To add scanned support, install the
-[UB-Mannheim Tesseract build](https://github.com/UB-Mannheim/tesseract/wiki)
-and tick "add to PATH".
+[UB-Mannheim Tesseract build](https://github.com/UB-Mannheim/tesseract/wiki).
+markerlite checks `TESSERACT_CMD`, then `PATH`, the Windows installer registry
+keys, and the usual Program Files and LocalAppData install directories. The
+default UB-Mannheim installation therefore works without changing `PATH`.
 
 ### B. From source — any OS, and no SmartScreen prompt
 

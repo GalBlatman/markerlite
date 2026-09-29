@@ -30,9 +30,12 @@ required.
 ## 3. Tesseract (only for scanned PDFs)
 
 Grab the installer from the
-[UB Mannheim build](https://github.com/UB-Mannheim/tesseract/wiki) and tick the
-option to add it to PATH. Skip this if your PDFs are all digital — everything
-else works without it, and scanned files simply fail loudly rather than
+[UB Mannheim build](https://github.com/UB-Mannheim/tesseract/wiki). markerlite
+checks `TESSERACT_CMD`, then `PATH`, the `HKLM` and `HKCU` Tesseract installer
+keys, `%ProgramFiles%\Tesseract-OCR`, `%ProgramFiles(x86)%\Tesseract-OCR`, and
+`%LOCALAPPDATA%\Programs\Tesseract-OCR`. The installer's default directory
+works without adding it to `PATH`. Skip this if your PDFs are all digital —
+everything else works without it, and scanned files fail loudly rather than
 producing garbage.
 
 ## 4. Put the files somewhere permanent

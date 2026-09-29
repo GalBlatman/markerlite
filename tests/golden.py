@@ -12,8 +12,6 @@ import argparse
 import hashlib
 import json
 import pathlib
-import shutil
-import subprocess
 import sys
 import tempfile
 from typing import Iterable
@@ -24,6 +22,12 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 import markerlite  # noqa: E402
+from markerlite.extraction import (  # noqa: E402
+    discover_tesseract,
+)
+from markerlite.extraction import (  # noqa: E402
+    tesseract_version as detected_tesseract_version,
+)
 
 DEFAULT_MANIFEST = ROOT / "tests" / "golden" / "v0.1.14.json"
 PACKET_GLOB = "*PACKET-*.json"
@@ -55,19 +59,10 @@ def canonical_hash(value) -> str:
 
 
 def tesseract_version() -> str | None:
-    executable = shutil.which("tesseract")
+    executable = discover_tesseract()
     if not executable:
         return None
-    result = subprocess.run(
-        [executable, "--version"],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    if result.returncode:
-        return None
-    return result.stdout.splitlines()[0].strip() if result.stdout else None
+    return detected_tesseract_version(executable)
 
 
 def environment() -> dict:

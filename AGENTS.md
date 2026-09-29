@@ -87,6 +87,9 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
    Pages with `ocr_used` emit `<!-- ocr page N -->` independently of
    `--page-markers`, so recognized text keeps its provenance. A paragraph
    that opens like a list item and is not one has its marker escaped.
+   Tesseract discovery is shared by OCR and the GUI: `TESSERACT_CMD`, `PATH`,
+   Windows HKLM/HKCU installer keys, then the standard Program Files and
+   LocalAppData directories. OCR always invokes the discovered full path.
    Native/OCR text inside a located figure is kept beside its placeholder as
    `<!-- figure text: … -->`, including recovered tilted labels/captions.
    These are source text, not model descriptions. The unchanged standard

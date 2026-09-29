@@ -25,7 +25,6 @@ import argparse
 import difflib
 import pathlib
 import re
-import shutil
 import sys
 import tempfile
 
@@ -643,7 +642,7 @@ def main(argv=None) -> int:
         print(f"no fixtures found under {FIXTURES}")
         return 2
 
-    have_tesseract = shutil.which("tesseract") is not None
+    have_tesseract = markerlite.extraction.discover_tesseract() is not None
     EXPECTED.mkdir(parents=True, exist_ok=True)
     failures = 0
     with tempfile.TemporaryDirectory(prefix="markerlite-regress-") as td:

@@ -24,6 +24,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install Tesseract in its default directory
+        run: choco install tesseract --yes --no-progress
+
       - name: Check generated agent instructions
         shell: bash
         run: |
@@ -48,12 +51,21 @@ jobs:
       - name: Unit tests
         run: pytest -q
 
+      - name: Discover Tesseract without PATH
+        run: |
+          $env:PATH = (($env:PATH -split ';') | Where-Object { $_ -notmatch 'Tesseract-OCR|chocolatey\\bin' }) -join ';'
+          if (Get-Command tesseract -ErrorAction SilentlyContinue) { throw "tesseract unexpectedly remains on PATH" }
+          python markerlite_gui.py --diag
+          Select-String -Path markerlite-diag.txt -Pattern "tesseract.*path=.*Tesseract-OCR"
+          python -c "import pathlib,tempfile,markerlite; d=tempfile.TemporaryDirectory(); _,i=markerlite.convert(pathlib.Path('tests/fixtures/scanned.pdf'), pathlib.Path(d.name)); assert i['stats']['ocr_pages'] == 2; assert i['stats']['words'] > 100"
+          Remove-Item markerlite-diag.txt
+
       - name: Check GUI method references
         run: python check_gui.py
 
       - name: Fixture regression
         # Converts tests/fixtures/*.pdf and diffs against tests/expected/.
-        # The runner has no Tesseract, so the OCR fixture reports SKIP.
+        # Tesseract is installed above, so Windows also checks OCR output.
         run: python tests/regress.py
 
       - name: Golden fixture hashes
