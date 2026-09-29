@@ -24,17 +24,27 @@ $$
 
 We report where the approach breaks so that a reader can decide whether it fits their documents. Multi-line table cells remain the weakest point and are listed as partial support. Journals that style every heading identically defeat the height clustering and lose a level. Scanned pages inherit every error of the recogniser, including stray page numbers in the middle of a paragraph.
 
-C1 C2 C3 C4 C5 0
-
-25
-
-50
-
-75
-
-100
-
 <!-- figure: p. 2; caption: Figure 2. A vector chart drawn with path operators: five conditions, response in percent. No image object is involved. -->
+
+<!-- figure text: C1 -->
+
+<!-- figure text: C2 -->
+
+<!-- figure text: C3 -->
+
+<!-- figure text: C4 -->
+
+<!-- figure text: C5 -->
+
+<!-- figure text: 0 -->
+
+<!-- figure text: 25 -->
+
+<!-- figure text: 50 -->
+
+<!-- figure text: 75 -->
+
+<!-- figure text: 100 -->
 
 *Figure 2. A vector chart drawn with path operators: five conditions, response in percent. No image object is involved.*
 

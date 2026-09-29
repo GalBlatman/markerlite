@@ -1,4 +1,4 @@
-412 Journal of Fixtures 12(3)
+Journal of Fixtures 12(3)
 
 *Table 1 Study 1 Descriptive Statistics of Model Variables by Experimental Condition*
 
@@ -10,17 +10,19 @@
 
 Note. Means on a seven-point scale.
 
-Hybrid
-
-Legitimacy
-
-Transact
-
-.003 .087
-
-.019
-
 <!-- figure: p. 1; caption: Figure 1. Effects of Hybrid on Intent to Transact. -->
+
+<!-- figure text: Hybrid -->
+
+<!-- figure text: Legitimacy -->
+
+<!-- figure text: Transact -->
+
+<!-- figure text: .003 -->
+
+<!-- figure text: .087 -->
+
+<!-- figure text: .019 -->
 
 *Figure 1. Effects of Hybrid on Intent to Transact.*
 

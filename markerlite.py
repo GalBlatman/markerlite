@@ -215,6 +215,7 @@ class Block:
     # for classification, but must not propose them as tables again.
     journal_front_matter: bool = False
     journal_title: bool = False
+    figure_text: List[str] = field(default_factory=list)
     code: Optional[str] = None
     image_path: Optional[str] = None
     needs_vision: bool = False
@@ -289,6 +290,9 @@ class Page:
     blocks: List[Block]
     images: List[dict] = field(default_factory=list)
     suppressed: List[dict] = field(default_factory=list)
+    table_zones: List[tuple] = field(default_factory=list)
+    figure_zones: List[tuple] = field(default_factory=list)
+    figure_cores: List[tuple] = field(default_factory=list)
     ocr_used: bool = False
     # table_recon vs. geometric-cell decisions on this page (see
     # TABLE_FALLBACK_MIN_KEEP): how many tables were emitted, and how many of
@@ -521,6 +525,7 @@ def _emitted_words(page: Page) -> int:
             total += _html_word_count(blk.html or "")
         else:
             total += len(blk.text.split())
+        total += sum(len(text.split()) for text in blk.figure_text)
         for child in blk.children:
             total += len(child.text.split())
     return total
@@ -798,7 +803,11 @@ def extract_page(page: pymupdf.Page, page_idx: int, ocr_if_empty: bool = True,
             # anything not near-horizontal is dropped here, before any
             # processor sees it.
             direction = ln.get("dir", (1.0, 0.0))
-            if len(direction) == 2 and abs(direction[1]) > max_line_tilt:
+            # Orthogonal words in a scan's native layer are printed content
+            # (often a sideways table), not a diagonal overlay watermark.
+            scan_orthogonal = (raster_covered and len(direction) == 2
+                               and abs(direction[0]) <= max_line_tilt)
+            if len(direction) == 2 and abs(direction[1]) > max_line_tilt and not scan_orthogonal:
                 text = "".join("".join(c.get("c", "") for c in sp.get("chars", []))
                                or sp.get("text", "") for sp in ln.get("spans", []))
                 if text.strip():
@@ -1347,6 +1356,29 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
             found.append(tbl)
             if kw:
                 ruled_only.add(id(tbl))
+    # Broken/segmented booktabs strokes may not form a find_tables candidate.
+    # Two matching horizontal rules with intervening text still delimit table
+    # content for furniture protection; this does not admit a new table.
+    physical_rules, _ = _page_graphics(pmpage)
+    rows = defaultdict(list)
+    for y, x0, x1 in physical_rules:
+        # Publisher edge rules are not table boundaries. An actual admitted
+        # table remains protected independently; a table caption can also
+        # establish a genuine top rule inside the header band.
+        caption_above = any(TABLE_LABEL.match(b.text.strip())
+                            and 0 <= y-b.y_end <= 30 for b in page.blocks)
+        if y > 0.95*page.height or (y < 0.08*page.height and not caption_above):
+            continue
+        rows[round(y, 1)].append((x0, x1))
+    extents = [(y, min(a for a, b in xs), max(b for a, b in xs))
+               for y, xs in rows.items()]
+    for y0, x0, x1 in extents:
+        for y1, a, b in extents:
+            if (12 < y1 - y0 < 0.9 * page.height and x1 - x0 > 0.15 * page.width
+                    and abs(x0-a) < 4 and abs(x1-b) < 4
+                    and any(y0 < mid < y1 and abs(left-x0)<4 and abs(right-x1)<4
+                            for mid,left,right in extents)):
+                page.table_zones.append((x0, y0, x1, y1))
     if not found:
         return
 
@@ -1957,6 +1989,179 @@ def _title_case(words: List[str]) -> bool:
 TEXTISH = ("Text", "SectionHeader", "ListItem", "Caption", "Equation")
 
 
+# Similar height means within 1.5% of page height, in the same edge band.
+FURNITURE_HEIGHT_TOL = 0.015
+
+
+def _protect_numeric_records(page):
+    """Repeated rows of independent numeric cells are table evidence even on
+    scans without vector rules. A manuscript number beside prose is not a row
+    of numeric cells. Geometry is used for protection, never to reorder text.
+    """
+    rows = []
+    for block in page.blocks:
+        for line in block.lines:
+            if not re.fullmatch(r"[−-]?\d+(?:[.,]\d+)?", line.text.strip()):
+                continue
+            mid = (line.bbox[1]+line.bbox[3])/2
+            row = next((r for y,r in rows if abs(mid-y) < 3), None)
+            if row is None:
+                row = []
+                rows.append((mid,row))
+            row.append(line)
+    groups = []
+    for y, row in rows:
+        xs = sorted(ln.bbox[0] for ln in row)
+        if len(xs)<2 or xs[-1]-xs[0]<30:
+            continue
+        group = next((g for cuts,g in groups if len(cuts)==len(xs)
+                      and all(abs(a-b)<5 for a,b in zip(cuts,xs))), None)
+        if group is None:
+            group=[]
+            groups.append((xs,group))
+        group.append(row)
+    for cuts, group in groups:
+        if len(group)>=3:
+            page.table_zones.append(_bbox_of([ln.bbox for row in group for ln in row]))
+
+
+def _prepare_figure_zones(pm, page):
+    # Include the label apron around detected artwork; axis labels often sit
+    # just outside the raster/path box. This only protects source text.
+    pad = 0.04 * page.height
+    ypad = 0.01 * page.height
+    page.figure_cores = [box for _, _, _, box in _figure_regions(pm, page)
+                         if not any(_overlap_frac(box, t) > 0.5 for t in page.table_zones)]
+    page.figure_zones = [(x0-pad, y0-ypad, x1+pad, y1+ypad)
+                         for x0,y0,x1,y1 in page.figure_cores]
+    for block in page.blocks:
+        if not FIGURE_LABEL.match(block.text.strip()):
+            continue
+        box = _locate_caption_figure(pm, page, block.bbox)
+        if box:
+            page.figure_cores.append(box)
+            page.figure_zones.append(tuple(pymupdf.Rect(box)+(-pad,-ypad,pad,ypad)))
+            continue
+        if not page.raster_covered:
+            continue
+        # A caption on a page-sized scan has no separate image bounding box.
+        # A nearby run of short labels, including three numeric ticks, supplies
+        # a text-layer extent. Stop at paragraph-sized text; no OCR vocabulary.
+        for below in (True, False):
+            candidates = [b for b in page.blocks if b is not block and
+                          ((b.y_start >= block.y_end) if below else (b.y_end <= block.y_start))]
+            candidates.sort(key=lambda b:b.y_start, reverse=not below)
+            taken=[];edge=block.y_end if below else block.y_start
+            for b in candidates:
+                gap=b.y_start-edge if below else edge-b.y_end
+                if gap > 0.07*page.height or len(b.text.split()) > 12:
+                    break
+                taken.append(b);edge=max(edge,b.y_end) if below else min(edge,b.y_start)
+            ticks=sum(bool(re.fullmatch(r"[−-]?\d+(?:\.\d+)?", ln.text.strip()))
+                      for b in taken for ln in b.lines)
+            if ticks >= 3:
+                box = _bbox_of([b.bbox for b in taken])
+                page.figure_cores.append(box)
+                page.figure_zones.append(box)
+
+
+def _attach_figure_source_text(pages):
+    for page in pages:
+        figures=[b for b in page.blocks if b.btype=="Figure" and not b.ignore_for_output]
+        for zone, core in zip(page.figure_zones, page.figure_cores):
+            if not figures:
+                continue
+            figure=min(figures,key=lambda f: abs((f.y_start+f.y_end)-(zone[1]+zone[3])))
+            for block in page.blocks:
+                if (block.ignore_for_output or block.btype in ("Figure","Table","Caption","Footnote")
+                        or any(block is c for f in figures for c in f.children)):
+                    continue
+                contained = sum(_overlap_frac(ln.bbox, zone) > 0.5 for ln in block.lines)
+                if (not block.lines or contained < 0.8*len(block.lines)
+                        or any(len(ln.text.split()) > 12 for ln in block.lines)):
+                    continue
+                kept=[]
+                for line in block.lines:
+                    inside = _overlap_frac(line.bbox, core) > 0.5
+                    small = max((sp.size for sp in line.spans), default=0) < 0.9*body_font_size([page])
+                    if _overlap_frac(line.bbox,zone)>0.5 and (inside or small):
+                        if line.text.strip():
+                            figure.figure_text.append(line.text)
+                    else:
+                        kept.append(line)
+                block.lines=kept
+                if kept:
+                    block.bbox=_bbox_of([ln.bbox for ln in kept])
+            remaining=[]
+            for record in page.suppressed:
+                if record["reason"]=="tilt_filter" and _overlap_frac(record["bbox"],zone)>0.5:
+                    figure.figure_text.append(record["text"])
+                else:
+                    remaining.append(record)
+            page.suppressed=remaining
+
+        for label in list(page.suppressed):
+            if label["reason"] != "tilt_filter" or not FIGURE_LABEL.match(label["text"].strip()):
+                continue
+            if not figures:
+                continue
+            box = pymupdf.Rect(label["bbox"])
+            def gap(other):
+                r = pymupdf.Rect(other)
+                return max(0, r.x0-box.x1, box.x0-r.x1, r.y0-box.y1, box.y0-r.y1)
+            figure = min(figures, key=lambda f: gap(f.bbox))
+            if gap(figure.bbox) > FIGURE_CAPTION_REACH*page.height:
+                continue
+            reach = 2*min(box.width, box.height)
+            for record in list(page.suppressed):
+                if record["reason"] == "tilt_filter" and gap(record["bbox"]) <= reach:
+                    figure.figure_text.append(record["text"])
+                    page.suppressed.remove(record)
+
+
+def _furniture_band(page, bbox):
+    if bbox[3] <= 0.10 * page.height:
+        return "header"
+    if bbox[1] >= 0.87 * page.height:
+        return "footer"
+    return None
+
+
+def _furniture_protected(page: Page, block: Block) -> bool:
+    if block.btype in ("Table", "Figure", "Caption", "Footnote"):
+        return True
+    if TABLE_LABEL.match(block.text.strip()) or FIGURE_LABEL.match(block.text.strip()):
+        return True
+    boxes = page.table_zones + [b.bbox for b in page.blocks if b.btype == "Table"]
+    for box in boxes:
+        for ln in block.lines:
+            if _overlap_frac(ln.bbox, box) > 0.5:
+                return True
+            x0, y0, x1, y1 = ln.bbox
+            touching = min(abs(y1-box[1]), abs(y0-box[3])) <= 2
+            # A page-wide running head can have one fragment above a
+            # table's top rule. Attachment requires the whole block to align
+            # with the table, not just that incidental fragment.
+            if (touching and block.x_start >= box[0]-3
+                    and block.x_end <= box[2]+3):
+                return True
+    return any(_overlap_frac(ln.bbox, box) > 0.5
+               for box in page.figure_zones for ln in block.lines)
+
+
+def _positional_repeat(page, block, norm, corpus):
+    if not norm:
+        return False  # numeric fragments must never match the empty string
+    band = _furniture_band(page, block.bbox)
+    if band is None:
+        return False
+    y = block.y_start / page.height
+    return any(other.page_idx != page.page_idx and other_band == band
+               and abs(y-other_y) <= FURNITURE_HEIGHT_TOL
+               and text and fuzz.ratio(norm, text) > 90
+               for other, other_band, other_y, text in corpus)
+
+
 def _record_suppressed(page: Page, lines, reason: str) -> None:
     """Stable public audit records; PDF page is one-based, bbox is in points.
 
@@ -1992,13 +2197,19 @@ def proc_line_numbers(pages: List[Page], margin_frac=0.14, min_count=8) -> None:
     def _increasing(vals) -> bool:
         if len(vals) < min_count:
             return False
-        inc = sum(1 for a, b in zip(vals, vals[1:]) if b > a)
+        inc = sum(1 for a, b in zip(vals, vals[1:]) if 1 <= b-a <= 2)
         return inc >= 0.8 * (len(vals) - 1)
 
     for page in pages:
+        body_lines = [ln for b in page.blocks if b.btype in TEXTISH
+                      and b.width > 0.3*page.width and not b.ignore_for_output
+                      for ln in b.lines if 0.08*page.height < ln.bbox[1] < 0.87*page.height]
+        body_extent = (max(ln.bbox[3] for ln in body_lines)-min(ln.bbox[1] for ln in body_lines)
+                       if body_lines else page.height)
+        min_extent = min(0.4*page.height, 0.7*body_extent)
         cands = []
         for blk in page.blocks:
-            if blk.ignore_for_output:
+            if blk.ignore_for_output or _furniture_protected(page, blk):
                 continue
             in_left = blk.x_end <= margin_frac * page.width
             in_right = blk.x_start >= (1 - margin_frac) * page.width
@@ -2012,26 +2223,50 @@ def proc_line_numbers(pages: List[Page], margin_frac=0.14, min_count=8) -> None:
             lines = [ln.text.strip() for ln in blk.lines]
             if (len(lines) >= min_count
                     and all(x.isdigit() and len(x) <= 4 for x in lines)
+                    and blk.height >= min_extent
                     and _increasing([int(x) for x in lines])):
                 _suppress_block(page, blk, "proc_line_numbers")
         if len(cands) < min_count:
             continue
         vals = [v for v, _ in sorted(cands, key=lambda c: c[1].y_start)]
-        if _increasing(vals):
+        if (_increasing(vals) and max(b.y_end for _, b in cands)
+                - min(b.y_start for _, b in cands) >= min_extent):
             for _v, blk in cands:
                 _suppress_block(page, blk, "proc_line_numbers")
 
 
 def proc_ignore_common(pages: List[Page]) -> None:
-    """marker/processors/ignoretext.py - repeated first/last blocks are furniture."""
-    firsts, lasts = [], []
-    for p in pages:
-        cand = [b for b in p.blocks if b.btype in TEXTISH and b.text.strip()]
-        if cand:
-            firsts.append(cand[0])
-            lasts.append(cand[-1])
-    for group in (firsts, lasts):
-        _filter_common(group, pages=pages)
+    """Repeated boundary blocks require matching edge position and context."""
+    candidates = []
+    for page in pages:
+        blocks = [b for b in page.blocks if b.btype in TEXTISH and b.text.strip()
+                  and not b.ignore_for_output]
+        for block in ([blocks[0], blocks[-1]] if blocks else []):
+            if not _furniture_protected(page, block):
+                candidates.append((page, block))
+    corpus = [(p, _furniture_band(p, b.bbox), b.y_start/p.height, _clean_text(b.text))
+              for p, b in candidates]
+    for page, block in candidates:
+        norm = _clean_text(block.text)
+        matches = {p.page_idx for p, band, y, text in corpus
+                   if band == _furniture_band(page, block.bbox)
+                   and abs(y-block.y_start/page.height) <= FURNITURE_HEIGHT_TOL
+                   and norm and fuzz.ratio(norm, text) > 90}
+        # Retain the original common-boundary pass's four-page minimum.
+        # Marginalia below accepts two-page evidence in its narrower bands.
+        bare_number = bool(PAGE_NUMBER_ONLY.fullmatch(block.text.strip()))
+        # Aggregator margins can put the printed folio above the fixed footer
+        # band. A centered bare number below all content is still a folio;
+        # provenance stamps have already been removed, and table/figure
+        # candidates were excluded above.
+        below_content = (block.y_start > page.height/2
+                         and abs((block.x_start+block.x_end)/2-page.width/2) < 0.1*page.width
+                         and all(other is block or other.ignore_for_output
+                                 or not other.text.strip() or other.y_end <= block.y_start
+                                 for other in page.blocks))
+        if ((_positional_repeat(page, block, norm, corpus) and len(matches) >= 4)
+                or (bare_number and (_furniture_band(page, block.bbox) or below_content))):
+            _suppress_block(page, block, "proc_ignore_common")
 
 
 def _clean_text(text: str) -> str:
@@ -2039,30 +2274,10 @@ def _clean_text(text: str) -> str:
     matching. A leading or trailing token that merely CONTAINS a digit goes
     too: OCR reads "1995 Suchman 579" on one page and "1995 Suchman $79" on
     the next, and "Suchman $79" missed the fuzzy match against "Suchman"."""
-    text = text.replace("\n", "").strip()
+    text = text.replace("\n", " ").strip()
     text = re.sub(r"^\S*\d\S*\s*", "", text)
     text = re.sub(r"\s*\S*\d\S*$", "", text)
     return text
-
-
-def _filter_common(blocks: List[Block], threshold=0.2, min_blocks=3, max_streak=3, match=90, pages=()):
-    if len(blocks) < min_blocks:
-        return
-    texts = [_clean_text(b.text) for b in blocks]
-    streaks = {}
-    for key, group in groupby(texts):
-        streaks[key] = max(streaks.get(key, 0), len(list(group)))
-    counter = Counter(texts)
-    common = [
-        k for k, v in counter.items()
-        if (v >= len(blocks) * threshold or streaks[k] >= max_streak) and v > min_blocks
-    ]
-    if not common:
-        return
-    for t, b in zip(texts, blocks):
-        if any(fuzz.ratio(t, c) > match for c in common):
-            page = next(p for p in pages if p.page_idx == b.page_idx)
-            _suppress_block(page, b, "proc_ignore_common")
 
 
 PAGE_NUMBER_ONLY = re.compile(r"^[\s\-\u2013\u2014|]*(?:\d{1,4}|[ivxlcdmIVXLCDM]{1,7})[\s\-\u2013\u2014|]*$")
@@ -2109,8 +2324,11 @@ def proc_marginalia(pages: List[Page], header_zone=0.08, footer_zone=0.13,
         body_bottom = max(yfrac(b)[1] for b in body)
 
         for blk in text_blocks:
+            if _furniture_protected(page, blk):
+                continue
             y0, y1 = yfrac(blk)
-            if (y1 - y0) > max_height_frac:
+            if ((y1 - y0) > max_height_frac
+                    and not PAGE_NUMBER_ONLY.fullmatch(blk.text.strip())):
                 continue
             t = blk.text.strip()
             if not t or len(t) > max_chars:
@@ -2130,80 +2348,44 @@ def proc_marginalia(pages: List[Page], header_zone=0.08, footer_zone=0.13,
     if not candidates:
         return
 
-    # A running head that got merged into the block below never appears as a
-    # standalone candidate, so the repetition corpus also takes the FIRST LINE
-    # of every block starting in the header zone. Without this, a tight top
-    # margin hides the header from the evidence that identifies it.
-    corpus = list(candidates)
+    corpus = []
+    lookup = {p.page_idx: p for p in pages}
+    for idx, blk, norm in candidates:
+        p = lookup[idx]
+        corpus.append((p, _furniture_band(p, blk.bbox), blk.y_start/p.height, norm))
+    # Earlier furniture removal must not erase the repetition evidence for
+    # a split header (year, author and page number in separate blocks).
     for page in pages:
-        h = page.height or 1
-        for blk in page.blocks:
-            if not blk.lines or len(blk.lines) < 2:
-                continue
-            if blk.y_start / h <= 0.10:
-                corpus.append(
-                    (page.page_idx, blk, _clean_text(blk.lines[0].text.strip()))
-                )
-
-    # Pages on which each normalized text appears. Fuzzy, so that a running head
-    # carrying a varying page number or section name still groups together.
-    groups: dict = defaultdict(set)
-    keys: List[str] = []
-    for page_idx, _blk, norm in corpus:
-        key = next((k for k in keys if fuzz.ratio(k, norm) > 90), None)
-        if key is None:
-            key = norm
-            keys.append(key)
-        groups[key].add(page_idx)
-
-    for page_idx, blk, norm in candidates:
-        key = next((k for k in keys if fuzz.ratio(k, norm) > 90), norm)
-        repeats = len(groups.get(key, set())) >= 2
-        bare_number = bool(PAGE_NUMBER_ONLY.match(blk.text.strip()))
-
-        if not (repeats or bare_number):
-            continue  # unique text in a margin zone is content, not furniture
-        if blk.btype == "SectionHeader" and not repeats:
-            continue  # never drop a heading on position alone
-        if page_idx == 0 and not repeats and not bare_number:
-            continue  # page 1 carries titles; require proof it is furniture
-        page = next(p for p in pages if p.page_idx == page_idx)
-        _suppress_block(page, blk, "proc_marginalia")
-
-    _strip_merged_running_heads(pages, groups, keys)
-
-
-def _strip_merged_running_heads(pages: List[Page], groups: dict, keys: List[str],
-                                header_zone=0.10) -> None:
-    """Drop a running head that got merged into the block below it.
-
-    When the gap between the running head and the first line of content is
-    small, PyMuPDF returns them as a single block, so suppressing the block
-    would take the heading with it. Here the offending LINE is removed instead,
-    and only when its text is one of the texts already established as repeating.
-    """
-    repeated = {k for k, pgs in groups.items() if len(pgs) >= 2}
-    if not repeated:
-        return
+        for record in page.suppressed:
+            if record["reason"] == "proc_ignore_common":
+                corpus.append((page, _furniture_band(page, record["bbox"]),
+                               record["bbox"][1]/page.height, _clean_text(record["text"])))
+    merged = []
     for page in pages:
-        h = page.height or 1
         for blk in page.blocks:
-            if len(blk.lines) < 2 or blk.ignore_for_output:
+            if len(blk.lines) < 2 or blk.ignore_for_output or _furniture_protected(page, blk):
                 continue
-            if blk.y_start / h > header_zone:
+            first = blk.lines[0]
+            if first.bbox[3] > 0.10*page.height:
                 continue
-            first = _clean_text(blk.lines[0].text.strip())
-            if not first or len(first) > 90:
-                continue
-            if not any(fuzz.ratio(first, k) > 90 for k in repeated):
-                continue
-            # A running head is set smaller than the content it sits above.
-            # Requiring that keeps a genuine repeated heading from being eaten.
-            head_size = max((s.size for s in blk.lines[0].spans), default=0)
-            rest_size = max(
-                (s.size for ln in blk.lines[1:] for s in ln.spans), default=0)
-            if not (rest_size and head_size < 0.95 * rest_size):
-                continue
+            probe = Block(lines=[first], bbox=first.bbox, page_idx=page.page_idx,
+                          char_pos=first.char_pos)
+            norm = _clean_text(first.text)
+            corpus.append((page, "header", first.bbox[1]/page.height, norm))
+            merged.append((page, blk, probe, norm))
+    for idx, blk, norm in candidates:
+        page = lookup[idx]
+        repeats = _positional_repeat(page, blk, norm, corpus)
+        bare_number = bool(PAGE_NUMBER_ONLY.fullmatch(blk.text.strip()))
+        if repeats or bare_number:
+            _suppress_block(page, blk, "proc_marginalia")
+    for page, blk, probe, norm in merged:
+        bare_number = bool(PAGE_NUMBER_ONLY.fullmatch(probe.text.strip()))
+        if not bare_number and not _positional_repeat(page, probe, norm, corpus):
+            continue
+        head_size = max((s.size for s in blk.lines[0].spans), default=0)
+        rest_size = max((s.size for ln in blk.lines[1:] for s in ln.spans), default=0)
+        if bare_number or (rest_size and head_size < 0.95*rest_size):
             _record_suppressed(page, blk.lines[:1], "proc_marginalia")
             blk.lines = blk.lines[1:]
             blk.bbox = _bbox_of([ln.bbox for ln in blk.lines])
@@ -2895,6 +3077,8 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
             if blk.ignore_for_output:
                 continue
             t = blk.btype
+            if not blk.lines and t not in ("Figure", "Equation", "Table", "ImageMarker"):
+                continue
 
             if t == "Text":
                 txt = block_text(blk)
@@ -2999,6 +3183,9 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                 caption = " ".join(block_text(cap, plain=True) for cap in blk.children)
                 caption = caption.replace("--", "\u2013").strip() or "none found"
                 out.append(f"<!-- figure: p. {blk.page_idx + 1}; caption: {caption} -->")
+                for source_line in blk.figure_text:
+                    safe = source_line.replace("--", "&#45;&#45;").replace("\n", " ")
+                    out.append(f"<!-- figure text: {safe} -->")
                 if blk.image_path:
                     out.append(f"![]({blk.image_path})")
                 for cap in blk.children:
@@ -3162,7 +3349,7 @@ FIGURE_CAPTION = re.compile(r"^\s*(figure|fig\.?)\s*[\dIVXA-Z]+", re.I)
 # general caption pattern demands a delimiter so that a sentence opening
 # "Figure 1 shows ..." stays prose; for figures the same safety comes from
 # what follows the number: nothing, or a capitalised word.
-FIGURE_LABEL = re.compile(r"^\s*(figure|fig\.?)\s*(\d{1,3}|[IVX]{1,4})[a-z]?\b\s*(.*)$", re.I | re.S)
+FIGURE_LABEL = re.compile(r"^\s*(figure|fig\.?)\s*([A-Z]?\d{1,3}|[IVX]{1,4})[a-z]?\b\s*(.*)$", re.I | re.S)
 
 
 def _promote_figure_captions(pages: List[Page], max_words: int = 60) -> int:
@@ -3794,9 +3981,13 @@ def _drop_provenance_lines(page: Page, drop_lines: set) -> None:
         t = norm(t)
         if t in drop_lines:
             return True
-        # every word of the line belongs to some provenance piece
-        pieces = " ".join(drop_lines)
-        return bool(t) and all(w in pieces for w in t.split())
+        # OCR can join complete native stamp pieces. Substrings or bags of
+        # stamp words are not provenance: they also match real table glyphs.
+        pieces = [re.escape(norm(piece)) for piece in drop_lines if norm(piece)]
+        if not pieces:
+            return False
+        piece = "(?:" + "|".join(pieces) + ")"
+        return bool(re.fullmatch(piece + r"(?:\s+" + piece + ")*", t))
     for blk in page.blocks:
         if blk.lines and all(is_prov(ln.text) for ln in blk.lines):
             _suppress_block(page, blk, "provenance")
@@ -3842,6 +4033,10 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
     classify(pages, body)
     propose_tables_from_text(pages)
 
+    for page in pages:
+        if page.blocks or page.source_words:
+            _protect_numeric_records(page)
+            _prepare_figure_zones(doc[page.page_idx], page)
     proc_line_numbers(pages)
     proc_reflow(pages)
     proc_ignore_common(pages)
@@ -3863,6 +4058,7 @@ def convert(path: pathlib.Path, outdir: pathlib.Path, images=False,
     proc_captions(pages)
     n_figures += _figures_from_captions(pages)
     n_figures -= _route_raster_equations(pages)
+    _attach_figure_source_text(pages)
 
     manifest = {}
     if do_flag_math:

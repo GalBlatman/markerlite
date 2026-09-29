@@ -1,4 +1,4 @@
-## 1 Introduction
+## Repro and Author: Synthetic figures and equations 1 Introduction
 
 Repetition can, since a header recurs across pages while a title appears once. The benchmark documents in this study were built to exercise those two decisions and nothing else. Each document is short, synthetic, and free of copyright, so it can be redistributed with the converter. Hyphenation across a column break is a small case that reveals whether continuation logic inspects the trailing character of a line.
 
@@ -12,7 +12,7 @@ The abstract runs across the full measure while the body is set in two columns, 
 
 Nothing in the pipeline depends on a downloaded model, which is the constraint that motivated the project. Line heights are clustered to recover heading levels when a document has no section numbers. When numbers are present they win, because a numbered heading states its own depth. Captions are recognised by their leading label and attached to the nearest figure or table above them.
 
-## 2 Materials and Methods
+## Repro and Author: Synthetic figures and equations 2 Materials and Methods
 
 Equations are left as images for a later pass rather than transcribed into notation that would be wrong half the time. The remaining processors are direct ports and are documented against the source files they come from. Every threshold in the code was set by looking at a failure, not by tuning against a corpus. That makes the thresholds easy to defend and easy to revise when a new failure appears.
 
@@ -24,23 +24,33 @@ $$
 
 We report where the approach breaks so that a reader can decide whether it fits their documents. Multi-line table cells remain the weakest point and are listed as partial support. Journals that style every heading identically defeat the height clustering and lose a level. Scanned pages inherit every error of the recogniser, including stray page numbers in the middle of a paragraph.
 
-C1 C2 C3 C4 C5 0
-
-25
-
-50
-
-75
-
-100
-
 <!-- figure: p. 2; caption: Figure 2. A vector chart drawn with path operators: five conditions, response in percent. No image object is involved. -->
+
+<!-- figure text: C1 -->
+
+<!-- figure text: C2 -->
+
+<!-- figure text: C3 -->
+
+<!-- figure text: C4 -->
+
+<!-- figure text: C5 -->
+
+<!-- figure text: 0 -->
+
+<!-- figure text: 25 -->
+
+<!-- figure text: 50 -->
+
+<!-- figure text: 75 -->
+
+<!-- figure text: 100 -->
 
 *Figure 2. A vector chart drawn with path operators: five conditions, response in percent. No image object is involved.*
 
 None of these failures corrupts the surrounding text; they degrade the structure rather than the content. The synthetic set is regenerated from scripts, so a fixture can be changed and the change reviewed. Expected outputs are committed beside the fixtures and compared byte for byte. A behaviour change that is intended is recorded by rewriting the expected files in the same commit.
 
-## 3 Results and Discussion
+## Repro and Author: Synthetic figures and equations 3 Results and Discussion
 
 An unintended change fails the build before it reaches a release. The vendored table code is treated as third-party and is not edited locally. Where the original relied on a learned layout model, a font-size rule stands in for it. The rule is coarse, but it is inspectable, and a wrong answer can be traced to a number in the source.
 

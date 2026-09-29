@@ -73,6 +73,40 @@ def check_ocr_markers(pdf: pathlib.Path, workdir: pathlib.Path, plain: str) -> i
     return 1
 
 
+def check_source_suppression(pdf, workdir):
+    out, info = markerlite.convert(pdf, workdir, page_markers=True)
+    text = out.read_text()
+    records = info["stats"]["suppressed"]
+    if pdf.stem == "figure_source_labels":
+        assert "<!-- figure text: Response proportion" in text
+        assert "<!-- figure text: -4.5" in text
+        assert "<!-- figure text: FIGURE 1" in text
+        assert "<!-- figure text: A rotated source caption" in text
+        assert not records
+    elif pdf.stem == "continued_table_header":
+        assert text.count("Table 2 (continued)") == 3
+        assert text.count("Year") == 3 and text.count("Observed") == 3
+        assert "Review journal running head" not in text
+        assert sum(r["text"] == "Review journal running head" for r in records) == 3
+        assert not any("continued" in r["text"] or r["text"] == "Year" for r in records)
+    elif pdf.stem == "edge_content":
+        assert "39: 432-478." in text and "653-669." in text
+        assert text.count("\npub\n") == 2 and text.count("\nView stats\n") == 2
+        assert "View publication stats" not in text
+        assert sum(r["text"] == "View publication stats" for r in records) == 3
+        assert "503" not in text and any(r["text"] == "503" for r in records)
+        assert "| Final | 20 |" in text and "| Final | 21 |" in text
+        assert "Publisher footer" not in text
+        assert sum("Publisher footer" in r["text"] for r in records) == 2
+    else:
+        assert all(str(y) in text for y in range(1987,1995))
+        removed = [r for r in records if r["reason"] == "proc_line_numbers"]
+        assert len(removed) == 40 and {int(r["text"]) for r in removed} == set(range(1,41))
+        assert all(r["page"] == 2 for r in removed)
+    print("ok    source-lines    content retained; genuine furniture recorded and removed")
+    return 0
+
+
 def check_journal_front_matter(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     """Both journal layouts reject front matter, keeping original blocks and
     a real data table; every variant also runs alone as PDF page 1.
@@ -224,7 +258,10 @@ def check_conservation(workdir: pathlib.Path) -> int:
         (workdir / sub).mkdir(parents=True, exist_ok=True)
     _o, info = markerlite.convert(pdf, workdir / "on")
     clean = info["stats"].get("lossy_pages")
-    with patch.object(markerlite, "_normalise_rotation", lambda page: (page, False)):
+    # Disable both recovery paths to exercise the loss alarm, rather than
+    # treating source text retained in figure comments as a test failure.
+    with patch.object(markerlite, "_normalise_rotation", lambda page: (page, False)), \
+            patch.object(markerlite, "_attach_figure_source_text", lambda pages: None):
         _o, info = markerlite.convert(pdf, workdir / "off")
     lossy = info["stats"].get("lossy_pages") or []
     line = markerlite.summarize(info["stats"])
@@ -462,6 +499,8 @@ def main(argv=None) -> int:
                 print(f"SKIP  {stem:16s} needs tesseract on PATH")
                 continue
             got = convert_to_string(pdf, workdir)
+            if stem in ("continued_table_header", "edge_content", "year_column", "figure_source_labels"):
+                failures += check_source_suppression(pdf, workdir)
             if stem == "journal_front_matter":
                 failures += check_journal_front_matter(pdf, workdir)
             if stem == "tall_cell":

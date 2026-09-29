@@ -4,17 +4,27 @@ Equations are left as images for a later pass rather than transcribed into notat
 
 <!-- figure: p. 1; caption: Figure 1 Adoption by Condition -->
 
+<!-- figure text: C1 -->
+
+<!-- figure text: C2 -->
+
+<!-- figure text: C3 -->
+
+<!-- figure text: C4 -->
+
+<!-- figure text: C5 -->
+
+<!-- figure text: 0 -->
+
+<!-- figure text: 25 -->
+
+<!-- figure text: 50 -->
+
+<!-- figure text: 75 -->
+
+<!-- figure text: 100 -->
+
 *Figure 1 Adoption by Condition*
-
-> C1 C2 C3 C4 C5 0
-
-25
-
-50
-
-75
-
-100
 
 Condition
 
@@ -36,8 +46,12 @@ Journals that style every heading identically defeat the height clustering and l
 
 <!-- figure: p. 2; caption: Figure 2 Process Model of Adoption -->
 
-*Figure 2 Process Model of Adoption*
+<!-- figure text: Entry pressures -->
 
-Entry pressures Internal debate Adopted practice
+<!-- figure text: Internal debate -->
+
+<!-- figure text: Adopted practice -->
+
+*Figure 2 Process Model of Adoption*
 
 The synthetic set is regenerated from scripts, so a fixture can be changed and the change reviewed. Expected outputs are committed beside the fixtures and compared byte for byte. A behaviour change that is intended is recorded by rewriting the expected files in the same commit. An unintended change fails the build before it reaches a release.

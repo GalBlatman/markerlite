@@ -1887,6 +1887,100 @@ def make_table_only_footer():
     pdf.out("table_only_footer.pdf")
 
 
+def make_figure_source_labels():
+    pdf = Doc()
+    art = pymupdf.open()
+    canvas = art.new_page(width=260, height=180)
+    canvas.draw_rect((2,2,258,178), color=(0,0,0))
+    for i in range(5):
+        canvas.draw_rect((25+i*43, 140-i*18, 45+i*43,160), color=(0,0,0), fill=(0.5,0.5,0.5))
+    png = canvas.get_pixmap(dpi=144).tobytes("png")
+    art.close()
+    for rotated_caption in (False, True):
+        pdf.add_page()
+        pdf.text_at(72, 80, "Figure labels are source text even when they are rotated.", size=11)
+        pdf.image(io.BytesIO(png), x=180, y=240, w=260, h=180)
+        if not rotated_caption:
+            pdf.text_at(180, 220, "FIGURE G1", style="B", size=11)
+            with pdf.rotation(90, 165, 400):
+                pdf.text_at(165, 400, "Response proportion", size=9)
+            pdf.text_at(182, 395, "-4.5", size=9)
+        else:
+            with pdf.rotation(90, 130, 365):
+                pdf.text_at(130, 365, "FIGURE 1", style="B", size=9)
+            with pdf.rotation(90, 142, 400):
+                pdf.text_at(142, 400, "A rotated source caption", size=9)
+    pdf.out("figure_source_labels.pdf")
+
+
+def make_continued_table_header():
+    pdf = Doc()
+    for page in range(3):
+        pdf.add_page()
+        pdf.text_at(72, 18, "Review journal running head", size=8)
+        pdf.text_at(72, 47, "Table 2 (continued)", style="B", size=11)
+        ruled_table(pdf, 72, 68, [150, 150, 150], [
+            ["Year", "Observed", "Expected"],
+            [str(2001+page), "12", "15"],
+            [str(2004+page), "18", "21"]], row_h=22)
+        pdf.text_at(455, 136, "(continued)", size=9)
+        pdf.text_at(72, 200, "The table continues independently of the journal running head.", size=11)
+        pdf.text_at(300, 755, str(page+1), size=9)
+    pdf.out("continued_table_header.pdf")
+
+
+def make_edge_content():
+    pdf = Doc()
+    for page in range(2):
+        pdf.add_page()
+        pdf.text_at(72, 80, "References and data must survive near a page edge.", size=11)
+        pdf.text_at(72, 130, "pub", size=11)  # substring of a provenance stamp
+        pdf.text_at(72, 155, "View stats", size=11)  # incomplete stamp words
+        pdf.text_at(72, 180, "View publication stats", size=8)  # actual stamp
+        pdf.text_at(72, 703, "Researcher, A. 2001. An example reference.", size=10)
+        pdf.text_at(72, 719, "39: 432-478." if page == 0 else "653-669.", size=10)
+        ruled_table(pdf, 325, 665, [90, 90], [
+            ["Measure", "Value"], ["First", "10"], ["Final", str(20+page)]], row_h=24)
+        pdf.text_at(72, 762, "Publisher footer", size=8)
+        pdf.text_at(520, 762, str(page+1), size=8)
+    pdf.add_page()
+    pdf.text_at(72, 200, "A publisher margin must not bring the printed folio back.", size=11)
+    pdf.text_at(303, 640, "503", size=8)
+    pdf.text_at(72, 762, "View publication stats", size=8)
+    pdf.out("edge_content.pdf")
+
+
+def make_year_column():
+    pdf = Doc()
+    pdf.add_page()
+    pdf.text_at(72, 80, "Years in a marginal table are data.", size=11)
+    # Raster rules with a native text layer reproduce the undetected-table
+    # case: the Year column arrives as one narrow block of eight integers.
+    art = pymupdf.open()
+    canvas = art.new_page(width=260, height=162)
+    for y in range(0,163,18):
+        canvas.draw_line((0,y), (260,y), color=(0,0,0))
+    for x in (0,55,150,260):
+        canvas.draw_line((x,0), (x,162), color=(0,0,0))
+    pdf.image(io.BytesIO(canvas.get_pixmap(dpi=144).tobytes("png")),
+              x=30, y=570, w=260, h=162)
+    art.close()
+    columns = [["Year"]+[str(y) for y in range(1987,1995)],
+               ["Offices"]+[str(190+i) for i in range(8)],
+               ["Track"]+[str(38+i) for i in range(8)]]
+    for x, column in zip((34,89,184),columns):
+        for i, text in enumerate(column):
+            pdf.text_at(x, 573+i*18, text, size=10)
+    pdf.add_page()
+    # A genuine numbered manuscript page: consecutive values over the body.
+    for i in range(1,41):
+        y = 90+i*14
+        pdf.text_at(110, y, "A numbered manuscript line carries ordinary body content.", size=11)
+    for i in range(1,41):
+        pdf.text_at(30, 90+i*14, str(i), size=9)
+    pdf.out("year_column.pdf")
+
+
 def make_journal_front_matter():
     """Two publisher-style front pages with a lower data table, and booktabs.
 
@@ -2010,6 +2104,10 @@ MAKERS = {
     "provenance_pages": make_provenance_pages,
     "tall_cell": make_tall_cell,
     "journal_front_matter": make_journal_front_matter,
+    "continued_table_header": make_continued_table_header,
+    "figure_source_labels": make_figure_source_labels,
+    "edge_content": make_edge_content,
+    "year_column": make_year_column,
     "table_only_footer": make_table_only_footer,
     "isolated_ocr_page": make_isolated_ocr_page,
     "all_text_wrapped": make_all_text_wrapped,
