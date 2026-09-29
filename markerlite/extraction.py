@@ -2,17 +2,82 @@
 
 from __future__ import annotations
 
+import os
 import pathlib
 import re
+import shutil
 import sys
 from collections import defaultdict
 from dataclasses import replace
 from statistics import median
-from typing import List, Optional, Tuple
+from typing import Callable, Iterable, List, Mapping, Optional, Tuple
 
 import pymupdf
 
 from .model import *
+
+
+def discover_tesseract(
+    *,
+    env: Mapping[str, str] | None = None,
+    which: Callable[..., str | None] = shutil.which,
+    is_file: Callable[[pathlib.Path], bool] | None = None,
+    registry_reader: Callable[[], Iterable[str]] | None = None,
+) -> str | None:
+    """Return the full path to Tesseract using the Windows installer locations."""
+    environment = os.environ if env is None else env
+    file_exists = pathlib.Path.is_file if is_file is None else is_file
+
+    def full_path(value: str | os.PathLike[str]) -> str | None:
+        text = str(value).strip().strip('"')
+        if not text:
+            return None
+        candidate = pathlib.Path(text)
+        if file_exists(candidate):
+            return str(candidate.resolve())
+        found = which(text, path=environment.get("PATH"))
+        return str(pathlib.Path(found).resolve()) if found else None
+
+    configured = environment.get("TESSERACT_CMD")
+    if configured and (found := full_path(configured)):
+        return found
+    if found := which("tesseract", path=environment.get("PATH")):
+        return str(pathlib.Path(found).resolve())
+
+    def installed_dirs() -> Iterable[str]:
+        if registry_reader is not None:
+            yield from registry_reader()
+            return
+        if sys.platform != "win32":
+            return
+        try:
+            import winreg
+
+            for root in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
+                try:
+                    with winreg.OpenKey(root, r"SOFTWARE\Tesseract-OCR") as key:
+                        value, _kind = winreg.QueryValueEx(key, "InstallDir")
+                        if value:
+                            yield str(value)
+                except OSError:
+                    continue
+        except ImportError:  # pragma: no cover - only possible on non-Windows Python
+            return
+
+    for directory in installed_dirs():
+        if found := full_path(pathlib.Path(directory) / "tesseract.exe"):
+            return found
+    for variable, suffix in (
+        ("ProgramFiles", ("Tesseract-OCR",)),
+        ("ProgramFiles(x86)", ("Tesseract-OCR",)),
+        ("LOCALAPPDATA", ("Programs", "Tesseract-OCR")),
+    ):
+        base = environment.get(variable)
+        if base and (
+            found := full_path(pathlib.Path(base).joinpath(*suffix, "tesseract.exe"))
+        ):
+            return found
+    return None
 
 
 def _bbox_of(items) -> Tuple[float, float, float, float]:
@@ -179,13 +244,16 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = OCR_DPI) -> Optional
     import tempfile
 
     try:
+        executable = discover_tesseract()
+        if executable is None:
+            return None
         pix = page.get_pixmap(dpi=dpi)
         with tempfile.TemporaryDirectory() as td:
             img = pathlib.Path(td) / "page.png"
             pix.save(img)
             proc = subprocess.run(
                 [
-                    "tesseract",
+                    executable,
                     str(img),
                     "stdout",
                     "--psm",
