@@ -214,7 +214,7 @@ def check_fallback_prose(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     return 0
 
 
-def check_proposal_guard(pdf: pathlib.Path, workdir: pathlib.Path, guarded: str) -> int:
+def check_proposal_guard(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     """justified_scan: with the proposal-path text-loss guard the justified
     prose stays prose with every word, and the control page's real table is
     still detected; with the guard disabled the prose becomes a pseudo-table
@@ -506,7 +506,7 @@ def main(argv=None) -> int:
             if stem == "tall_cell":
                 failures += check_fallback_prose(pdf, workdir)
             if stem == "justified_scan":
-                failures += check_proposal_guard(pdf, workdir, got)
+                failures += check_proposal_guard(pdf, workdir)
             if stem == "isolated_ocr_page":
                 failures += check_ocr_markers(pdf, workdir, got)
             if args.update:

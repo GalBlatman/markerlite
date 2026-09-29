@@ -97,10 +97,6 @@ CAPTION_START = re.compile(
     re.IGNORECASE,
 )
 NUMBERED_HEADING = re.compile(r"^\s*(\d+(?:\.\d+)*|[IVXLC]+\.|[A-Z]\.)\s+\S")
-# "[1] ", "(2) ", "3. ", "*", and LaTeX's superscript-run-on form ("1We thank").
-FOOTNOTE_START = re.compile(
-    r"^\s*(\[\d{1,3}\]|\(\d{1,3}\)|\d{1,3}[.)]?\s|\d{1,3}(?=[A-Z])|[*†‡§¶])"
-)
 BIB_HINT = re.compile(r"^\s*(references|bibliography|works cited)\s*$", re.IGNORECASE)
 
 # Greek, operators, relations, and the delimiters equations lean on. Font names
@@ -1030,7 +1026,8 @@ def _grid_to_html(rows: List[List[str]]) -> str:
 # tall wrapped cell, so on compliance-style tables it can "win" the sanity
 # check with a tidy grid that has silently dropped most of the cell text (the
 # SBTi protocol lost 70% of some pages this way). Silent data loss is worse
-# than an ugly grid: below this ratio the geometric cells are used instead.
+# than an ugly grid: below this ratio the region is kept as ordered prose.
+# The geometric cells remain the word-count and admission baseline.
 TABLE_FALLBACK_MIN_KEEP = 0.9
 
 
@@ -1436,7 +1433,6 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
         region = (region[0] - 4, region[1] - 3, region[2] + 4, region[3] + 3)
 
         html = ""
-        score = 0.0
         if reconstruct_table_html is not None:
             lines = _tokens_for_recon(members, region)
             try:
@@ -1445,7 +1441,7 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
             except Exception:
                 res = None
             if res:
-                html, score = res
+                html = res[0]
 
         # PyMuPDF's geometric cells: text assigned by cell bbox, so wrapped
         # lines stay in their cell. Used when the reconstruction is unusable,
@@ -1456,16 +1452,17 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
             fallback = ""
         fell_back = False
         if not html or not _table_sane(html):
-            # No usable reconstruction: the geometric grid stands in only if
-            # it passes the same sanity check (else the region stays prose).
+            # The geometric grid is only the admission oracle here. If it
+            # passes the same sanity check, the admitted region renders from
+            # its ordered source prose below.
             html = fallback if _table_sane(fallback) else ""
             fell_back = bool(html)
         elif fallback:
-            # A usable reconstruction still loses to the geometric grid when
-            # it has dropped words. The grid is not required to be "sane"
-            # here: a sparse criteria table has many genuinely empty cells,
-            # which is what _table_sane rejects, and its text is geometric
-            # truth - every word sits in the cell the ruling lines put it in.
+            # A usable reconstruction still becomes a prose fallback when it
+            # has dropped words. The geometric grid is not required to be
+            # "sane" here: a sparse criteria table has many genuinely empty
+            # cells, which is what _table_sane rejects. Its word count is the
+            # baseline because each source word is assigned by cell geometry.
             kept, cells = _html_word_count(html), _html_word_count(fallback)
             if kept < TABLE_FALLBACK_MIN_KEEP * cells:
                 html, fell_back = fallback, True
@@ -2638,7 +2635,6 @@ def proc_continuation(pages: List[Page], column_gap_ratio=0.02) -> None:
         if nxt.btype != "Text" or nxt.ignore_for_output:
             continue
 
-        page = pages[blk.page_idx]
         column_gap = blk.width * column_gap_ratio
         column_break = page_break = False
         next_in_first_quadrant = False

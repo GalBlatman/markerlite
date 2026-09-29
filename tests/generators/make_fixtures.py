@@ -413,8 +413,6 @@ def make_hard(name="hard.pdf", footer_first=False):
     gutter, margin = 24.0, 72.0
     col_w = (LETTER_W - 2 * margin - gutter) / 2
     left_x, right_x = margin, margin + col_w + gutter
-    foot_notes = {1: [], 2: []}
-
     def furniture(page_no):
         pdf.text_at(margin, 30, "Journal of Synthetic Studies 12(3), 2026", style="I", size=9)
         pdf.right(30, "Lovelace and Babbage", style="I", size=9)
@@ -1392,7 +1390,7 @@ def make_watermark():
         # A ruled table across the middle of the page, where the diagonal
         # watermark crosses it, on both pages: page 1 short cells, page 2
         # tall wrapped cells (the shape that makes the grid sweep give up and
-        # fall back to PyMuPDF's own cell text).
+        # keep the source as ordered prose).
         f.y = max(f.y + 4, 330)
         if pg == 0:
             rows = [["Metric", "2025", "2026", "2027"],
@@ -2047,7 +2045,7 @@ def make_tall_cell():
 
     Bug: the grid reconstruction wins over PyMuPDF's geometric cells and keeps
     only the first line of each wrapped cell; the rest of the cell text is
-    silently dropped. The text-loss guard makes the cell text win instead.
+    silently dropped. The text-loss guard keeps the source as prose instead.
     """
     pdf = Doc()
     margin = 72.0
