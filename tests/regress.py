@@ -32,6 +32,9 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 import markerlite  # noqa: E402  (after sys.path)
+import markerlite.api as markerlite_api  # noqa: E402
+import markerlite.extraction as markerlite_extraction  # noqa: E402
+import markerlite.tables as markerlite_tables  # noqa: E402
 
 FIXTURES = ROOT / "tests" / "fixtures"
 EXPECTED = ROOT / "tests" / "expected"
@@ -117,7 +120,7 @@ def check_journal_front_matter(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
                 ["Beta", "18", "21"], ["Gamma", "24", "27"]]
     root = workdir / "journal-controls"
     root.mkdir(exist_ok=True)
-    detect = markerlite.detect_tables
+    detect = markerlite_tables.detect_tables
     kept_blocks = []
     def spy_detect(pm, page):
         originals = list(page.blocks)
@@ -125,7 +128,7 @@ def check_journal_front_matter(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
         kept_blocks.extend(b for b in originals if b.journal_front_matter)
         assert all(any(b is after for after in page.blocks)
                    for b in originals if b.journal_front_matter)
-    with patch.object(markerlite, "detect_tables", spy_detect):
+    with patch.object(markerlite_api, "detect_tables", spy_detect):
         stats, tables = table_cells(pdf, root / "combined")
     if stats["tables"] != 3 or stats["tables_fallback"] or len(kept_blocks) < 8:
         print("FAIL  journal-front: wrong candidates or original blocks consumed")
@@ -142,7 +145,7 @@ def check_journal_front_matter(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
             or "<!-- table p." in text):
         print("FAIL  journal-front: title or abstract classification")
         return 1
-    with patch.object(markerlite, "_journal_front_matter", lambda *args: False):
+    with patch.object(markerlite_tables, "_journal_front_matter", lambda *args: False):
         disabled, _ = table_cells(pdf, root / "disabled")
     if disabled["tables"] != 5 or disabled["tables_fallback"] != 2:
         print("FAIL  journal-front: negative cases no longer reproduce the defect")
@@ -170,8 +173,8 @@ def check_fallback_prose(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     from unittest.mock import patch
     import unicodedata
     normalize = lambda text: Counter(unicodedata.normalize("NFKC", text).split())
-    original_render = markerlite.render
-    original_recon = markerlite.reconstruct_table_html
+    original_render = markerlite_api.render
+    original_recon = markerlite_tables.reconstruct_table_html
     directory = workdir / "fallback-prose"
     directory.mkdir(exist_ok=True)
     for unavailable in (False, True):
@@ -184,10 +187,10 @@ def check_fallback_prose(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
                         prose = "\n\n".join(markerlite.fallback_prose(block))
                         captured.append((normalize(raw), normalize(prose), prose))
             return original_render(pages, **kwargs)
-        with patch.object(markerlite, "recover_wrapped_lines", lambda lines, res, *args: res), \
-                patch.object(markerlite, "reconstruct_table_html",
+        with patch.object(markerlite_tables, "recover_wrapped_lines", lambda lines, res, *args: res), \
+                patch.object(markerlite_tables, "reconstruct_table_html",
                              None if unavailable else original_recon), \
-                patch.object(markerlite, "render", spy):
+                patch.object(markerlite_api, "render", spy):
             output, info = markerlite.convert(pdf, directory)
         text = output.read_text(encoding="utf-8")
         marker = "<!-- table p. 1: reconstruction failed; text kept as prose -->"
@@ -232,7 +235,7 @@ def check_proposal_guard(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
         (workdir / sub).mkdir(parents=True, exist_ok=True)
     out, _ = markerlite.convert(pdf, workdir / "guard", page_markers=True)
     with_guard = per_page(out.read_text(encoding="utf-8"))
-    with patch.object(markerlite, "TABLE_FALLBACK_MIN_KEEP", 0.0):
+    with patch.object(markerlite_tables, "TABLE_FALLBACK_MIN_KEEP", 0.0):
         out2, _ = markerlite.convert(pdf, workdir / "noguard", page_markers=True)
     without = per_page(out2.read_text(encoding="utf-8"))
     ok = (with_guard[1][1] == 0                      # prose page: no table lines
@@ -260,8 +263,8 @@ def check_conservation(workdir: pathlib.Path) -> int:
     clean = info["stats"].get("lossy_pages")
     # Disable both recovery paths to exercise the loss alarm, rather than
     # treating source text retained in figure comments as a test failure.
-    with patch.object(markerlite, "_normalise_rotation", lambda page: (page, False)), \
-            patch.object(markerlite, "_attach_figure_source_text", lambda pages: None):
+    with patch.object(markerlite_extraction, "_normalise_rotation", lambda page: (page, False)), \
+            patch.object(markerlite_api, "_attach_figure_source_text", lambda pages: None):
         _o, info = markerlite.convert(pdf, workdir / "off")
     lossy = info["stats"].get("lossy_pages") or []
     line = markerlite.summarize(info["stats"])
@@ -282,7 +285,7 @@ def check_garbled(workdir: pathlib.Path) -> int:
     fixture trips the detector."""
     from unittest.mock import patch
     (workdir / "garbled").mkdir(parents=True, exist_ok=True)
-    with patch.object(markerlite, "_ocr_page", lambda page, idx, dpi=300: None):
+    with patch.object(markerlite_extraction, "_ocr_page", lambda page, idx, dpi=300: None):
         _o, info = markerlite.convert(FIXTURES / "garbled_font.pdf", workdir / "garbled")
         _o, clean = markerlite.convert(FIXTURES / "hard.pdf", workdir / "garbled")
         _o, refs = markerlite.convert(FIXTURES / "paper.pdf", workdir / "garbled")
@@ -301,7 +304,7 @@ def table_cells(pdf: pathlib.Path, workdir: pathlib.Path):
     """(stats, [(page, caption texts, cell matrix)]) for every table emitted."""
     from unittest.mock import patch
     seen = []
-    render = markerlite.render
+    render = markerlite_api.render
 
     def spy(pages, **kwargs):
         for page in pages:
@@ -316,7 +319,7 @@ def table_cells(pdf: pathlib.Path, workdir: pathlib.Path):
         return render(pages, **kwargs)
 
     workdir.mkdir(parents=True, exist_ok=True)
-    with patch.object(markerlite, "render", spy):
+    with patch.object(markerlite_api, "render", spy):
         _o, info = markerlite.convert(pdf, workdir)
     return info["stats"], seen
 
@@ -433,7 +436,7 @@ def check_low_yield(workdir: pathlib.Path) -> int:
     as low-yield and the summary says so. Runs without Tesseract by design."""
     from unittest.mock import patch
     pdf = FIXTURES / "scanned_with_stamp.pdf"
-    with patch.object(markerlite, "_ocr_page", lambda page, idx, dpi=300: None):
+    with patch.object(markerlite_extraction, "_ocr_page", lambda page, idx, dpi=300: None):
         (workdir / "lowyield").mkdir(parents=True, exist_ok=True)
         _out, info = markerlite.convert(pdf, workdir / "lowyield")
     stats = info["stats"]

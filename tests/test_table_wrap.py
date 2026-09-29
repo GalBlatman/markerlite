@@ -10,6 +10,7 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 import markerlite
+import markerlite.api as markerlite_api
 import table_recon
 from table_wrap import recover_wrapped_lines
 
@@ -18,7 +19,7 @@ class WrappedCellsTests(unittest.TestCase):
     def test_ruled_and_unruled_cells(self):
         """The centered Gamma key and two-column Alpha wrap retain ownership."""
         tables = []
-        original_render = markerlite.render
+        original_render = markerlite_api.render
 
         def record(pages, **kwargs):
             for page in pages:
@@ -31,7 +32,7 @@ class WrappedCellsTests(unittest.TestCase):
 
         pdf = pathlib.Path(__file__).parent / "fixtures" / "all_text_wrapped.pdf"
         with tempfile.TemporaryDirectory() as directory:
-            with patch.object(markerlite, "render", record):
+            with patch.object(markerlite_api, "render", record):
                 _, info = markerlite.convert(pdf, pathlib.Path(directory))
         expected = [
             ["Record", "Requirement", "Assessment"],

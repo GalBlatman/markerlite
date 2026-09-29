@@ -25,6 +25,8 @@ from unittest.mock import patch
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 import markerlite  # noqa: E402
+import markerlite.api as markerlite_api  # noqa: E402
+import markerlite.tables as markerlite_tables  # noqa: E402
 
 
 def words(text):
@@ -63,12 +65,12 @@ def markdown_words(text):
 
 def capture(pdf, directory):
     records, cells = [], []
-    source, start = inspect.getsourcelines(markerlite.detect_tables)
+    source, start = inspect.getsourcelines(markerlite_tables.detect_tables)
     decision_line = start + next(i for i, text in enumerate(source)
                                  if "page.tables_emitted += 1" in text)
 
     def trace(frame, event, arg):
-        if frame.f_code is not markerlite.detect_tables.__code__:
+        if frame.f_code is not markerlite_tables.detect_tables.__code__:
             return None
         if event == "line" and frame.f_lineno == decision_line:
             state = frame.f_locals
@@ -93,7 +95,7 @@ def capture(pdf, directory):
             })
         return trace
 
-    original_render = markerlite.render
+    original_render = markerlite_api.render
 
     def render(pages, **kwargs):
         for page in pages:
@@ -109,7 +111,7 @@ def capture(pdf, directory):
     previous_trace = sys.gettrace()
     try:
         sys.settrace(trace)
-        with patch.object(markerlite, "render", render):
+        with patch.object(markerlite_api, "render", render):
             md, info = markerlite.convert(pdf, directory, page_markers=True)
     finally:
         sys.settrace(previous_trace)
@@ -144,9 +146,9 @@ def main():
         parser.error("missing local reference PDFs: " + ", ".join(missing))
     results = {}
     recovery = (lambda lines, original, *unused: original) if args.without_wrapped else (
-        markerlite.recover_wrapped_lines)
+        markerlite_tables.recover_wrapped_lines)
     with tempfile.TemporaryDirectory(prefix="markerlite-table-audit-") as directory:
-        with patch.object(markerlite, "recover_wrapped_lines", recovery):
+        with patch.object(markerlite_tables, "recover_wrapped_lines", recovery):
             for pdf in paths:
                 results[pdf.stem] = capture(pdf, pathlib.Path(directory))
                 print(pdf.stem, results[pdf.stem]["stats"],

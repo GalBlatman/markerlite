@@ -1,0 +1,734 @@
+"""Mechanical module split from the v0.1.14 implementation."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import math
+import pathlib
+import re
+import sys
+import warnings
+from collections import Counter, defaultdict
+from dataclasses import dataclass, field, replace
+from html import escape, unescape
+from html.parser import HTMLParser
+from itertools import groupby
+from statistics import median
+from typing import List, Optional, Tuple
+
+import numpy as np
+import pymupdf
+import regex
+from rapidfuzz import fuzz
+from sklearn.cluster import KMeans
+from sklearn.exceptions import ConvergenceWarning
+
+from .model import *
+from .extraction import _bbox_of
+from .tables import _overlap_frac
+from .classification import _symbol_is_notation, footnote_label, note_text_size
+
+def _protect_numeric_records(page):
+    """Repeated rows of independent numeric cells are table evidence even on
+    scans without vector rules. A manuscript number beside prose is not a row
+    of numeric cells. Geometry is used for protection, never to reorder text.
+    """
+    rows = []
+    for block in page.blocks:
+        for line in block.lines:
+            if not re.fullmatch(r"[−-]?\d+(?:[.,]\d+)?", line.text.strip()):
+                continue
+            mid = (line.bbox[1]+line.bbox[3])/2
+            row = next((r for y,r in rows if abs(mid-y) < 3), None)
+            if row is None:
+                row = []
+                rows.append((mid,row))
+            row.append(line)
+    groups = []
+    for y, row in rows:
+        xs = sorted(ln.bbox[0] for ln in row)
+        if len(xs)<2 or xs[-1]-xs[0]<30:
+            continue
+        group = next((g for cuts,g in groups if len(cuts)==len(xs)
+                      and all(abs(a-b)<5 for a,b in zip(cuts,xs))), None)
+        if group is None:
+            group=[]
+            groups.append((xs,group))
+        group.append(row)
+    for cuts, group in groups:
+        if len(group)>=3:
+            page.table_zones.append(_bbox_of([ln.bbox for row in group for ln in row]))
+
+def _furniture_band(page, bbox):
+    if bbox[3] <= 0.10 * page.height:
+        return "header"
+    if bbox[1] >= 0.87 * page.height:
+        return "footer"
+    return None
+
+def _furniture_protected(page: Page, block: Block) -> bool:
+    if block.btype in ("Table", "Figure", "Caption", "Footnote"):
+        return True
+    if TABLE_LABEL.match(block.text.strip()) or FIGURE_LABEL.match(block.text.strip()):
+        return True
+    boxes = page.table_zones + [b.bbox for b in page.blocks if b.btype == "Table"]
+    for box in boxes:
+        for ln in block.lines:
+            if _overlap_frac(ln.bbox, box) > 0.5:
+                return True
+            x0, y0, x1, y1 = ln.bbox
+            touching = min(abs(y1-box[1]), abs(y0-box[3])) <= 2
+            # A page-wide running head can have one fragment above a
+            # table's top rule. Attachment requires the whole block to align
+            # with the table, not just that incidental fragment.
+            if (touching and block.x_start >= box[0]-3
+                    and block.x_end <= box[2]+3):
+                return True
+    return any(_overlap_frac(ln.bbox, box) > 0.5
+               for box in page.figure_zones for ln in block.lines)
+
+def _positional_repeat(page, block, norm, corpus):
+    if not norm:
+        return False  # numeric fragments must never match the empty string
+    band = _furniture_band(page, block.bbox)
+    if band is None:
+        return False
+    y = block.y_start / page.height
+    return any(other.page_idx != page.page_idx and other_band == band
+               and abs(y-other_y) <= FURNITURE_HEIGHT_TOL
+               and text and fuzz.ratio(norm, text) > 90
+               for other, other_band, other_y, text in corpus)
+
+def _record_suppressed(page: Page, lines, reason: str) -> None:
+    """Stable public audit records; PDF page is one-based, bbox is in points.
+
+    Record source lines, not formatted Markdown. Relocation into a caption,
+    table, footnote or another paragraph is not suppression.
+    """
+    for line in lines:
+        if line.text.strip():
+            page.suppressed.append({"page": page.page_idx + 1,
+                                    "bbox": list(line.bbox),
+                                    "text": line.text, "reason": reason})
+
+def _suppress_block(page: Page, block: Block, reason: str) -> None:
+    if not block.ignore_for_output:
+        _record_suppressed(page, block.lines, reason)
+        block.ignore_for_output = True
+
+def proc_line_numbers(pages: List[Page], margin_frac=0.14, min_count=8) -> None:
+    """marker/processors/line_numbers.py - manuscript line numbers in the margin.
+
+    Review-copy PDFs number every line down the left edge. Usually each number
+    is its own tiny block, so without this they render as a column of one-digit
+    paragraphs. A run of many bare integers, all hugging the same margin and
+    mostly increasing, is the signature.
+
+    ScholarOne draws the column at single spacing regardless of the text's
+    leading, and PyMuPDF then returns all sixty numbers as ONE block. That
+    block is caught by the same signature applied to its lines: every line a
+    short integer, mostly increasing, the block in the margin.
+    """
+    def _increasing(vals) -> bool:
+        if len(vals) < min_count:
+            return False
+        inc = sum(1 for a, b in zip(vals, vals[1:]) if 1 <= b-a <= 2)
+        return inc >= 0.8 * (len(vals) - 1)
+
+    for page in pages:
+        body_lines = [ln for b in page.blocks if b.btype in TEXTISH
+                      and b.width > 0.3*page.width and not b.ignore_for_output
+                      for ln in b.lines if 0.08*page.height < ln.bbox[1] < 0.87*page.height]
+        body_extent = (max(ln.bbox[3] for ln in body_lines)-min(ln.bbox[1] for ln in body_lines)
+                       if body_lines else page.height)
+        min_extent = min(0.4*page.height, 0.7*body_extent)
+        cands = []
+        for blk in page.blocks:
+            if blk.ignore_for_output or _furniture_protected(page, blk):
+                continue
+            in_left = blk.x_end <= margin_frac * page.width
+            in_right = blk.x_start >= (1 - margin_frac) * page.width
+            if not (in_left or in_right):
+                continue
+            t = blk.text.strip()
+            if t.isdigit() and len(t) <= 4:
+                cands.append((int(t), blk))
+                continue
+            # one block holding the whole column
+            lines = [ln.text.strip() for ln in blk.lines]
+            if (len(lines) >= min_count
+                    and all(x.isdigit() and len(x) <= 4 for x in lines)
+                    and blk.height >= min_extent
+                    and _increasing([int(x) for x in lines])):
+                _suppress_block(page, blk, "proc_line_numbers")
+        if len(cands) < min_count:
+            continue
+        vals = [v for v, _ in sorted(cands, key=lambda c: c[1].y_start)]
+        if (_increasing(vals) and max(b.y_end for _, b in cands)
+                - min(b.y_start for _, b in cands) >= min_extent):
+            for _v, blk in cands:
+                _suppress_block(page, blk, "proc_line_numbers")
+
+def proc_ignore_common(pages: List[Page]) -> None:
+    """Repeated boundary blocks require matching edge position and context."""
+    candidates = []
+    for page in pages:
+        blocks = [b for b in page.blocks if b.btype in TEXTISH and b.text.strip()
+                  and not b.ignore_for_output]
+        for block in ([blocks[0], blocks[-1]] if blocks else []):
+            if not _furniture_protected(page, block):
+                candidates.append((page, block))
+    corpus = [(p, _furniture_band(p, b.bbox), b.y_start/p.height, _clean_text(b.text))
+              for p, b in candidates]
+    for page, block in candidates:
+        norm = _clean_text(block.text)
+        matches = {p.page_idx for p, band, y, text in corpus
+                   if band == _furniture_band(page, block.bbox)
+                   and abs(y-block.y_start/page.height) <= FURNITURE_HEIGHT_TOL
+                   and norm and fuzz.ratio(norm, text) > 90}
+        # Retain the original common-boundary pass's four-page minimum.
+        # Marginalia below accepts two-page evidence in its narrower bands.
+        bare_number = bool(PAGE_NUMBER_ONLY.fullmatch(block.text.strip()))
+        # Aggregator margins can put the printed folio above the fixed footer
+        # band. A centered bare number below all content is still a folio;
+        # provenance stamps have already been removed, and table/figure
+        # candidates were excluded above.
+        below_content = (block.y_start > page.height/2
+                         and abs((block.x_start+block.x_end)/2-page.width/2) < 0.1*page.width
+                         and all(other is block or other.ignore_for_output
+                                 or not other.text.strip() or other.y_end <= block.y_start
+                                 for other in page.blocks))
+        if ((_positional_repeat(page, block, norm, corpus) and len(matches) >= 4)
+                or (bare_number and (_furniture_band(page, block.bbox) or below_content))):
+            _suppress_block(page, block, "proc_ignore_common")
+
+def _clean_text(text: str) -> str:
+    """Furniture text with its page-number tokens removed, for repetition
+    matching. A leading or trailing token that merely CONTAINS a digit goes
+    too: OCR reads "1995 Suchman 579" on one page and "1995 Suchman $79" on
+    the next, and "Suchman $79" missed the fuzzy match against "Suchman"."""
+    text = text.replace("\n", " ").strip()
+    text = re.sub(r"^\S*\d\S*\s*", "", text)
+    text = re.sub(r"\s*\S*\d\S*$", "", text)
+    return text
+
+def proc_marginalia(pages: List[Page], header_zone=0.08, footer_zone=0.13,
+                    max_height_frac=0.035, max_chars=150) -> None:
+    """Suppress running heads and feet - but only on evidence of repetition.
+
+    The earlier rule deleted anything short sitting in the top 8% of a page.
+    On a multi-page document that destroys content: a section heading at the
+    top of page 2, or a title on page 1, is short, small, and first in reading
+    order, so it matched and vanished silently. Position alone cannot separate
+    furniture from content - what makes a running head a running head is that
+    it RUNS, i.e. repeats across pages.
+
+    A candidate is now suppressed only when
+      * its text, with page numbers stripped, recurs on 2+ pages, or
+      * it is nothing but a page number.
+    Headings are protected unless they repeat, and page 1 is treated as content
+    unless the same text reappears later in the document.
+    """
+    candidates: List[tuple] = []  # (page_idx, block, normalized_text)
+
+    for page in pages:
+        text_blocks = [
+            b for b in page.blocks
+            if b.btype in (*TEXTISH, "Table") and not b.ignore_for_output and b.text.strip()
+        ]
+        if len(text_blocks) < 2:
+            continue
+        h = page.height or 1
+
+        def yfrac(b):
+            return (b.y_start / h, b.y_end / h)
+
+        body = [
+            b for b in text_blocks
+            if not (yfrac(b)[1] <= header_zone or yfrac(b)[0] >= 1 - footer_zone)
+        ]
+        if not body:
+            continue
+        body_top = min(yfrac(b)[0] for b in body)
+        body_bottom = max(yfrac(b)[1] for b in body)
+
+        for blk in text_blocks:
+            if _furniture_protected(page, blk):
+                continue
+            y0, y1 = yfrac(blk)
+            if ((y1 - y0) > max_height_frac
+                    and not PAGE_NUMBER_ONLY.fullmatch(blk.text.strip())):
+                continue
+            t = blk.text.strip()
+            if not t or len(t) > max_chars:
+                continue
+            # Position only, for headers and footers alike. Content is
+            # protected by the repetition evidence checked below, not by
+            # stream order: a running head is often DRAWN LAST (manuscript
+            # templates), and a footer is often drawn FIRST (Acrobat
+            # PDFMaker), so ordering guards only ever let furniture through.
+            # The foot of a two-column page's left column never repeats
+            # across pages, so it needs no order guard either.
+            is_header = y1 <= header_zone and y1 <= body_top
+            is_footer = y0 >= 1 - footer_zone and y0 >= body_bottom
+            if is_header or is_footer:
+                candidates.append((page.page_idx, blk, _clean_text(t)))
+
+    if not candidates:
+        return
+
+    corpus = []
+    lookup = {p.page_idx: p for p in pages}
+    for idx, blk, norm in candidates:
+        p = lookup[idx]
+        corpus.append((p, _furniture_band(p, blk.bbox), blk.y_start/p.height, norm))
+    # Earlier furniture removal must not erase the repetition evidence for
+    # a split header (year, author and page number in separate blocks).
+    for page in pages:
+        for record in page.suppressed:
+            if record["reason"] == "proc_ignore_common":
+                corpus.append((page, _furniture_band(page, record["bbox"]),
+                               record["bbox"][1]/page.height, _clean_text(record["text"])))
+    merged = []
+    for page in pages:
+        for blk in page.blocks:
+            if len(blk.lines) < 2 or blk.ignore_for_output or _furniture_protected(page, blk):
+                continue
+            first = blk.lines[0]
+            if first.bbox[3] > 0.10*page.height:
+                continue
+            probe = Block(lines=[first], bbox=first.bbox, page_idx=page.page_idx,
+                          char_pos=first.char_pos)
+            norm = _clean_text(first.text)
+            corpus.append((page, "header", first.bbox[1]/page.height, norm))
+            merged.append((page, blk, probe, norm))
+    for idx, blk, norm in candidates:
+        page = lookup[idx]
+        repeats = _positional_repeat(page, blk, norm, corpus)
+        bare_number = bool(PAGE_NUMBER_ONLY.fullmatch(blk.text.strip()))
+        if repeats or bare_number:
+            _suppress_block(page, blk, "proc_marginalia")
+    for page, blk, probe, norm in merged:
+        bare_number = bool(PAGE_NUMBER_ONLY.fullmatch(probe.text.strip()))
+        if not bare_number and not _positional_repeat(page, probe, norm, corpus):
+            continue
+        head_size = max((s.size for s in blk.lines[0].spans), default=0)
+        rest_size = max((s.size for ln in blk.lines[1:] for s in ln.spans), default=0)
+        if bare_number or (rest_size and head_size < 0.95*rest_size):
+            _record_suppressed(page, blk.lines[:1], "proc_marginalia")
+            blk.lines = blk.lines[1:]
+            blk.bbox = _bbox_of([ln.bbox for ln in blk.lines])
+            blk.char_pos = blk.lines[0].char_pos
+
+def proc_footnotes(pages: List[Page]) -> None:
+    """Relabel stragglers, merge wrapped continuations, push notes to the bottom.
+
+    marker/processors/footnote.py pushes footnotes to the page foot. Two things
+    are added here. Blocks the classifier missed (small type, page foot, marker
+    at the start) are relabeled - including ones it called ListItem. And a
+    Footnote block that does NOT start with a marker is a wrapped continuation
+    of the note above it, so it is folded into that note. Without the merge,
+    one note wrapped across two blocks became two anonymous definitions.
+    """
+    for page in pages:
+        h = page.height or 1
+        body_sizes = [
+            b.max_size() for b in page.blocks
+            if b.btype == "Text" and not b.ignore_for_output
+        ]
+        body = median(body_sizes) if body_sizes else 0
+        for blk in page.blocks:
+            if blk.btype not in ("Text", "ListItem") or blk.ignore_for_output:
+                continue
+            if blk.y_start / h < 0.70:
+                continue
+            if body and note_text_size(blk) >= body * 0.95:
+                continue
+            if not FOOTNOTE_MARKER.match(blk.text.strip()):
+                continue
+            if SIGNIFICANCE_LEGEND.match(blk.text.strip()):
+                continue
+            if _symbol_is_notation(blk, page):
+                continue
+            blk.btype = "Footnote"
+
+        # A small-type block in the foot zone with no marker, immediately after
+        # a note in reading order, is that note's wrapped continuation.
+        prev_was_note = False
+        for blk in page.blocks:
+            if blk.ignore_for_output:
+                continue
+            if blk.btype == "Footnote":
+                prev_was_note = True
+                continue
+            if (
+                prev_was_note
+                and blk.btype in ("Text", "ListItem")
+                and blk.y_start / h >= 0.70
+                and (not body or note_text_size(blk) < body * 0.95)
+                and not FOOTNOTE_MARKER.match(blk.text.strip())
+                and not PAGE_NUMBER_ONLY.match(blk.text.strip())
+            ):
+                blk.btype = "Footnote"
+                continue
+            prev_was_note = False
+
+        notes = [b for b in page.blocks if b.btype == "Footnote" and not b.ignore_for_output]
+        if not notes:
+            continue
+
+        # Fold continuation blocks into the note above them. A block that opens
+        # without a marker, in the same small type, is the tail of a wrapped
+        # note, not a new one.
+        merged: List[Block] = []
+        prev_num = None
+        for blk in notes:
+            label, _ = footnote_label(blk.text.strip())
+            # Notes on a page are numbered upward. A block that opens with a
+            # number no larger than the previous note's is a continuation
+            # whose first word happens to be a number ("2 of them were ...").
+            if label is not None and label.isdigit():
+                if prev_num is not None and int(label) <= prev_num:
+                    label = None
+                else:
+                    prev_num = int(label)
+            if merged and label is None:
+                prev = merged[-1]
+                prev.lines.extend(blk.lines)
+                prev.bbox = _bbox_of([ln.bbox for ln in prev.lines])
+                page.blocks.remove(blk)
+                continue
+            merged.append(blk)
+
+        for n in merged:
+            page.blocks.remove(n)
+        page.blocks.extend(merged)
+
+def proc_section_levels(pages: List[Page], level_count=4, merge_threshold=0.25,
+                        default_level=2, height_tolerance=0.99) -> None:
+    """marker/processors/sectionheader.py - KMeans over heading line heights."""
+    headers = [b for p in pages for b in p.blocks if b.btype == "SectionHeader"]
+    heights = [b.line_height() for b in headers]
+    ranges = _bucket_headings(heights, level_count, merge_threshold)
+    for blk, hgt in zip(headers, heights):
+        if hgt > 0:
+            for idx, (lo, _hi) in enumerate(ranges):
+                if hgt >= lo * height_tolerance:
+                    blk.heading_level = idx + 1
+                    break
+        if blk.heading_level is None:
+            blk.heading_level = default_level
+
+    _levels_from_numbering(headers)
+
+def _levels_from_numbering(headers: List[Block]) -> None:
+    """Prefer section numbering over font size for heading depth.
+
+    Journals often set `1 Introduction` and `3.1 Boundary conditions` in the
+    same face at the same size, which leaves the line-height clustering nothing
+    to separate - every heading lands on one level and the outline is flat. The
+    numbering states the depth outright, so when a document numbers its
+    headings, that wins. Unnumbered headings keep their size-derived level, so
+    a title above `1 ...` still outranks it.
+    """
+    numbered = []
+    for blk in headers:
+        m = re.match(r"^\s*(\d+(?:\.\d+)*)\.?\s+\S", blk.text.strip())
+        if m:
+            numbered.append((blk, m.group(1).count(".") + 1))
+    if len(numbered) < 2:
+        return
+    for blk, depth in numbered:
+        blk.heading_level = min(depth + 1, 6)
+
+def _bucket_headings(line_heights: List[float], level_count: int, merge_threshold: float):
+    if len(line_heights) <= level_count:
+        return []
+    data = np.asarray(line_heights).reshape(-1, 1)
+    labels = KMeans(n_clusters=level_count, random_state=0, n_init="auto").fit_predict(data)
+    data_labels = np.concatenate([data, labels.reshape(-1, 1)], axis=1)
+    # Marker sorts this with np.sort(..., axis=0), which sorts the value and
+    # label columns independently and so scrambles the value->cluster pairing;
+    # heading levels come out permuted. Sort by row instead.
+    data_labels = data_labels[np.argsort(data_labels[:, 0], kind="stable")]
+    cluster_means = {
+        int(lb): float(np.mean(data_labels[data_labels[:, 1] == lb, 0]))
+        for lb in np.unique(labels)
+    }
+    label_max = label_min = None
+    ranges, prev = [], None
+    for row in data_labels:
+        value, label = float(row[0]), int(row[1])
+        if prev is not None and label != prev:
+            if cluster_means[label] * merge_threshold < cluster_means[prev]:
+                ranges.append((label_min, label_max))
+                label_min = label_max = None
+        label_min = value if label_min is None else min(label_min, value)
+        label_max = value if label_max is None else max(label_max, value)
+        prev = label
+    if label_min is not None:
+        ranges.append((label_min, label_max))
+    ranges = sorted(ranges, reverse=True)
+    # KMeans is asked for level_count clusters even when fewer distinct heading
+    # sizes exist, so it splits one size across clusters and invents a level.
+    # Collapse ranges that start at the same height.
+    deduped, seen = [], set()
+    for lo, hi in ranges:
+        key = round(lo, 1)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append((lo, hi))
+    return deduped
+
+def proc_reflow(pages: List[Page], max_gap_lines=2.4, ragged_tol=0.15,
+                indent_frac=0.015, margin_frac=0.14) -> None:
+    """Rejoin lines that the extractor split into one block each.
+
+    Double-spaced manuscripts put enough space between lines that PyMuPDF
+    returns every line as its own block, and every block then rendered as its
+    own paragraph. Two consecutive Text blocks are the same paragraph when they
+    sit close enough vertically (double spacing allowed), the first runs to
+    the column's right edge (ragged-right tolerated), and the second does not
+    open with a first-line indent - the indent is how the document itself
+    marks a paragraph boundary.
+    """
+    for page in pages:
+        texts = [b for b in page.blocks if b.btype == "Text" and not b.ignore_for_output
+                 and b.lines]
+        if len(texts) < 2:
+            continue
+        # The column edges come from body-sized blocks that are not parked in
+        # a margin. A line-number column at x=8 once set ``left`` for the whole
+        # page, which made every body line look indented and stopped all
+        # joining (the Ragins manuscript case).
+        size_med = median([b.max_size() for b in texts])
+        body_blocks = [
+            b for b in texts
+            if b.max_size() >= 0.9 * size_med
+            and b.x_end > margin_frac * page.width
+            and b.x_start < (1 - margin_frac) * page.width
+        ] or texts
+        left = min(b.x_start for b in body_blocks)
+        right = max(b.x_end for b in body_blocks)
+        width = max(right - left, 1.0)
+        lh = median([b.line_height() for b in body_blocks if b.line_height() > 0] or [12.0])
+
+        merged: List[Block] = []
+        grown: set = set()  # blocks assembled here from single lines
+        for blk in page.blocks:
+            prev = merged[-1] if merged else None
+            if (
+                prev is not None
+                and blk.btype == "Text" and prev.btype == "Text"
+                and not blk.ignore_for_output and not prev.ignore_for_output
+                and blk.lines and prev.lines
+            ):
+                # Only ever join a SINGLE line onto a run of single lines. A
+                # block PyMuPDF already built with several lines means its own
+                # paragraph grouping worked, and block-style paragraphs (no
+                # indent, spacing only) must not be welded together.
+                prev_single = len(prev.lines) == 1 or id(prev) in grown
+                if len(blk.lines) == 1 and prev_single:
+                    gap = blk.y_start - prev.y_end
+                    last = prev.lines[-1]
+                    full_width = last.x_end >= right - ragged_tol * width
+                    indented = blk.lines[0].x_start > left + indent_frac * page.width
+                    size_ok = abs(blk.max_size() - prev.max_size()) < 1.0
+                    if (-2 < gap < max_gap_lines * lh and full_width and not indented
+                            and size_ok):
+                        prev.lines.extend(blk.lines)
+                        prev.bbox = _bbox_of([ln.bbox for ln in prev.lines])
+                        grown.add(id(prev))
+                        continue
+            merged.append(blk)
+        page.blocks = merged
+
+def proc_continuation(pages: List[Page], column_gap_ratio=0.02) -> None:
+    """marker/processors/text.py - paragraphs continuing across columns/pages.
+
+    Marker skips single-line blocks outright. Here a single-line block is
+    still considered when its line ends in a hyphen: a paragraph that starts
+    on the last line of a column and breaks mid-word is a legitimate layout,
+    and the hyphen is unambiguous evidence. The full-width test alone is not
+    accepted for one line, because a lone line is trivially "full width".
+    """
+    flat = _flat_text_blocks(pages)
+    for i, blk in enumerate(flat[:-1]):
+        if blk.btype not in ("Text",) or not blk.lines:
+            continue
+        nxt = flat[i + 1]
+        if nxt.btype != "Text" or nxt.ignore_for_output:
+            continue
+
+        column_gap = blk.width * column_gap_ratio
+        column_break = page_break = False
+        next_in_first_quadrant = False
+
+        if nxt.page_idx == blk.page_idx:
+            column_break = (
+                math.floor(nxt.y_start) <= math.ceil(blk.y_start)
+                and nxt.x_start > blk.x_end + column_gap
+            )
+        else:
+            page_break = True
+            npage = pages[nxt.page_idx]
+            next_in_first_quadrant = (
+                nxt.x_start < npage.width // 2 and nxt.y_start < npage.height // 2
+            )
+        if not (column_break or page_break):
+            continue
+
+        min_x = math.ceil(min(ln.x_start for ln in nxt.lines))
+        next_starts_indented = nxt.lines[0].x_start > min_x
+
+        lines = [ln for ln in blk.lines if ln.width > 1]
+        last_full_width = last_hyphenated = False
+        if lines:
+            max_x = math.floor(max(ln.x_end for ln in lines))
+            last_full_width = lines[-1].x_end >= max_x
+            last_hyphenated = bool(HYPHEN_END.match(lines[-1].text.strip()))
+        if len(blk.lines) < 2 and not last_hyphenated:
+            continue
+
+        if (
+            (last_full_width or last_hyphenated)
+            and not next_starts_indented
+            and ((next_in_first_quadrant and page_break) or column_break)
+        ):
+            blk.has_continuation = True
+
+def _flat_text_blocks(pages: List[Page]) -> List[Block]:
+    out = []
+    for p in pages:
+        for b in p.blocks:
+            if b.ignore_for_output or b.btype in ("PageHeader", "PageFooter"):
+                continue
+            out.append(b)
+    return out
+
+def proc_blockquote(pages: List[Page], min_x_indent=0.1, x_tol=0.01) -> None:
+    """marker/processors/blockquote.py."""
+    for page in pages:
+        blocks = [b for b in page.blocks if b.btype == "Text" and not b.ignore_for_output]
+        for i, blk in enumerate(blocks[:-1]):
+            if len(blk.lines) < 2:
+                continue
+            nxt = blocks[i + 1]
+            if len(nxt.lines) < 2:
+                continue
+            matching_end = abs(nxt.x_end - blk.x_end) < x_tol * max(blk.width, 1)
+            matching_start = abs(nxt.x_start - blk.x_start) < x_tol * max(blk.width, 1)
+            # A real block quote is inset on BOTH sides. Requiring only a left
+            # indent turned every indented run - and several section headings -
+            # into quotes.
+            x_indent = (
+                nxt.x_start > blk.x_start + min_x_indent * blk.width
+                and nxt.x_end < blk.x_end - 0.02 * blk.width
+            )
+            y_indent = nxt.y_start > blk.y_end
+            if blk.blockquote:
+                nxt.blockquote = (matching_end and matching_start) or (x_indent and y_indent)
+                nxt.blockquote_level = blk.blockquote_level + (1 if (x_indent and y_indent) else 0)
+            elif x_indent and y_indent:
+                nxt.blockquote = True
+                nxt.blockquote_level = 1
+
+def proc_list_indent(pages: List[Page], min_x_indent=0.01) -> None:
+    """marker/processors/list.py - nesting depth from x-indentation."""
+    for page in pages:
+        items = [b for b in page.blocks if b.btype == "ListItem" and not b.ignore_for_output]
+        if not items:
+            continue
+        tol = min_x_indent * page.width
+        stack: List[Block] = []
+        for item in items:
+            while stack and item.x_start <= stack[-1].x_start + tol:
+                stack.pop()
+            if stack:
+                item.list_indent = stack[-1].list_indent
+                if item.x_start > stack[-1].x_start + tol:
+                    item.list_indent += 1
+            else:
+                item.list_indent = 0
+            stack.append(item)
+
+def proc_code(pages: List[Page]) -> None:
+    """marker/processors/code.py - rebuild leading indentation from geometry."""
+    for page in pages:
+        for blk in page.blocks:
+            if blk.btype != "Code":
+                continue
+            min_left = min(ln.x_start for ln in blk.lines)
+            total_width = sum(ln.width for ln in blk.lines)
+            total_chars = sum(len(ln.text) for ln in blk.lines)
+            avg_char_width = total_width / max(total_chars, 1)
+            out = []
+            for ln in blk.lines:
+                prefix = ""
+                if avg_char_width:
+                    spaces = int((ln.x_start - min_left) / avg_char_width)
+                    prefix = " " * max(0, spaces)
+                out.append(prefix + ln.text)
+            blk.code = "\n".join(out).rstrip()
+
+def proc_merge_equations(pages: List[Page], gap_frac=1.8) -> None:
+    """Re-assemble a display equation from the fragments the text layer emits.
+
+    A LaTeX display equation is not one block: numerators, summation limits, the
+    equation number and the operator glyphs each arrive as separate text blocks.
+    Marker sidesteps this by cropping the layout model's single Equation region
+    and running LaTeX OCR over it. Here, consecutive fragments that overlap
+    horizontally and sit within ~2 line-heights of each other are merged back
+    into one region, so the vision hand-off gets a whole equation rather than
+    five slivers.
+    """
+    for page in pages:
+        merged: List[Block] = []
+        for blk in page.blocks:
+            prev = merged[-1] if merged else None
+            if (
+                prev is not None
+                and blk.btype == "Equation"
+                and prev.btype == "Equation"
+                and prev.page_idx == blk.page_idx
+            ):
+                # Fragments of one display equation sit adjacent either
+                # vertically (numerator over denominator) or horizontally
+                # (summation sign beside its summand, equation number at the
+                # right margin), so measure the gap on both axes.
+                ygap = max(0.0, max(prev.y_start, blk.y_start) - min(prev.y_end, blk.y_end))
+                xgap = max(0.0, max(prev.x_start, blk.x_start) - min(prev.x_end, blk.x_end))
+                span = max(prev.line_height(), blk.line_height(), 1.0)
+                if ygap < gap_frac * span and xgap < gap_frac * span:
+                    prev.lines.extend(blk.lines)
+                    prev.bbox = (
+                        min(prev.x_start, blk.x_start), min(prev.y_start, blk.y_start),
+                        max(prev.x_end, blk.x_end), max(prev.y_end, blk.y_end),
+                    )
+                    continue
+            merged.append(blk)
+        page.blocks = merged
+
+def proc_captions(pages: List[Page], gap_threshold=0.05) -> None:
+    """marker/builders/structure.py::group_caption_blocks - keep captions with figures."""
+    for page in pages:
+        gap_px = gap_threshold * page.height
+        blocks = page.blocks
+        for i, blk in enumerate(blocks):
+            if blk.btype not in ("Table", "Figure"):
+                continue
+            for j in (i - 1, i + 1):
+                if 0 <= j < len(blocks) and blocks[j].btype == "Caption":
+                    # a table does not own a figure's caption: the figure
+                    # would then go unmarked (Peng 2009 p. 2)
+                    if blk.btype == "Table" and FIGURE_CAPTION.match(blocks[j].text.strip()):
+                        continue
+                    gap = max(
+                        0.0,
+                        max(blocks[j].y_start, blk.y_start) - min(blocks[j].y_end, blk.y_end),
+                    )
+                    if gap < gap_px:
+                        blk.children.append(blocks[j])
+                        blocks[j].ignore_for_output = True
