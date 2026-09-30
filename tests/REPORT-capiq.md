@@ -307,3 +307,31 @@ those two tables represent their rows.
 The full 77-entry audit has zero Markdown differences and zero stats-hash
 differences from the B1 baseline. The complete fixture regression, including
 the new negative, passes.
+
+## B4 — detached contents columns
+
+The failure is isolated. A contents page is recognized only when at least five
+right-column numeric lines begin beyond 75% of page width and at least 80% of
+them pair one-to-one with left-column lines at the same vertical position
+(within 2 pt). Each pair becomes one `TocEntry`; the original relative order
+is retained. The contents heading, when it was drawn late, moves immediately
+before those entries. `TocEntry` blocks count as page body for marginalia
+bounds but are never themselves furniture candidates, so a first entry in the
+header band survives while repeated footers do not.
+
+`split_toc_columns.pdf` covers six bold labels emitted first, six detached
+numbers emitted afterward, a late body paragraph, and the contents heading.
+It renders one heading, six ordered list entries with their page numbers, then
+the paragraph.
+
+Capital IQ pp. 1–3 now render **94 ordered contents entries**: the company and
+its corresponding report entry each retain their printed page number. The
+standalone number columns and the 47 heading-shaped compound blocks are gone,
+and the repeated licensed footer remains suppressed. Content words rise from
+56,652 to **56,754**. Of the 102-token metric change, 94 are Markdown list
+markers counted by the standard metric; the other eight are fragments and
+page numbers from two entries that the old cross-page continuation had lost.
+No source token is removed.
+
+The full 77-entry audit has zero Markdown and stats differences from B3; no
+existing golden document contains this detached-column pattern.

@@ -2657,6 +2657,28 @@ def make_late_banner():
     pdf.out("late_banner.pdf")
 
 
+def make_split_toc_columns():
+    """Contents labels and their page numbers are separate block streams."""
+    pdf = Doc()
+    pdf.add_page()
+    pdf.text_at(72, 54, "Table of Contents", style="B", size=15)
+    entries = [
+        ("Alpha section", "1"),
+        ("Beta section", "5"),
+        ("Gamma section", "9"),
+        ("Delta section", "13"),
+        ("Epsilon section", "17"),
+        ("Zeta section", "21"),
+    ]
+    for index, (title, _number) in enumerate(entries):
+        pdf.text_at(72, 100 + index * 28, title, style="B", size=11)
+    # A detached page-number column is emitted after every title.
+    for index, (_title, number) in enumerate(entries):
+        pdf.text_at(520, 100 + index * 28, number, size=11)
+    pdf.text_at(72, 310, "An ordinary paragraph follows the contents.", size=10)
+    pdf.out("split_toc_columns.pdf")
+
+
 MAKERS = {
     "hard": make_hard,
     "repro": make_repro,
@@ -2693,6 +2715,7 @@ MAKERS = {
     "all_text_wrapped": make_all_text_wrapped,
     "sectioned_running_heads": make_sectioned_running_heads,
     "late_banner": make_late_banner,
+    "split_toc_columns": make_split_toc_columns,
     "scanned": make_scanned,  # last: depends on hard.pdf
     "scanned_with_stamp": make_scanned_with_stamp,
     "justified_scan": make_justified_scan,

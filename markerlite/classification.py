@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from collections import Counter
+from dataclasses import replace
 from statistics import median
 from typing import List
 
@@ -105,6 +106,8 @@ def _demote_toc(pages: List[Page], min_run=TOC_MIN_RUN) -> None:
     of lines that each end in a page number is the giveaway.
     """
     for page in pages:
+        if _demote_split_toc_columns(page, min_run):
+            continue
         run: List[Block] = []
         for blk in list(page.blocks) + [None]:
             hit = False
@@ -118,6 +121,98 @@ def _demote_toc(pages: List[Page], min_run=TOC_MIN_RUN) -> None:
                 for b in run:
                     b.btype = "TocEntry"
             run = []
+
+
+def _demote_split_toc_columns(page: Page, min_run: int) -> bool:
+    """Pair a detached right-hand page-number column with its title lines."""
+    number_blocks = [
+        block
+        for block in page.blocks
+        if block.lines
+        and block.x_start >= TOC_NUMBER_COLUMN_MIN_X * page.width
+        and all(PAGE_NUMBER_ONLY.match(line.text.strip()) for line in block.lines)
+    ]
+    if not number_blocks:
+        return False
+    number_lines = [line for block in number_blocks for line in block.lines]
+    if len(number_lines) < min_run:
+        return False
+
+    number_left = min(block.x_start for block in number_blocks)
+    available = list(number_lines)
+    matches: dict[int, list[tuple[Line, Line]]] = {}
+    for block in page.blocks:
+        if block in number_blocks or block.x_end >= number_left:
+            continue
+        for line in block.lines:
+            centre = (line.bbox[1] + line.bbox[3]) / 2
+            candidates = sorted(
+                available,
+                key=lambda number: abs(centre - (number.bbox[1] + number.bbox[3]) / 2),
+            )
+            if not candidates:
+                continue
+            number = candidates[0]
+            number_centre = (number.bbox[1] + number.bbox[3]) / 2
+            if abs(centre - number_centre) > TOC_COLUMN_Y_TOL:
+                continue
+            matches.setdefault(id(block), []).append((line, number))
+            available.remove(number)
+
+    matched = sum(len(items) for items in matches.values())
+    if matched < min_run or matched < TOC_COLUMN_MATCH_MIN_SHARE * len(number_lines):
+        return False
+    matched_blocks = [block for block in page.blocks if id(block) in matches]
+    if any(len(matches[id(block)]) != len(block.lines) for block in matched_blocks):
+        return False
+
+    rebuilt = []
+    for block in page.blocks:
+        if block in number_blocks:
+            continue
+        if id(block) not in matches:
+            rebuilt.append(block)
+            continue
+        for line, number in matches[id(block)]:
+            spans = list(line.spans)
+            spans[-1] = replace(
+                spans[-1], text=spans[-1].text.rstrip() + "  " + number.text.strip()
+            )
+            joined = Line(
+                spans=spans,
+                bbox=_bbox_of([line.bbox, number.bbox]),
+                char_pos=line.char_pos,
+            )
+            rebuilt.append(
+                Block(
+                    lines=[joined],
+                    bbox=joined.bbox,
+                    page_idx=block.page_idx,
+                    char_pos=line.char_pos,
+                    btype="TocEntry",
+                )
+            )
+    page.blocks = rebuilt
+    first_entry = next(
+        (index for index, block in enumerate(page.blocks) if block.btype == "TocEntry"),
+        None,
+    )
+    if first_entry is not None:
+        top = min(line.bbox[1] for items in matches.values() for line, _ in items)
+        headers = [
+            block
+            for block in page.blocks
+            if block.btype == "SectionHeader" and block.y_end <= top
+        ]
+        for header in headers:
+            page.blocks.remove(header)
+        first_entry = next(
+            index
+            for index, block in enumerate(page.blocks)
+            if block.btype == "TocEntry"
+        )
+        page.blocks[first_entry:first_entry] = headers
+    return True
 
 
 def _split_list_blocks(pages: List[Page]) -> None:

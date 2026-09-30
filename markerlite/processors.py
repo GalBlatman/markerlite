@@ -301,7 +301,7 @@ def proc_marginalia(
         text_blocks = [
             b
             for b in page.blocks
-            if b.btype in (*TEXTISH, "Table")
+            if b.btype in (*TEXTISH, "Table", "TocEntry")
             and not b.ignore_for_output
             and b.text.strip()
         ]
@@ -323,6 +323,8 @@ def proc_marginalia(
         body_bottom = max(yfrac(b)[1] for b in body)
 
         for blk in text_blocks:
+            if blk.btype == "TocEntry":
+                continue
             if _furniture_protected(page, blk):
                 continue
             y0, y1 = yfrac(blk)
