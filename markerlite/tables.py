@@ -592,7 +592,9 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
         members = [
             b
             for i, b in enumerate(page.blocks)
-            if i not in consumed and _overlap_frac(b.bbox, bbox) > TABLE_MEMBER_OVERLAP
+            if i not in consumed
+            and not b.fill_backed_banner
+            and _overlap_frac(b.bbox, bbox) > TABLE_MEMBER_OVERLAP
         ]
         if not members:
             continue

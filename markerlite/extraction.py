@@ -423,6 +423,63 @@ def _attach_drop_caps(blocks: List[Block]) -> int:
     return attached
 
 
+def _mark_fill_backed_banners(pmpage: pymupdf.Page, blocks: List[Block]) -> None:
+    """Mark text drawn inside a wide dark band for late page-local placement.
+
+    Placement waits until tables, continuations, and figures are settled so
+    the exception cannot change any structural decision.
+    """
+    try:
+        drawings = pmpage.get_drawings()
+    except Exception:
+        return
+    bands = []
+    for drawing in drawings:
+        fill = drawing.get("fill")
+        rect = drawing.get("rect")
+        if not fill or not rect:
+            continue
+        box = pymupdf.Rect(rect)
+        luma = sum(fill[:3]) / 3
+        if (
+            box.width >= BANNER_MIN_PAGE_WIDTH * pmpage.rect.width
+            and luma <= BANNER_FILL_MAX_LUMA
+        ):
+            bands.append(box)
+    for band in bands:
+        candidates = []
+        for block in blocks:
+            box = pymupdf.Rect(block.bbox)
+            overlap = box & band
+            if overlap.is_empty:
+                continue
+            if overlap.get_area() >= BANNER_TEXT_OVERLAP * max(box.get_area(), 1):
+                candidates.append(block)
+        for block in candidates:
+            block.fill_backed_banner = True
+
+
+def place_fill_backed_banners(pages: List[Page]) -> None:
+    """Place marked banners geometrically without sorting any other block."""
+    for page in pages:
+        for block in [b for b in page.blocks if b.fill_backed_banner]:
+            old_index = page.blocks.index(block)
+            target = next(
+                (
+                    index
+                    for index, other in enumerate(page.blocks)
+                    if other is not block
+                    and not other.ignore_for_output
+                    and other.y_start >= block.y_end
+                ),
+                old_index,
+            )
+            if target >= old_index:
+                continue
+            page.blocks.pop(old_index)
+            page.blocks.insert(target, block)
+
+
 def extract_page(
     page: pymupdf.Page,
     page_idx: int,
@@ -548,6 +605,7 @@ def extract_page(
         )
 
     _attach_drop_caps(blocks)
+    _mark_fill_backed_banners(page, blocks)
     return Page(
         page_idx=page_idx,
         width=page.rect.width,

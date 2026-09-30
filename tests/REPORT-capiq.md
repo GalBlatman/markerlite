@@ -280,3 +280,30 @@ changes.
 No golden baseline is updated. The B2 implementation, fixture, and tests are
 discarded. A bundled word list is required before another general
 dehyphenation attempt.
+
+## B3 — fill-backed banner placement
+
+The exception is based on drawing evidence rather than vocabulary. Extraction
+marks text whose box is at least 80% covered by a filled band spanning at
+least half the page width with mean RGB luminance at most 0.5. The marked
+block is excluded from table membership. After tables, continuations,
+captions, and figures are complete, it moves immediately before the first
+surviving block geometrically below it. No other block moves relative to
+another, so PDF stream order remains the default.
+
+`late_banner.pdf` draws two records first and its dark section banner last.
+The expected Markdown places `Current Records` between the filter and the
+table heading while retaining both records in order.
+
+On Capital IQ, all 47 section-opening pages contain the same dark band at
+y=134.0–153.5 pt and its text at y=137.6–150.0 pt. Before B3, 45 banner
+headings survived but appeared after their own rows; two were consumed by a
+table candidate. After B3, all 47 render on their source page above the rows
+they introduce. The 45 existing headings are pure moves. The two restored
+headings replace the same words formerly embedded in table output, so content
+words remain **56,652** and the Markdown line multiset changes only where
+those two tables represent their rows.
+
+The full 77-entry audit has zero Markdown differences and zero stats-hash
+differences from the B1 baseline. The complete fixture regression, including
+the new negative, passes.

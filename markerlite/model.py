@@ -289,6 +289,9 @@ class Block:
     figure_kind: str = ""
     # An equation that the source sets as a picture: it has no text layer.
     raster_equation: bool = False
+    # Text printed inside a wide dark fill. Its PDF stream position can be
+    # late; api.place_fill_backed_banners moves it only after all processors.
+    fill_backed_banner: bool = False
     # A caption that detect_tables split off the top of its table: it is
     # emitted before the table, where the source has it.
     leads: bool = False

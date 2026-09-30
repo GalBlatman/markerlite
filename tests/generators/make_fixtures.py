@@ -2637,6 +2637,26 @@ def make_sectioned_running_heads():
     pdf.out("sectioned_running_heads.pdf")
 
 
+def make_late_banner():
+    """A filled section banner is drawn after the rows it introduces."""
+    pdf = Doc()
+    pdf.add_page()
+    pdf.text_at(72, 70, "Report filter: current developments", size=10)
+    pdf.text_at(72, 150, "DATE", style="B", size=9)
+    pdf.text_at(180, 150, "TYPE", style="B", size=9)
+    pdf.text_at(72, 178, "2026-09-01", size=9)
+    pdf.text_at(180, 178, "First record remains first", size=9)
+    pdf.text_at(72, 206, "2026-09-02", size=9)
+    pdf.text_at(180, 206, "Second record remains second", size=9)
+    # Drawn last in the content stream, but visually above the rows.
+    pdf.set_fill_color(72, 72, 72)
+    pdf.rect(60, 112, LETTER_W - 120, 24, style="F")
+    pdf.set_text_color(255, 255, 255)
+    pdf.text_at(68, 116, "Current Records", style="B", size=11)
+    pdf.set_text_color(0, 0, 0)
+    pdf.out("late_banner.pdf")
+
+
 MAKERS = {
     "hard": make_hard,
     "repro": make_repro,
@@ -2672,6 +2692,7 @@ MAKERS = {
     "isolated_ocr_page": make_isolated_ocr_page,
     "all_text_wrapped": make_all_text_wrapped,
     "sectioned_running_heads": make_sectioned_running_heads,
+    "late_banner": make_late_banner,
     "scanned": make_scanned,  # last: depends on hard.pdf
     "scanned_with_stamp": make_scanned_with_stamp,
     "justified_scan": make_justified_scan,

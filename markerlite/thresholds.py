@@ -5,6 +5,13 @@ OCR_MIN_NATIVE_CHARS = 20
 OCR_MAX_NATIVE_CHARS = 500
 OCR_RASTER_MIN_FRAC = 0.8
 OCR_STAMP_MARGIN = 0.15
+
+# A wide dark filled band is a page-local banner. Some reporting tools draw
+# its text last, after the rows it visually introduces; only this narrow shape
+# exception is repositioned geometrically, without sorting the page.
+BANNER_FILL_MAX_LUMA = 0.5
+BANNER_MIN_PAGE_WIDTH = 0.5
+BANNER_TEXT_OVERLAP = 0.8
 OCR_DPI = 300
 OCR_PSM = 1
 OCR_TIMEOUT_SECONDS = 180

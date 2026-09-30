@@ -15,6 +15,7 @@ from .extraction import (
     detect_provenance,
     discover_tesseract,
     extract_page,
+    place_fill_backed_banners,
     tesseract_version,
 )
 from .figures import (
@@ -131,6 +132,7 @@ def convert(
     n_figures += _figures_from_captions(pages)
     n_figures -= _route_raster_equations(pages)
     _attach_figure_source_text(pages)
+    place_fill_backed_banners(pages)
 
     manifest = {}
     if do_flag_math:
