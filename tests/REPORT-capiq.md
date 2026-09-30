@@ -335,3 +335,40 @@ No source token is removed.
 
 The full 77-entry audit has zero Markdown and stats differences from B3; no
 existing golden document contains this detached-column pattern.
+
+## B5 — table-detection evidence only
+
+The direct decision trace finds **47 detected regions on 47 pages**. The page
+list is:
+
+```text
+8, 11, 15, 19, 22, 23, 27, 31, 35, 37, 39, 43, 47, 51, 55, 59,
+67, 71, 75, 82, 86, 88, 92, 96, 98, 100, 104, 107, 108, 112,
+116, 120, 128, 132, 136, 139, 149, 153, 157, 161, 165, 169,
+173, 177, 181, 183, 185
+```
+
+Forty-five regions reconstruct as four-column grids and contain **306 body
+rows** after the first row is treated as the Markdown header. Their pages are
+the list above excluding 165 and 177. Every one conserves its source-member
+token multiset exactly. The emitted Markdown independently contains 45 table
+separator rows, confirming the same count.
+
+Two detected regions keep ordered source prose:
+
+| PDF page | Source tokens | Reconstruction | Reason |
+|---:|---:|---:|---|
+| 165 | 24 | no result; 0 tokens | Reconstruction returned no usable grid. |
+| 177 | 249 | 212 tokens; 37 missing | Retention is 0.851, below the unchanged 0.9 guard. |
+
+The brief's 39-page/300-row observation does not match either the decision
+trace or the final Markdown. The reproducible count is 45 reconstructed pages
+and 306 body rows, plus the two prose fallbacks. This is a count reconciliation,
+not a detection change.
+
+Detection is page-local while the document is section-structured. Each of the
+47 company sections is one logical table across its contiguous page run, with
+the four-column header repeated on continuation pages. `PLAN-tables.md` item 2
+now records cross-page joining and repeated-header merging as future work,
+together with the downstream v0.1.14 structural audit. B5 changes no code or
+output.

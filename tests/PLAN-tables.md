@@ -191,6 +191,23 @@ and its JSON twin. In particular, R00087 PDF p. 10 loses **“U.S.”** from
 pass suppresses it. This is structural recovery, outside Packet B's
 source-line suppression task. Do not conflate the two packets.
 
+**Capital IQ continuation evidence (tests/REPORT-capiq.md, B5):** the export
+contains 47 company sections, each one logical four-column table spanning a
+contiguous page run. Current detection emits only one page-local region per
+section: 45 reconstructed grids (306 body rows) and two prose fallbacks. Future
+cross-page work should join the page-local pieces into one table per section
+and merge repeated `DATE / COMPANY / TYPE / HEADLINE` rows without changing
+cell text or treating the section banner as a row.
+
+**Unknown Knowns v0.1.14 audit evidence (PR #8, read in place):** 17 Run-2
+pages have new grid regressions against e419550: R00063 p. 37; R00077 pp. 8,
+32; R00087 pp. 10, 12, 13, 15; R00112 pp. 14, 15, 17; R00160 pp. 12, 14, 15;
+R00263 pp. 15, 20; R00373 p. 13; and R00860 p. 58. R00087 p. 10 loses
+“U.S.”, while R02055 p. 7 merges phrases from two figure boxes into a false
+3×3 grid. The fallback marker appears on 27 pages with no table; the words are
+safer as prose, but the false structural claim remains evidence for admission
+and representation work.
+
 **Observed mechanism:** SBTi Table 1 begins on p. 7. Pages 7–9 emit no detected
 table; pp. 10–11 alternate prose/list runs and reconstructed fragments instead
 of retaining the three-column criterion/requirement/assessment relationship.
@@ -522,6 +539,29 @@ longer in `lossy_pages`.
 
 **Risk and rank:** medium. `watermark` and `rotated_pages` must not change.
 Not ranked against items 2-7 until reviewed. No implementation in v0.1.12.
+
+**Downstream contradiction to investigate:** the v0.1.14 audit classifies
+R00443 p. 16 as a known, still-unusable content loss but reports zero
+`lossy_pages` for the Run-2 set. The earlier markerlite audit measured 163 of
+336 source words emitted and did flag the page. Reconcile the wrapper's source
+word denominator and page association before changing the conservation rule.
+
+### 13. First-page citation masthead suppression — small independent item
+
+**Observed mechanism:** the Unknown Knowns v0.1.14 audit finds that R00014
+p. 1 loses the journal name from the article's own citation line through
+`proc_marginalia`. It is unique first-page content, not a running head, and
+e419550 retained it.
+
+**Proposed fix:** trace the normalized repetition evidence and block grouping
+on p. 1, then protect a citation-line masthead that does not repeat in the same
+header/footer band. Keep the general positional-plus-repetition rule and do
+not add journal-name vocabulary.
+
+**Fixture and risk:** add a first-page citation line with a journal masthead
+and later genuine repeated running heads. Assert the masthead survives and the
+heads remain suppressed. This is suppression work, independent of item 2's
+table admission changes.
 
 ## Review and shipment gates
 
