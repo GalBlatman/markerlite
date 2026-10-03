@@ -558,10 +558,363 @@ on p. 1, then protect a citation-line masthead that does not repeat in the same
 header/footer band. Keep the general positional-plus-repetition rule and do
 not add journal-name vocabulary.
 
+**Traced 2026-10-02 (block 2, E1):** still present at v0.1.15; the even-page
+running head has the same text in the same band but a different position, font
+and size. The fix adds horizontal-position and size agreement to the
+repetition evidence.
+
 **Fixture and risk:** add a first-page citation line with a journal masthead
 and later genuine repeated running heads. Assert the masthead survives and the
 heads remain suppressed. This is suppression work, independent of item 2's
 table admission changes.
+
+## Block 2: table structure — plan (2026-10-02, for review)
+
+This section is a plan. No converter code changes until it is reviewed.
+
+**Governing principle.** A wrong grid is worse than no grid. The Unknown
+Knowns v0.1.14 audit preferred e419550 on tables mainly because e419550
+rarely attempted one. markerlite emits a grid only when row and column
+structure is supported by evidence. Otherwise it emits ordered prose, with
+the existing marker only where the region really is a table. The design
+rule in CLAUDE.md applies throughout: token preservation is not structural
+correctness, so every table step is judged by which token lands in which
+cell (gold set, A) and never by word counts alone.
+
+Evidence files: tests/REPORT-block2-evidence.md (inventory by mechanism and
+the v0.1.15 region labels), tests/block2-region-labels.json (labels and gate
+features, no document text), tests/GOLD-TABLES.md (gold protocol),
+tests/score_gold_tables.py (scorer).
+
+### A. Gold tables set: design and v0.1.15 baseline
+
+**Content and storage.** 29 tables and 9 non-table controls from 27
+documents, stored as one JSON per item in the git-ignored
+`tests/gold-tables/` beside `tests/real/`. Third-party content never enters
+the repository; the scorer and protocol do.
+
+| Source group | Tables | Items |
+| --- | ---: | --- |
+| Reference set | 10 | Greenwood 2006 T1 p7, T3 p11; Jay 2013 T1 p6; Peng 2009 T1 p2; Wry 2013 Appendix pp46-47; York 2018 T1 p12, T2 pp14-15; SBTi pp3, 53, 61 (Kostova p7 proved to be a figure: control) |
+| Packet A and audit pages | 17 | R00030 T3 pp75-76; R00077 T1 p8, T2 pp28-32; R00087 T1 pp9-15; R00112 T3 pp14-15, T4 p17; R00263 T3 pp15-20; R00315 T3 p14; R00373 T2 p13; R00639 T4 p28; R01114 T2 p8; R01285 T1 p6; R02027 T2 p25; R02611 T1 p18, T2 p25; R05732 T1 p4; S0004 T1 pp6-12 |
+| Capital IQ | 2 | one company section over pp87-88; the p9 rows of a section v0.1.15 does not detect |
+| Controls | 9 | R02055 p7 and R00860 pp60, 61 (figures); Kostova p7 (figure); Wry p37 (endnotes); R00023 pp3, 9 (body prose); R00032 p85 (references); S0009 p17 (numbered bibliography captioned "Table 6") |
+
+
+Layouts covered (an item can have several): booktabs 22, wrapped-cell 17,
+landscape 9, multi-page 9, wrapped-header 9, numeric 10, ruled 4, scanned 4,
+borderless 3, shaded-row 2. Thin spots: only 4 fully ruled tables and 2
+shaded-row tables; both should grow before v0.2.0 (see F).
+
+**How each item was made.** One agent transcribed the cell matrix from 150
+to 300 dpi renders, with the PDF text layer for spelling only, never from
+converter output. A second agent re-checked every cell independently. The
+checks covered 3,464 cells and found no matrix error; they corrected three
+control boxes and recorded every judgement call (`check_notes`). One
+overlap was resolved: R00087 Table 1 runs pp9-15 and is one item; a
+page-10-only duplicate was retired. Conventions: tests/GOLD-TABLES.md.
+
+**Metric** (`tests/score_gold_tables.py`):
+
+- *per-table exact match*: the emitted grid equals the gold matrix after
+  normalisation (NFKC, dashes and minus signs unified, bullets as layout,
+  empty rows and columns dropped);
+- *per-cell association*: the mean, over gold cells, of the token Jaccard
+  with the best-matching emitted cell (merged or split cells lose credit;
+  prose scores 0);
+- *adjacency F1* (ICDAR 2013): right and down neighbour relations between
+  non-empty cells;
+- *tokens kept*: the table's tokens present on its pages in any form.
+
+Outcomes: EXACT; GRID-NEAR (adjacency F1 >= 0.9); GRID-WRONG; PROSE (no
+grid, >= 0.95 of tokens kept); LOST. Controls: CLEAN, FALSE-GRID,
+FALSE-MARKER.
+
+**v0.1.15 baseline** (converter at 328af5d, identical conversion path to
+v0.1.15):
+
+| Measure | v0.1.15 |
+| --- | --- |
+| Tables: EXACT / GRID-NEAR / GRID-WRONG / PROSE / LOST | 1 / 4 / 18 / 6 / 0 |
+| Exact-match rate | 1 of 29 (3.4%) |
+| Mean cell association | 0.514 |
+| Mean adjacency F1 | 0.369 |
+| Tables with >= 0.95 of tokens kept | 25 of 29 |
+| Controls: CLEAN / FALSE-GRID / FALSE-MARKER | 0 / 6 / 3 |
+
+The four tables under 0.95 tokens kept lose source glyphs, not words: the
+text layers of R00373 and York drop or substitute minus signs, and Jay and
+R00315 lose a few symbols. Per item:
+
+| Item | Outcome | Assoc. | Adj. F1 | Kept |
+| --- | --- | ---: | ---: | ---: |
+| R01285-p6-t1 | EXACT | 1.000 | 1.000 | 1.000 |
+| greenwood2006-p11-t3 | GRID-NEAR | 0.988 | 0.983 | 0.968 |
+| R02611-p25-t1 | GRID-NEAR | 0.976 | 0.902 | 1.000 |
+| wry2013-p46-t1 | GRID-NEAR | 0.990 | 0.984 | 1.000 |
+| york2018-p12-t1 | GRID-NEAR | 0.998 | 0.994 | 1.000 |
+| R00315-p14-t1 | GRID-WRONG | 0.940 | 0.886 | 0.942 |
+| R00112-p17-t1 | GRID-WRONG | 0.943 | 0.712 | 0.979 |
+| R02611-p18-t1 | GRID-WRONG | 0.910 | 0.605 | 1.000 |
+| R02027-p25-t1 | GRID-WRONG | 0.776 | 0.722 | 0.959 |
+| R01114-p8-t1 | GRID-WRONG | 0.742 | 0.694 | 0.989 |
+| R00077-p8-t1 | GRID-WRONG | 0.751 | 0.125 | 0.978 |
+| capiq-p87-t1 | GRID-WRONG | 0.713 | 0.595 | 0.997 |
+| jay2013-p6-t1 | GRID-WRONG | 0.683 | 0.604 | 0.932 |
+| R00112-p14-t1 | GRID-WRONG | 0.586 | 0.068 | 0.975 |
+| R00263-p15-t1 | GRID-WRONG | 0.576 | 0.049 | 0.978 |
+| R05732-p4-t1 | GRID-WRONG | 0.569 | 0.039 | 0.989 |
+| S0004-p6-t1 | GRID-WRONG | 0.455 | 0.178 | 0.963 |
+| york2018-p14-t2 | GRID-WRONG | 0.437 | 0.346 | 0.775 |
+| R00030-p75-t1 | GRID-WRONG | 0.255 | 0.000 | 0.960 |
+| R00077-p28-t1 | GRID-WRONG | 0.203 | 0.009 | 0.998 |
+| R00373-p13-t1 | GRID-WRONG | 0.177 | 0.199 | 0.761 |
+| R00639-p28-t1 | GRID-WRONG | 0.129 | 0.000 | 0.988 |
+| R00087-p9-t1 | GRID-WRONG | 0.107 | 0.000 | 0.999 |
+| capiq-p9-t1, greenwood2006-p7-t1, peng2009-p2-t1, sbti-p3-t1, sbti-p53-t1, sbti-p61-t1 | PROSE | 0 | 0 | 1.000 |
+
+Controls: FALSE-GRID on R02055 p7, R00860 pp60 and 61, Kostova p7, Wry p37
+and S0009 p17; FALSE-MARKER on R00023 pp3 and 9 and R00032 p85.
+
+Limits of the baseline: the set was chosen to cover known failure pages,
+so it over-represents hard tables and is not a random sample of tables in
+the corpus. Two gold matrices keep the printed layout where a reader might
+want another: York Table 1 prints its header one column left of the data,
+and York Table 2 continues its columns side by side on p15, so a
+page-by-page converter cannot reach EXACT there without joining columns.
+
+### B. Evidence inventory, deduplicated by mechanism
+
+Full table with every page and source: tests/REPORT-block2-evidence.md.
+Twenty mechanisms; page counts are from the audited versions (v0.1.12 and
+v0.1.14); the v0.1.15 column is from the region labels.
+
+| ID | Mechanism | Class | Pages | Status at v0.1.15 |
+| --- | --- | --- | ---: | --- |
+| M01 | Figure or diagram admitted as a table | false grid | 14 | 13 figure grids emitted |
+| M02 | List-like text proposed as a 2-column grid | false grid | 7 | 12 reference-list grids (6 are S0009's captioned bibliography) |
+| M03 | Body prose or layout captured into a table region | false grid | 6 | R00293 p8 still a merged grid |
+| M04 | Single-row grids from a text proposal (R00087 Table 1) | false grid | 4 | 6 grids on R00087 pp10-15, all wrong |
+| M05 | Fallback marker on non-table content | false marker | 31 | 32 of 78 markers |
+| M06 | Wrapped lines emitted as separate grid rows | wrong association | 15 | open |
+| M07 | Rows collapsed into one row, or columns fused | wrong association | 15 | open (York, R00373, R02659 regression tables) |
+| M08 | Header misplaced | wrong association | 26 | open |
+| M09 | Stacked panels merged; label column fused | wrong association | 7 | open (R00112) |
+| M10 | One table split into several partial grids plus prose | wrong association | 15 | 74 of 135 table grids cover part of a table |
+| M11 | Cells or rows detached from the table | wrong association | 11 | open |
+| M12 | Cross-page table not joined | wrong association | 13 + Capital IQ's 47 sections | open |
+| M13 | Caption displaced or fused | wrong association | 16 | open (minor) |
+| M14 | Failed reconstruction kept as prose: layout lost | missed table | 43 | 46 real-table fallbacks |
+| M15 | Real table not detected | missed table | 30 + about 135 Capital IQ pages | open |
+| M16 | Large candidate rejected by the page-area rule | missed table | 7 | open (SBTi) |
+| M17 | Lossy reconstruction accepted (passes the 0.9 guard) | lost text | 30 | 39 grids drop printed words |
+| M18 | Sideways region on an upright page | lost text | 1 | now kept as unreadable fragments (E3) |
+| M19 | Table rows lost as furniture | lost text | 14 | fixed (Packet B, 702607d) |
+| M20 | Glyph loss in cells (pi fonts, OCR layers) | lost text | 19 | open, source layer |
+
+Pages per class (a page counts once per class): false grid 31, wrong
+association 76, missed table 77, lost text 57, false marker 31.
+
+Cross-cutting findings:
+
+- Eleven of the 17 pages that were new regressions against e419550 are on
+  pages the converter turns upright (ab57a91). e419550 left them sideways
+  and emitted prose; once upright, detection runs and M04, M06, M07 and M09
+  fire. Turning pages upright stays (it recovered seven table pages of
+  text), but those pages are where the gate matters most.
+- Text proposals are not worse than `find_tables` candidates per grid
+  (36 good of 64 against 38 good of 103), but they produce most list and
+  reference false grids (M02, M04).
+- Disagreements between sources are listed in the evidence report, part 1,
+  section 4. None changes the ranking below.
+
+### C. Remaining items, re-ranked by gold-set impact over risk
+
+Items that remove false grids or fix association come first; items that
+only add grids come after them.
+
+| Rank | Item | Removes / fixes | Gold-set impact (estimate) | Risk |
+| ---: | --- | --- | --- | --- |
+| 1 | E2: marker only on real table regions | false markers (M05) | 3 FALSE-MARKER controls clean | low |
+| 2 | D: table-confidence gate (new item 14) | false grids (M01-M04), worst wrong grids (M06, M07, M10) | FALSE-GRID 6 to 2; GRID-WRONG 18 to 12, no EXACT/NEAR lost | medium |
+| 3 | E1: R00014 masthead (item 13) | lost text | none on the gold set | low |
+| 4 | E3: sideways fragments warning (interim item 12) | silent unreadable text | none on the gold set | low |
+| 5 | Item 1 extended: wrapped-line rows for all row-banded tables | M06 | R02611 p18, R05732 p4, R00077 p8, S0004 | medium |
+| 6 | New: row-collapse repair or refusal | M07 | York T2, R00373, R02659 | medium |
+| 7 | Item 4: per-cell token identity on both paths | M17, and the gate's identity test | jay, R00315, York T2 | medium |
+| 8 | Header band and panel spanners | M08, M09 | R00112, R02611 p25 | medium |
+| 9 | Cross-page joining and repeated headers | M12 | Capital IQ, Wry, York, S0004, R00077, R00087 | high: adds grids |
+| 10 | Item 2: area rule exception | M16 | SBTi p53, p61 | medium: adds grids |
+| 11 | Item 12: rotate the region | M18 | none on the gold set | medium: adds text |
+| 12 | Item 3: criterion lead-ins | SBTi only | none | low |
+| 13 | Items 9, 10, 11a, 11c | text hygiene | none | as before |
+
+### D. Table-confidence gate (new item 14)
+
+A grid is emitted only when all of these hold. Each is measurable on the
+source page or the candidate, without trusting the reconstruction it
+judges:
+
+1. **Row and column evidence.** At least two horizontal rules spanning the
+   region or one vertical rule, OR at least two column starts that recur
+   (within 4 pt) in at least half of the multi-column printed rows.
+2. **Consistent shape.** At least three grid rows and at least two columns.
+3. **Not a figure.** No curve drawing operators inside the region (boxes
+   with arrows, path diagrams).
+4. **Not prose.** Fewer than 35% of printed lines end in a word followed
+   by sentence punctuation.
+5. **Per-cell token identity.** The grid's tokens equal the members'
+   tokens as a multiset, within tolerance: nothing missing and nothing
+   duplicated beyond `GATE_IDENTITY_MAX` (start at 0.05 inside the
+   converter, where the comparison uses the members' own tokens after
+   glyph repair; the offline estimate below had to use 0.20 because it
+   compares against the page).
+6. **No continuation rows.** Fewer than 15% of body rows have an empty
+   first cell and lower-case continuation text in the others (the
+   signature of wrapped lines emitted as rows, M06).
+
+Below the gate the region becomes ordered prose. It keeps the marker only
+if it passes test 1 or has a rule near it (E2); otherwise its blocks return
+to normal classification with no marker.
+
+**Estimate on the 167 labelled v0.1.15 grids:**
+
+| Gate | Good grids kept | Bad grids removed | Non-table grids removed |
+| --- | --- | --- | --- |
+| Tests 1-5 | 71 of 77 | 53 of 90 | 19 of 29 |
+| Tests 1-6 (proposed) | 70 of 77 | 58 of 90 | 19 of 29 |
+
+"Good" is a correct or minor-error grid of a real table or a cover-sheet
+box; "bad" is any other grid. The seven good grids the gate costs are R00263
+pp5, 15 and 20, R02611 p18, R01285 p7, R02027 p34 and R00894 p8, six of
+them minor-error grids, so they become prose rather than wrong. The 32 bad
+grids it still lets through are mostly ruled tables whose rows are split or
+collapsed (SBTi criteria pages, York T2, R00315 p12, R00112 p14), the R07771
+reference lists and S0009's captioned bibliography, and the R02055 figure,
+which has no curves. Those need items 5-8, not a stricter gate.
+
+**Estimate on the gold set** (same gate, simulated on the v0.1.15 regions):
+
+| Measure | v0.1.15 | With the gate |
+| --- | --- | --- |
+| Tables EXACT / NEAR / WRONG / PROSE / LOST | 1 / 4 / 18 / 6 / 0 | 1 / 4 / 12 / 11 / 1 |
+| Controls CLEAN / FALSE-GRID / FALSE-MARKER | 0 / 6 / 3 | 7 / 2 / 0 |
+
+The one LOST is R00373, whose text layer has no minus signs; it moves from
+a wrong grid to prose and is scored on tokens. The two controls still
+failing are R02055 p7 (a figure drawn without curves) and S0009 p17 (the
+bibliography captioned as a table).
+
+These are estimates: the region labels are one pass each, and the features
+are an offline reimplementation. The implementation step re-measures on the
+gold set and the audit pages before it is committed.
+
+### E. Three small isolated items, each with a fixture, done first
+
+**E1. R00014 p1: the journal name in the article's own citation line is
+suppressed as furniture (PLAN item 13).** Still present at v0.1.15: p1's
+first line, "Academy of Management Annals", is recorded as
+`proc_marginalia` and the Markdown opens with "2023, Vol. 17, No. 1". The
+mechanism: the even-page running head is the same text in the same top band
+(y 51.9-60.8 pt against 48.6-55.3 pt on p1, inside `FURNITURE_HEIGHT_TOL`),
+so repetition evidence matches. But it is a different object: the masthead
+sits at x = 47 in 6.3 pt Arial as the first of three citation lines; the
+running head is centred at x = 236 in 8.3 pt Times Italic. *Fix:* repetition
+evidence must also agree on horizontal position (centre within a tolerance)
+and on type size, and a line is not cut out of a block whose other lines are
+not furniture. *Fixture* `first_page_masthead.pdf`: a page-1 citation block
+with the journal name at the left in small type; later pages with the same
+name as a centred running head. Assert the masthead survives and the heads
+are suppressed. Verify on R00014 p1 and on the suppression audit pages.
+
+**E2. The "reconstruction failed" marker only follows a real table.** At
+v0.1.15, 32 of 78 markers sit on body prose (14), reference lists (11),
+figures (5) and an equation's "Where:" key (2). The mechanism: the second
+`find_tables` pass (columns from text, rows from lines) makes candidates on
+pages with no ruling lines at all (R00023 p3: no rules, a 45 x 8 candidate
+over double-spaced prose). Reconstruction fails, the geometric grid passes
+`_table_sane`, and the region becomes a marked fallback. *Fix:* a failed
+candidate keeps the marker only if a rule spans or borders it or it has at
+least two recurring column starts, and it has no curves. Otherwise its
+blocks return to the page unmarked and are classified like any other text,
+so a prose page reads as prose with its headings. On the 78 fallbacks this
+unmarks 28 of the 32 non-tables and 2 of the 46 real tables (Peng p2, whose
+region also holds a figure strip, and SBTi p43). *Fixture*
+`no_table_marker.pdf`: a double-spaced prose page, a reference list, and a
+box-and-arrow figure, none with a marker; `tall_cell` keeps its marker.
+Verify on R00023, R00032 pp85-88 and SBTi.
+
+**E3. The R00443 p16 lossy-page contradiction.** Both reports are right
+for the version each measured. At v0.1.12 the tilt filter dropped the
+page's sideways lines and the page emitted 163 of 336 words, so it was
+flagged. Commit 702607d (2026-09-29) began keeping orthogonal native text
+on raster-covered pages, because mixed-direction hidden OCR can hold real
+sideways table data. Since then p16 emits 382 content words, above the 0.5
+conservation ratio, and is not flagged. Converting R00443 at 702607d~1 and
+at 702607d reproduces the switch exactly. The words it now emits are the
+hidden OCR layer's sideways fragments in column order (numbers and
+two-letter pieces), unreadable as a table. So the check is right about the
+count and blind to order. *Fix:* record pages whose emitted text includes
+orthogonal lines that were not turned upright in
+`stats["sideways_text_pages"]` and warn "N pages keep sideways text as
+fragments" through `stat_warnings`, so CLI, GUI and log say so; item 12
+remains the real fix. *Fixture:* a raster-covered page with an upright
+paragraph and a quarter-turned table in its hidden text layer; assert the
+warning and that conservation is unchanged. Verify on R00443 p16.
+
+### F. Acceptance for v0.2.0
+
+Measured with `tests/score_gold_tables.py` on the gold set, extended first
+with at least four fully ruled and two more shaded-row tables, and at least
+six more non-table controls drawn from pages the gate has not been tuned on.
+
+1. **Zero false grids and zero false markers on every gold control.**
+2. **No wrong grid where v0.1.15 had a good one:** every v0.1.15 EXACT or
+   GRID-NEAR table stays EXACT or GRID-NEAR.
+3. **GRID-WRONG at most 4 of the original 29 tables** (from 18). A table
+   may reach that by becoming PROSE.
+4. **EXACT plus GRID-NEAR at least 8 of 29** (from 5), and mean cell
+   association not below 0.514.
+5. **Tokens kept at least 0.95 on every table** whose source layer holds
+   its glyphs; the source-glyph losses (R00373, York minus signs) are
+   reported, not excused silently.
+6. **No audit page worse than v0.1.15**: the 17 v0.1.14 regression pages,
+   the 13 B-KNOWN structure pages, the 6 B-KNOWN content-loss pages and
+   the 27 false-marker pages, judged visually against v0.1.15 output.
+7. The 77-entry golden audit runs; every hash change is explained by a
+   step of this block.
+8. **README tables paragraph rewritten from the measured numbers**: how
+   many gold tables are exact or near, how many become prose, and what a
+   reader gets on a non-table page. "Verify any table you intend to read as
+   data" stays unless criteria 2-4 hold on the extended set with GRID-WRONG
+   at zero.
+
+### G. Commit sequence and stop points
+
+Each step is one commit with its fixture, the regression and golden checks,
+the gold-set scores before and after, and the R rule on the real pages
+named.
+
+1. E2 marker rule. Fixture `no_table_marker`. Before/after on R00023,
+   R00032, SBTi fallbacks.
+2. E1 masthead. Fixture `first_page_masthead`. Before/after on R00014 p1
+   and the suppression audit list.
+3. E3 sideways-fragments warning. Fixture `sideways_fragments`.
+   Before/after on R00443 p16.
+   **STOP 1:** report E1-E3; user review.
+4. Gate tests 1-4 (evidence, shape, figure, prose), with the gold-set
+   simulation re-run inside the converter. Fixtures: `figure_grid` (box and
+   arrows), `endnote_list`, `ruled_table` control (must stay a grid).
+5. Gate tests 5-6 (token identity, continuation rows). Fixtures:
+   `split_rows_table`, `lossy_grid`.
+   **STOP 2:** gold-set and audit-page report; user review. No further
+   step if any v0.1.15 EXACT or NEAR table regressed.
+6. Item 1 extension (wrapped-line rows). 7. Row-collapse repair. 8. Item 4
+   token identity on the proposal path. 9. Header band and panel spanners.
+   **STOP 3** after each of 6-9 if a gold table moves from NEAR to WRONG.
+10. Cross-page joining. 11. Item 2 area rule. 12. Item 12 region rotation.
+    **STOP 4:** v0.2.0 acceptance report against F; README rewrite.
+    No tag until the user writes "tag v0.2.0".
 
 ## Review and shipment gates
 

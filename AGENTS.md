@@ -427,6 +427,12 @@ parentheses fails if the fix is undone):
 - Packet B source-line suppression is fixed (44/44 cases); see
   tests/REPORT-suppression.md. Packet A's 79 structural cases remain batch C
   evidence in tests/PLAN-tables.md, not implemented by the suppression fix.
+- Block 2 (table structure) is planned in tests/PLAN-tables.md, "Block 2",
+  pending review: gold tables set (git-ignored tests/gold-tables/, protocol
+  tests/GOLD-TABLES.md, scorer tests/score_gold_tables.py; v0.1.15: 1 of 29
+  exact, 18 wrong grids, 6 false grids and 3 false markers on 9 controls),
+  evidence tests/REPORT-block2-evidence.md, a table-confidence gate, and E1-E3
+  first. No converter change before review.
 - Table work follows tests/PLAN-tables.md; items 0, 1, 7, 8, 11b done;
   fallback-to-prose done; item 5 not needed after fallback-to-prose (no evidence
   in 44 remaining reference regions); item 6 done; 2,3,4 then 9,10,11a,11c pending review; 12 is evidence only. Items 2 and 5 carry extra
