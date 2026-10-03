@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 import warnings
 from collections import Counter, defaultdict
@@ -501,6 +502,30 @@ def _journal_front_matter(members: List[Block], context: List[Block]) -> bool:
     return bool(metadata or "keywords" in labels)
 
 
+def _projection_ok(lines: list, page: Page) -> Tuple[bool, float]:
+    """(acceptable, worst distance outside the page in page sides).
+
+    table_recon projects token coordinates onto grids whose size follows the
+    coordinates' span. A crafted PDF can place glyphs at non-finite or absurd
+    positions; such a candidate is not reconstructed. The page box is widened
+    by TABLE_PROJECTION_MARGIN page sides, because real tables do carry
+    glyphs a little outside the page.
+    """
+    side = max(page.width, page.height, 1.0)
+    worst = 0.0
+    for toks, y0, y1 in lines:
+        for value in (y0, y1):
+            if not math.isfinite(value):
+                return False, math.inf
+            worst = max(worst, -value / side, (value - page.height) / side)
+        for _t, x0, x1 in toks:
+            for value in (x0, x1):
+                if not math.isfinite(value):
+                    return False, math.inf
+                worst = max(worst, -value / side, (value - page.width) / side)
+    return worst <= TABLE_PROJECTION_MARGIN, worst
+
+
 def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
     """Find table regions with PyMuPDF, then rebuild the grid.
 
@@ -662,25 +687,43 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
         region = (region[0] - 4, region[1] - 3, region[2] + 4, region[3] + 3)
 
         html = ""
+        rejected = False
         if reconstruct_table_html is not None:
             lines = _tokens_for_recon(members, region)
-            try:
-                res = reconstruct_table_html(lines)
-                res = recover_wrapped_lines(lines, res, tbl)
-            except Exception:
-                res = None
-            if res:
-                html = res[0]
+            ok, worst = _projection_ok(lines, page)
+            if not ok:
+                rejected = True
+                note_limit(
+                    page,
+                    "table_projection",
+                    round(worst, 3) if math.isfinite(worst) else "non-finite",
+                    TABLE_PROJECTION_MARGIN,
+                    "candidate kept as prose",
+                )
+            else:
+                try:
+                    res = reconstruct_table_html(lines)
+                    res = recover_wrapped_lines(lines, res, tbl)
+                except Exception:
+                    res = None
+                if res:
+                    html = res[0]
 
         # PyMuPDF's geometric cells: text assigned by cell bbox, so wrapped
         # lines stay in their cell. Used when the reconstruction is unusable,
         # and also when it is "sane" but has lost words (TABLE_FALLBACK_MIN_KEEP).
         try:
-            fallback = _grid_to_html(_grid_from_members(tbl, members))
+            fallback = (
+                "" if rejected else _grid_to_html(_grid_from_members(tbl, members))
+            )
         except Exception:
             fallback = ""
         fell_back = False
-        if not html or not _table_sane(html):
+        if rejected:
+            # Neither the reconstruction nor PyMuPDF's cell grid is trusted
+            # with these coordinates: the source text stays, as prose.
+            html, fell_back = "<rejected>", True
+        elif not html or not _table_sane(html):
             # The geometric grid is only the admission oracle here. If it
             # passes the same sanity check, the admitted region renders from
             # its ordered source prose below.
@@ -784,6 +827,16 @@ def propose_tables_from_text(pages: List[Page], min_score=PROPOSAL_MIN_SCORE) ->
             ):
                 continue
             lines = _tokens_for_recon([blk], blk.bbox)
+            ok, worst = _projection_ok(lines, page)
+            if not ok:
+                note_limit(
+                    page,
+                    "table_projection",
+                    round(worst, 3) if math.isfinite(worst) else "non-finite",
+                    TABLE_PROJECTION_MARGIN,
+                    "proposal kept as prose",
+                )
+                continue
             multi = [ln for ln in lines if len(ln[0]) >= 2]
             if len(multi) < PROPOSAL_MIN_ROWS:
                 continue

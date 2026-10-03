@@ -53,6 +53,7 @@ class ConversionStats(TypedDict):
     proposals: int
     proposals_kept_prose: int
     section_heads_emitted: list[dict]
+    resource_limits: list[dict]
 
 
 SUPPRESSION_REASONS = frozenset(
@@ -174,6 +175,10 @@ def build_stats(
     section_heads = [record for page in pages for record in page.section_heads_emitted]
     if section_heads:
         stats["section_heads_emitted"] = section_heads
+    # Present only when a limit tripped, so ordinary output is unchanged.
+    limits = [record for page in pages for record in page.limit_events]
+    if limits:
+        stats["resource_limits"] = limits
     return stats
 
 
@@ -223,6 +228,14 @@ def stat_warnings(stats: ConversionStats) -> List[str]:
         out.append(f"{n} text-table proposal{'s' * (n != 1)} kept as prose")
     if stats.get("provenance"):
         out.append("provenance page dropped: " + ", ".join(stats["provenance"]))
+    limits = stats.get("resource_limits") or []
+    if limits:
+        shown = ", ".join(f"{d['limit']} p{d['page']}" for d in limits[:6])
+        shown += ", \u2026" if len(limits) > 6 else ""
+        out.append(
+            f"{len(limits)} resource limit{'s' * (len(limits) != 1)} reached "
+            f"({shown}); content kept, see stats"
+        )
     return out
 
 

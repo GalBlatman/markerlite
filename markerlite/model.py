@@ -356,6 +356,9 @@ class Page:
     images: List[dict] = field(default_factory=list)
     suppressed: List[dict] = field(default_factory=list)
     section_heads_emitted: List[dict] = field(default_factory=list)
+    # Resource limits that tripped on this page (note_limit): each record is
+    # reported in stats["resource_limits"] and as a warning.
+    limit_events: List[dict] = field(default_factory=list)
     table_zones: List[tuple] = field(default_factory=list)
     figure_zones: List[tuple] = field(default_factory=list)
     figure_cores: List[tuple] = field(default_factory=list)
@@ -396,4 +399,23 @@ class Page:
 # Phase 3 keeps constants byte-for-byte while their eventual ownership is
 # deferred to the approved thresholds phase. Split modules need the private
 # patterns as well as the public model types.
+def note_limit(page: "Page", limit: str, observed, cap, action: str) -> None:
+    """Record that a resource limit tripped on ``page``.
+
+    ``limit`` names the limit, ``observed`` and ``cap`` are the measured value
+    and the limit, ``action`` says how the page degraded. The record becomes
+    part of stats["resource_limits"] and of the warnings, so a limit never
+    acts silently.
+    """
+    page.limit_events.append(
+        {
+            "page": page.page_idx + 1,
+            "limit": limit,
+            "observed": observed,
+            "cap": cap,
+            "action": action,
+        }
+    )
+
+
 __all__ = [name for name in globals() if not name.startswith("__")]

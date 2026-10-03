@@ -143,3 +143,15 @@ FIGURE_CROP_DPI = 200
 WRAP_RULE_COORD_TOL = 0.5
 WRAP_HEADER_MAX_SPAN_WIDTH = 200
 WRAP_MAX_RECORD_KEY_WORDS = 6
+
+# Resource limits (tests/REPORT-security.md). A pathological PDF must never
+# stall or crash a batch. Each limit is at least ten times the largest value
+# measured on tests/real and the golden corpus (76 documents), and a tripped
+# limit degrades visibly: a warning, a stats["resource_limits"] record, and
+# the text kept.
+#
+# Table projection: coordinates handed to table_recon may lie outside the page
+# by this many times the page's larger side. Measured: no non-finite
+# coordinate; at most 172.5 pt outside a 612 x 792 pt page (0.22 of its larger
+# side, SBTi). Limit 3.0 page sides.
+TABLE_PROJECTION_MARGIN = 3.0
