@@ -10,7 +10,7 @@ from typing import List, Optional, Tuple
 import pymupdf
 
 from .classification import body_font_size
-from .extraction import _bbox_of
+from .extraction import _bbox_of, oversized_images
 from .model import *
 from .render import block_text
 from .tables import _overlap_frac
@@ -273,6 +273,36 @@ def _vector_regions(
     return out
 
 
+def _image_infos(pm: pymupdf.Page) -> list:
+    """get_image_info(xrefs=True), without decoding an oversized image.
+
+    Asking MuPDF for the xrefs makes it decode every image. On a page with
+    an image over FIGURE_IMAGE_MAX_PIXELS the placements come from the plain
+    call, which does not decode, and each one's xref from the image whose
+    placement box it matches."""
+    if not oversized_images(pm):
+        return pm.get_image_info(xrefs=True)
+    boxes = []
+    for item in pm.get_images(full=True):
+        try:
+            boxes.append((item[0], pymupdf.Rect(pm.get_image_bbox(item))))
+        except Exception:
+            continue
+    infos = []
+    for info in pm.get_image_info():
+        box = pymupdf.Rect(info["bbox"])
+        match = next(
+            (
+                x
+                for x, b in boxes
+                if abs(b.x0 - box.x0) < 0.5 and abs(b.y0 - box.y0) < 0.5
+            ),
+            0,
+        )
+        infos.append({**info, "xref": match})
+    return infos
+
+
 def _content_images(
     pm: pymupdf.Page,
     min_side: float = FIGURE_IMAGE_MIN_SIDE,
@@ -292,7 +322,7 @@ def _content_images(
     out = []
     prect = pm.rect
     page_area = max(prect.width * prect.height, 1.0)
-    for n, info in enumerate(pm.get_image_info(xrefs=True)):
+    for n, info in enumerate(_image_infos(pm)):
         xref = info.get("xref", 0)
         bbox = info.get("bbox")
         if not xref or not bbox:
@@ -542,12 +572,22 @@ def place_figures(
         if not page.blocks and not page.source_words:
             continue  # a page dropped as provenance
         pm = doc[page.page_idx]
+        oversized = {x for x, _w, _h in oversized_images(pm)}
         for kind, n, xref, bbox in _figure_regions(pm, page):
             path = None
             if imgdir is not None:
                 try:
                     imgdir.mkdir(parents=True, exist_ok=True)
-                    if kind == "img":
+                    if kind == "img" and xref in oversized:
+                        # Decoding the source would allocate every one of
+                        # its pixels. The page render of its placement is
+                        # bounded by the page; it is recorded as image_pixels.
+                        name = f"page{page.page_idx + 1}_img{n}.png"
+                        clip = pymupdf.Rect(bbox) & pm.rect
+                        pm.get_pixmap(clip=clip, dpi=FIGURE_CROP_DPI).save(
+                            imgdir / name
+                        )
+                    elif kind == "img":
                         pix = pymupdf.Pixmap(doc, xref)
                         if pix.n - pix.alpha >= 4:
                             pix = pymupdf.Pixmap(pymupdf.csRGB, pix)

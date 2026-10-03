@@ -16,8 +16,10 @@ from .extraction import (
     detect_provenance,
     discover_tesseract,
     extract_page,
+    oversized_images,
     place_fill_backed_banners,
     tesseract_version,
+    text_flags,
 )
 from .figures import (
     _attach_figure_source_text,
@@ -78,7 +80,9 @@ def convert(
                     "text": "".join(sp["text"] for sp in ln["spans"]),
                     "reason": "provenance",
                 }
-                for block in doc[i].get_text("dict")["blocks"]
+                for block in doc[i].get_text(
+                    "dict", flags=text_flags(doc[i], pymupdf.TEXTFLAGS_DICT)
+                )["blocks"]
                 for ln in block.get("lines", [])
             ]
             pages.append(
@@ -92,6 +96,15 @@ def convert(
             )
             continue
         p = extract_page(doc[i], i)  # may turn a sideways page upright, in memory
+        big = oversized_images(doc[i])
+        if big:
+            note_limit(
+                p,
+                "image_pixels",
+                max(w * h for _x, w, h in big),
+                FIGURE_IMAGE_MAX_PIXELS,
+                "image not decoded; located by its placement, exported as a page crop",
+            )
         # On an OCR'd page the native layer is gone, but Tesseract reads the
         # stamp off the rendered page, so the same texts are dropped there.
         _drop_provenance_lines(p, drop_lines, provenance_matcher)

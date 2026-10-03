@@ -212,3 +212,38 @@ def test_vector_drawings_over_the_cap_keep_text_and_caption(made):
     assert "A paragraph before the chart." in text
     assert "A paragraph after the chart." in text
     assert "<!-- figure: p. 1; caption: Figure 1. A dense chart. -->" in text
+
+
+def test_oversized_image_is_located_without_decoding_and_exported_as_a_crop(made):
+    import pymupdf
+
+    pdf = fixtures.huge_image(made)
+    md, info = convert(pdf, made / "img", images=True)
+    text = md.read_text(encoding="utf-8")
+    [record] = _limits(info, "image_pixels")
+    assert record["observed"] == 400_000_000 > record["cap"]
+    assert "A paragraph before the figure." in text
+    assert "<!-- figure: p. 1; caption: Figure 1. A very large raster. -->" in text
+    [png] = sorted((made / "img").rglob("*.png"))
+    pix = pymupdf.Pixmap(str(png))
+    assert pix.width <= 900 and pix.height <= 900  # 300 pt at 200 dpi, not 20000 px
+
+
+@pytest.mark.skipif(
+    __import__("sys").platform == "win32", reason="peak RSS via resource is POSIX"
+)
+def test_oversized_image_does_not_cost_its_decoded_size(made):
+    import subprocess
+    import sys
+
+    pdf = fixtures.huge_image(made)
+    script = (
+        "import pathlib, resource, sys, tempfile\n"
+        f"sys.path.insert(0, {str(ROOT)!r})\n"
+        "from markerlite import convert\n"
+        f"convert(pathlib.Path({str(pdf)!r}), pathlib.Path(tempfile.mkdtemp()), images=True)\n"
+        "print(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024)\n"
+    )
+    out = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True)
+    peak_mb = int(out.stdout.strip().splitlines()[-1])
+    assert peak_mb < 400, peak_mb  # decoded, the image alone is 400 MB

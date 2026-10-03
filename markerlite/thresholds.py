@@ -176,3 +176,10 @@ PROVENANCE_MAX_PIECES = 80
 # Vector figure clustering. Measured: at most 326 drawings on a page (R00032).
 # Limit 4000 (12x); above it the page's paths are not clustered.
 FIGURE_VECTOR_MAX_DRAWINGS = 4000
+
+# Embedded image size. Measured: the largest image source holds 23.2 million
+# pixels (5800 px on its long side, R00639). Limit 240 million (10x). Above it
+# the image is never decoded: text extraction skips image blocks on that
+# page, figure detection uses the non-decoding placement call, and --images
+# exports a page render of the placement instead of the source.
+FIGURE_IMAGE_MAX_PIXELS = 240_000_000

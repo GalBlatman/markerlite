@@ -112,6 +112,31 @@ def _bbox_of(items) -> Tuple[float, float, float, float]:
     return (xs0, ys0, xs1, ys1)
 
 
+def oversized_images(page: pymupdf.Page) -> List[tuple]:
+    """(xref, width, height) of the page's images whose source holds more
+    than FIGURE_IMAGE_MAX_PIXELS pixels. Read from the image dictionaries,
+    which costs nothing; decoding is what costs memory."""
+    try:
+        items = page.get_images(full=True)
+    except Exception:
+        return []
+    return [
+        (item[0], item[2], item[3])
+        for item in items
+        if item[2] * item[3] > FIGURE_IMAGE_MAX_PIXELS
+    ]
+
+
+def text_flags(page: pymupdf.Page, base: int) -> int:
+    """Text-extraction flags for ``page``. MuPDF decodes every image when
+    image blocks are requested (rawdict and dict ask for them by default);
+    the converter never uses those blocks. On a page with an oversized image
+    they are not requested, so the image is never decoded."""
+    if oversized_images(page):
+        return base & ~pymupdf.TEXT_PRESERVE_IMAGES
+    return base
+
+
 def readable_ratio(text: str) -> Tuple[int, float]:
     """(tokens, share of them that are common words or numerals)."""
     tokens = _WORD_TOKEN.findall(text)
@@ -137,7 +162,10 @@ def _normalise_rotation(page: pymupdf.Page) -> Tuple[pymupdf.Page, bool]:
         page = doc[number]
         turned = True
     up = down = total = 0
-    for b in page.get_text("rawdict").get("blocks", []):
+    raw_blocks = page.get_text(
+        "rawdict", flags=text_flags(page, pymupdf.TEXTFLAGS_RAWDICT)
+    ).get("blocks", [])
+    for b in raw_blocks:
         if b.get("type") != 0:
             continue
         for ln in b.get("lines", []):
@@ -497,7 +525,7 @@ def extract_page(
     """
     ocr_used = False
     page, derotated = _normalise_rotation(page)
-    raw = page.get_text("rawdict")
+    raw = page.get_text("rawdict", flags=text_flags(page, pymupdf.TEXTFLAGS_RAWDICT))
     text_len = sum(
         len(c.get("c", ""))
         for b in raw.get("blocks", [])

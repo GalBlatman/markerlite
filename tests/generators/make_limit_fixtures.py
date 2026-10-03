@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import pathlib
 import sys
+import zlib
 
 import pymupdf
 
@@ -171,7 +172,44 @@ def vector_drawings(out: pathlib.Path) -> pathlib.Path:
     return path
 
 
+def _zero_flate(size: int) -> bytes:
+    """``size`` zero bytes, Flate-compressed in chunks (about 1000:1)."""
+    comp = zlib.compressobj(9)
+    chunk = bytes(1 << 20)
+    parts = []
+    left = size
+    while left:
+        n = min(left, len(chunk))
+        parts.append(comp.compress(chunk[:n]))
+        left -= n
+    parts.append(comp.flush())
+    return b"".join(parts)
+
+
+def huge_image(out: pathlib.Path, side: int = 20000) -> pathlib.Path:
+    """A page whose figure is a ``side`` x ``side`` 8-bit grey image: 400
+    million pixels by default, over FIGURE_IMAGE_MAX_PIXELS. Stored as
+    about 0.4 MB of Flate data; decoded, it is 400 MB."""
+    doc = pymupdf.open()
+    page = doc.new_page(width=612, height=792)
+    page.insert_text((72, 80), "A paragraph before the figure.", fontsize=11)
+    page.insert_text((72, 470), "Figure 1. A very large raster.", fontsize=10)
+    # Insert a tiny image at 300 x 300 pt, then make its object the huge one.
+    tiny = pymupdf.Pixmap(pymupdf.csGRAY, pymupdf.IRect(0, 0, 2, 2), False)
+    xref = page.insert_image(pymupdf.Rect(156, 150, 456, 450), pixmap=tiny)
+    doc.update_object(
+        xref,
+        f"<< /Type /XObject /Subtype /Image /Width {side} /Height {side} "
+        "/ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode >>",
+    )
+    doc.update_stream(xref, _zero_flate(side * side), compress=0)
+    path = out / "limit_huge_image.pdf"
+    doc.save(path)
+    return path
+
+
 FIXTURES = {
+    "huge_image": huge_image,
     "vector_drawings": vector_drawings,
     "provenance_pieces": provenance_pieces,
     "code_tiny_glyphs": code_tiny_glyphs,
