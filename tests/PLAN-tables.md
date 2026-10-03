@@ -717,6 +717,10 @@ association 76, missed table 77, lost text 57, false marker 31.
 
 Cross-cutting findings:
 
+- **Stop-2 ranking note (owner, stop 1):** 11 of the 17 regressions are on
+  pages turned upright; investigate rotated-page handling as a shared cause
+  first, before gate tests 1-4 are tuned on those pages. R00443 p14/p16
+  (E3) belong to the same investigation.
 - Eleven of the 17 pages that were new regressions against e419550 are on
   pages the converter turns upright (ab57a91). e419550 left them sideways
   and emitted prose; once upright, detection runs and M04, M06, M07 and M09
@@ -861,6 +865,42 @@ fragments" through `stat_warnings`, so CLI, GUI and log say so; item 12
 remains the real fix. *Fixture:* a raster-covered page with an upright
 paragraph and a quarter-turned table in its hidden text layer; assert the
 warning and that conservation is unchanged. Verify on R00443 p16.
+
+*Owner ruling (stop 1): recorded, not fixed now.* Sideways native text kept
+since 702607d produces unreadable fragments that word conservation cannot
+see; the fix belongs to the rotated-page work (item 12 and the stop-2
+investigation below). What follows is the detector proposed for that work.
+
+*Proposed detector: fragment share, not word count.* Conservation counts
+words, and a word split into its letters still counts. The signal that
+does separate R00443 p16 is the shape of the emitted tokens. Measured per
+page on the emitted Markdown (comments removed, pages with >= 40 tokens):
+
+| R00443 page | tokens | `readable_ratio` | letter tokens of <= 2 letters | mean letter-token length |
+| --- | --- | --- | --- | --- |
+| body pages (21) | 183-858 | 0.26-0.62 | 0.13-0.29 | 5.18-6.06 |
+| p14 | 542 | 0.51 | **0.97** | **1.29** |
+| p16 | 300 | 0.77 | **0.95** | **1.54** |
+
+p14 is a second page of the same kind that no report had flagged.
+`readable_ratio` (the `garbled_font` trigger) is no help: digits count as
+readable, so the fragment pages score higher than the body. A page whose
+letter tokens are mostly one or two letters long is a page of fragments,
+whatever its word count. Proposed: `stats["fragment_pages"]` lists pages
+with at least `FRAGMENT_MIN_TOKENS` letter tokens of which at least
+`FRAGMENT_SHORT_SHARE` are <= 2 letters long, with both numbers, and
+`stat_warnings` says "N pages emit text as fragments". It is a report,
+not a removal: the text stays.
+
+First sweep (all 12 `tests/real` documents, pages with >= 40 tokens): the
+short share reaches 0.88-0.97 on exactly three more pages, R02027 pp. 30,
+31 and 36, which are themselves fragment output (a scanned sideways table's
+hidden OCR layer emitted as one- and two-character pieces) and not flagged
+today either. The next highest page anywhere is R02027 p. 46 at 0.46; every
+other page stays below 0.4. So a share of 0.6 on >= 40 letter tokens
+separates the two populations in this sample with margin on both sides.
+Before implementation the sweep must cover the 25 packet documents of the
+golden corpus (tables of abbreviations and statistics are the risk).
 
 ### F. Acceptance for v0.2.0
 
