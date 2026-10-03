@@ -378,6 +378,9 @@ class Page:
     table_captions_isolated: int = 0
     table_caption_words: int = 0
     table_lines_excluded: int = 0
+    # Failed candidates without table evidence, returned to the page as text
+    # (tables._looks_like_a_table); reported only when non-zero.
+    table_candidates_released: int = 0
     # text-only table proposals: accepted, and rejected because the grid lost words
     proposals_emitted: int = 0
     proposals_kept_prose: int = 0

@@ -56,6 +56,9 @@ TABLE_RULE_MAX_HEIGHT_FRAC = 0.9
 TABLE_RULE_MIN_WIDTH_FRAC = 0.15
 TABLE_RULE_EDGE_TOL = 4
 RULE_MIN_COVER = 0.6
+# Column starts within this many points count as one recurring column
+# when deciding whether a failed candidate keeps its table marker.
+MARKER_COLUMN_TOL = 4.0
 
 # Text proposals/front matter: journal_front_matter and justified_scan.
 FRONT_MATTER_MIN_PROSE_WORDS = 60

@@ -54,6 +54,7 @@ class ConversionStats(TypedDict):
     proposals_kept_prose: int
     section_heads_emitted: list[dict]
     resource_limits: list[dict]
+    table_candidates_released: int
 
 
 SUPPRESSION_REASONS = frozenset(
@@ -176,6 +177,9 @@ def build_stats(
     if section_heads:
         stats["section_heads_emitted"] = section_heads
     # Present only when a limit tripped, so ordinary output is unchanged.
+    released = sum(page.table_candidates_released for page in pages)
+    if released:
+        stats["table_candidates_released"] = released
     limits = [record for page in pages for record in page.limit_events]
     if limits:
         stats["resource_limits"] = limits

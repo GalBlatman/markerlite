@@ -290,6 +290,40 @@ def check_fallback_prose(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     return 0
 
 
+def check_no_table_marker(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
+    """no_table_marker: a failed candidate without table evidence (prose and a
+    figure behind Word's white line boxes) is released to the page with no
+    marker, and every source word is still emitted."""
+    from collections import Counter
+
+    import pymupdf
+
+    directory = workdir / "no-table-marker"
+    directory.mkdir(exist_ok=True)
+    output, info = markerlite.convert(pdf, directory)
+    text = output.read_text(encoding="utf-8")
+    with pymupdf.open(pdf) as doc:
+        source = Counter(w for page in doc for w in page.get_text().split())
+    emitted = Counter(text.replace("**", " ").split())
+    missing = source - emitted
+    stats = info["stats"]
+    if (
+        "reconstruction failed" in text
+        or stats["tables"] != 0
+        or stats.get("table_candidates_released") != 2
+        or missing
+    ):
+        print(
+            "FAIL  no-table-marker: marker, released count "
+            f"{stats.get('table_candidates_released')}, or {sum(missing.values())} words missing"
+        )
+        return 1
+    print(
+        "ok    no-table-marker  2 candidates released unmarked; every source word kept"
+    )
+    return 0
+
+
 def check_proposal_guard(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     """justified_scan: with the proposal-path text-loss guard the justified
     prose stays prose with every word, and the control page's real table is
@@ -669,6 +703,8 @@ def main(argv=None) -> int:
                 failures += check_journal_front_matter(pdf, workdir)
             if stem == "tall_cell":
                 failures += check_fallback_prose(pdf, workdir)
+            if stem == "no_table_marker":
+                failures += check_no_table_marker(pdf, workdir)
             if stem == "justified_scan":
                 failures += check_proposal_guard(pdf, workdir)
             if stem == "isolated_ocr_page":

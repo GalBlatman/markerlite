@@ -2609,6 +2609,110 @@ def make_tall_cell():
     pdf.out("tall_cell.pdf")
 
 
+def make_no_table_marker():
+    """Three pages with no table, each drawn the way Word draws text with a
+    white background: a white filled box behind every line. Geometry from
+    R00023 p. 3 (text synthetic): the box edges act as horizontal lines, so
+    find_tables' second pass (columns from text, rows from lines) makes a
+    candidate over the whole text area.
+
+    Page 1: double-spaced prose. Page 2: a reference list with hanging
+    indents. Page 3: a box-and-arrow figure with rounded boxes, between two
+    boxed prose lines.
+
+    Bug: reconstruction fails, PyMuPDF's geometric grid passes the sanity
+    check, and pages 1 and 3 read "table p. N: reconstruction failed; text
+    kept as prose" over text that was never a table. The marker must only
+    follow table evidence; the text stays, unmarked. Page 2's candidate
+    already fails the sanity check; it guards that a reference list stays
+    unmarked, it does not reproduce the bug.
+    """
+    pdf = Doc(fmt="A4")
+    margin, size, pitch = 68.0, 12.0, 27.6
+    width = pdf.w - 2 * margin
+
+    def boxed_line(x, y, text, style=""):
+        pdf.set_font("Times", style, size)
+        w = pdf.get_string_width(text)
+        pdf.set_fill_color(255, 255, 255)
+        pdf.rect(x, y, w, 14.2, style="F")
+        pdf.text_at(x, y + 0.6, text, size=size, style=style)
+
+    def wrap(text, w):
+        pdf.set_font("Times", "", size)
+        lines, cur = [], ""
+        for word in text.split():
+            trial = (cur + " " + word).strip()
+            if cur and pdf.get_string_width(trial) > w:
+                lines.append(cur)
+                cur = word
+            else:
+                cur = trial
+        return lines + [cur]
+
+    # page 1: double-spaced prose with first-line indents
+    pdf.add_page()
+    y = 70.0
+    boxed_line(margin + 180, y, "Method and Sample", style="B")
+    y += pitch
+    for para in paragraphs(3, start=5, step=4, width=4):
+        for i, line in enumerate(wrap(para, width - 36)):
+            boxed_line(margin + (36 if i == 0 else 0), y, line)
+            y += pitch
+    # page 2: a reference list, hanging indent
+    pdf.add_page()
+    y = 70.0
+    boxed_line(margin + 200, y, "References", style="B")
+    y += pitch
+    authors = ["Abel", "Baker", "Carter", "Dalton", "Ellis", "Foster", "Grant"]
+    for k, name in enumerate(authors):
+        entry = (
+            f"{name}, A., & Hollis, B. ({1990 + 3 * k}). "
+            + SENTENCES[(4 * k) % len(SENTENCES)]
+            + f" Journal of Fixture Studies, {12 + k}({k % 4 + 1}), {100 + 17 * k}-{109 + 17 * k}."
+        )
+        for i, line in enumerate(wrap(entry, width - 36)):
+            boxed_line(margin + (0 if i == 0 else 36), y, line)
+            y += pitch
+    # page 3: a box-and-arrow figure between boxed prose lines
+    pdf.add_page()
+    y = 70.0
+    for line in wrap(SENTENCES[3] + " " + SENTENCES[9], width)[:2]:
+        boxed_line(margin, y, line)
+        y += pitch
+    top = y + 20
+    labels = [["Context", "Strategy", "Outcome"], ["Resources", "Process", "Learning"]]
+    bw, bh, gap_x, gap_y = 120.0, 46.0, 52.0, 60.0
+    pdf.set_draw_color(0)
+    pdf.set_line_width(0.8)
+    for r, row in enumerate(labels):
+        for c, label in enumerate(row):
+            x = margin + 20 + c * (bw + gap_x)
+            yy = top + r * (bh + gap_y)
+            pdf.rect(x, yy, bw, bh, style="D", round_corners=True, corner_radius=8)
+            pdf.set_font("Helvetica", "", 10)
+            tw = pdf.get_string_width(label)
+            pdf.text_at(x + (bw - tw) / 2, yy + bh / 2 - 6, label, font="Helvetica")
+            if c < 2:
+                ax, ay = x + bw, yy + bh / 2
+                pdf.line(ax + 4, ay, ax + gap_x - 4, ay)
+                pdf.polygon(
+                    [
+                        (ax + gap_x - 4, ay),
+                        (ax + gap_x - 10, ay - 3),
+                        (ax + gap_x - 10, ay + 3),
+                    ],
+                    style="F",
+                )
+    y = top + 2 * bh + gap_y + 30
+    pdf.text_at(margin, y, "Figure 1. A process model of fixture studies.", size=10)
+    y += 30
+    for line in wrap(SENTENCES[12] + " " + SENTENCES[15], width)[:2]:
+        boxed_line(margin, y, line)
+        y += pitch
+    pdf.out("no_table_marker.pdf")
+
+
 def make_sectioned_running_heads():
     """Three repeated section heads are content; an alternating pair is not."""
     pdf = Doc()
@@ -2705,6 +2809,7 @@ MAKERS = {
     "rotated_pages": make_rotated_pages,
     "provenance_pages": make_provenance_pages,
     "tall_cell": make_tall_cell,
+    "no_table_marker": make_no_table_marker,
     "journal_front_matter": make_journal_front_matter,
     "continued_table_header": make_continued_table_header,
     "figure_source_labels": make_figure_source_labels,

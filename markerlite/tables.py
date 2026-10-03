@@ -611,6 +611,62 @@ def _rule_zones(physical_rules: list, page: Page) -> list:
     return zones
 
 
+def _recurring_columns(members: List[Block], region) -> int:
+    """Column starts (within MARKER_COLUMN_TOL pt) that recur in at least
+    half of the region's multi-cell rows."""
+    rows = [
+        sorted(x0 for _t, x0, _x1 in toks)
+        for toks, _y0, _y1 in _tokens_for_recon(members, region)
+        if len(toks) >= 2
+    ]
+    if not rows:
+        return 0
+    clusters: List[list] = []
+    for x in sorted(x for row in rows for x in row):
+        if clusters and x - clusters[-1][-1] <= MARKER_COLUMN_TOL:
+            clusters[-1].append(x)
+        else:
+            clusters.append([x])
+    recurring = 0
+    for cl in clusters:
+        lo, hi = cl[0] - MARKER_COLUMN_TOL, cl[-1] + MARKER_COLUMN_TOL
+        if sum(1 for row in rows if any(lo <= x <= hi for x in row)) >= 0.5 * len(rows):
+            recurring += 1
+    return recurring
+
+
+def _looks_like_a_table(pmpage, region, members: List[Block]) -> bool:
+    """Whether a failed table candidate is a table at all.
+
+    The "reconstruction failed" marker asserts that a table stood here. A
+    find_tables candidate is also made over body prose, reference lists and
+    figures (R00023 p. 3: no ruling at all, a 45 x 8 candidate over
+    double-spaced prose). The marker stays only where the page shows table
+    evidence: a horizontal or vertical rule touching the region, or at least
+    two column starts that recur across its rows, and no curve, which is a
+    figure's sign.
+    """
+    x0, y0, x1, y1 = region
+    box = pymupdf.Rect(x0 - 6, y0 - 6, x1 + 6, y1 + 6)
+    w, h = max(x1 - x0, 1.0), max(y1 - y0, 1.0)
+    ruled = False
+    try:
+        drawings = pmpage.get_drawings()
+    except Exception:
+        drawings = []
+    for d in drawings:
+        r = pymupdf.Rect(d["rect"])
+        if not r.intersects(box) and not (r.is_empty and box.contains(r.tl)):
+            continue
+        if any(item[0] == "c" for item in d.get("items", [])):
+            return False
+        if (r.height < 1.6 and r.width > 0.5 * w) or (
+            r.width < 1.6 and r.height > 0.3 * h
+        ):
+            ruled = True
+    return ruled or _recurring_columns(members, region) >= 2
+
+
 def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
     """Find table regions with PyMuPDF, then rebuild the grid.
 
@@ -791,6 +847,15 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
             if kept < TABLE_FALLBACK_MIN_KEEP * cells:
                 html, fell_back = fallback, True
         if not html:
+            continue
+        if (
+            fell_back
+            and not rejected
+            and not _looks_like_a_table(pmpage, region, members)
+        ):
+            # Not a table: the candidate is dropped and its blocks stay on the
+            # page, to be classified like any other text, with no marker.
+            page.table_candidates_released += 1
             continue
         page.tables_emitted += 1
         page.tables_fell_back += int(fell_back)
