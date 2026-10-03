@@ -28,6 +28,12 @@ BULLET_IN_EMPHASIS = re.compile(
 
 HYPHEN_END = regex.compile(r".*[\p{Ll}|\d][-—¬]\s?$", regex.DOTALL)
 
+# A digit run ending in a hyphen or dash at a line end. When the next line
+# opens with a digit the dash is part of a range or a number ("3370-" /
+# "3381", "1998–" / "2004"), never a soft hyphen: typesetters do not
+# hyphenate numbers. The dash stays and the halves join without a space.
+DIGIT_BREAK = regex.compile(r"\d[-\u2010-\u2015\u2212]\s?$")
+
 CAPTION_START = re.compile(
     r"^\s*(figure|fig\.?|table|tbl\.?|chart|exhibit|scheme|plate|appendix)\s*"
     r"[\dIVXA-Z]+\s*[.:)—-]",

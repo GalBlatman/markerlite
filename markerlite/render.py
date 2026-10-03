@@ -187,7 +187,12 @@ def _footnote_groups(
             if merged:
                 tail = "".join(sp.text for sp in merged).rstrip()
                 last = merged[-1]
-                if HYPHEN_END.match(tail):
+                if _digit_break(tail, spans[0].text):
+                    merged[-1] = replace(last, text=last.text.rstrip())
+                    spans = [replace(spans[0], text=spans[0].text.lstrip())] + list(
+                        spans[1:]
+                    )
+                elif HYPHEN_END.match(tail):
                     merged[-1] = replace(
                         last, text=re.sub(r"[-\u2014\u00ac]\s*$", "", last.text)
                     )
@@ -200,6 +205,15 @@ def _footnote_groups(
         body = re.sub(r"[ \t]+", " ", _inline(merged, fn_labels)).strip()
         out.append((label, body))
     return out
+
+
+def _digit_break(prev: str, nxt: str) -> bool:
+    """A line ending in a digit and a dash, followed by one opening with a
+    digit (model.DIGIT_BREAK)."""
+    return (
+        bool(DIGIT_BREAK.search(prev.rstrip()))
+        and nxt.lstrip().lstrip("*_")[:1].isdigit()
+    )
 
 
 def block_text(blk: Block, plain: bool = False) -> str:
@@ -215,7 +229,11 @@ def block_text(blk: Block, plain: bool = False) -> str:
             pieces.append(seg)
             continue
         prev = pieces[-1]
-        if HYPHEN_END.match(prev):
+        if _digit_break(prev, seg):
+            pieces[-1] = prev.rstrip()
+            pieces.append(seg.lstrip())
+            pieces[-2:] = ["".join(pieces[-2:])]
+        elif HYPHEN_END.match(prev):
             pieces[-1] = re.sub(r"[-—¬]\s*$", "", prev)
             pieces.append(seg.lstrip())
             pieces[-2:] = ["".join(pieces[-2:])]
@@ -301,7 +319,9 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                     continue
                 if pending_paragraph:
                     joined = pending_paragraph.rstrip()
-                    if HYPHEN_END.match(joined):
+                    if _digit_break(joined, txt):
+                        pending_paragraph = joined + txt.lstrip()
+                    elif HYPHEN_END.match(joined):
                         pending_paragraph = re.sub(r"[-—¬]\s*$", "", joined) + txt
                     else:
                         pending_paragraph = joined + " " + txt

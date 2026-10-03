@@ -2763,6 +2763,55 @@ def make_no_table_marker():
     pdf.out("no_table_marker.pdf")
 
 
+def make_digit_breaks():
+    """Numbers broken after a hyphen or dash at a line end: page ranges in a
+    reference list, a year range and a phone-style number in prose, with an
+    en dash and an em dash as well as the hyphen, beside one genuine word
+    hyphenation that must still join.
+
+    Bug: dehyphenation removed the dash and welded the digits, so
+    "3370-" / "3381" became "33703381" (R00023's reference list). The dash
+    stays and the halves join without a space: "3370-3381".
+    """
+    pdf = Doc()
+    margin, size, lead = 72.0, 10.0, 12.5
+    lines = [
+        "Field studies of the period ran from 1998-",
+        "2004 and again from 2009\u2013",
+        "2012, when the survey line, reachable at 555-",
+        "0142 during office hours, was closed and the con-",
+        "tinued work moved to the archive at pages 41\u2014",
+        "57 of the annual report.",
+    ]
+    pdf.add_page()
+    pdf.text_at(margin, 60, "Data and Sources", style="B", size=12)
+    y = 84.0
+    for line in lines:
+        pdf.text_at(margin, y, line, size=size)
+        y += lead
+    y += 20
+    pdf.text_at(margin, y, "References", style="B", size=12)
+    y += 22
+    refs = [
+        [
+            "Abel, A. (2017). Stakeholder influences on design. Journal of",
+            "Fixture Production, 142, 3370-",
+            "3381.",
+        ],
+        [
+            "Baker, B. (2009). Regulatory uncertainty in practice. Journal of",
+            "Fixture Studies, 46(7), 1227\u2013",
+            "1253.",
+        ],
+    ]
+    for ref in refs:
+        for i, line in enumerate(ref):
+            pdf.text_at(margin + (0 if i == 0 else 18), y, line, size=size)
+            y += lead
+        y += 6
+    pdf.out("digit_breaks.pdf")
+
+
 def make_sectioned_running_heads():
     """Three repeated section heads are content; an alternating pair is not."""
     pdf = Doc()
@@ -2861,6 +2910,7 @@ MAKERS = {
     "provenance_pages": make_provenance_pages,
     "tall_cell": make_tall_cell,
     "no_table_marker": make_no_table_marker,
+    "digit_breaks": make_digit_breaks,
     "journal_front_matter": make_journal_front_matter,
     "continued_table_header": make_continued_table_header,
     "figure_source_labels": make_figure_source_labels,
