@@ -245,6 +245,11 @@ print(summarize(info["stats"]))
 
 Both are fixed in markerlite.
 
+## Security
+
+markerlite treats every PDF as untrusted input. How to report a vulnerability,
+and what is in scope, is in [SECURITY.md](SECURITY.md).
+
 ## License
 
 Apache-2.0 — see `LICENSE`. `table_recon.py` is vendored from
