@@ -28,6 +28,11 @@ def made(tmp_path_factory):
     return tmp_path_factory.mktemp("limits")
 
 
+def _dir(path):
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
 def _limits(info, name):
     return [r for r in info["stats"].get("resource_limits", []) if r["limit"] == name]
 
@@ -218,7 +223,7 @@ def test_oversized_image_is_located_without_decoding_and_exported_as_a_crop(made
     import pymupdf
 
     pdf = fixtures.huge_image(made)
-    md, info = convert(pdf, made / "img", images=True)
+    md, info = convert(pdf, _dir(made / "img"), images=True)
     text = md.read_text(encoding="utf-8")
     [record] = _limits(info, "image_pixels")
     assert record["observed"] == 400_000_000 > record["cap"]
@@ -247,3 +252,52 @@ def test_oversized_image_does_not_cost_its_decoded_size(made):
     out = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True)
     peak_mb = int(out.stdout.strip().splitlines()[-1])
     assert peak_mb < 400, peak_mb  # decoded, the image alone is 400 MB
+
+
+def test_ocr_resolution_is_lowered_for_a_huge_page(made):
+    import pymupdf
+
+    from markerlite.extraction import ocr_dpi
+    from markerlite.thresholds import OCR_MAX_PIXELS
+
+    page = pymupdf.open(fixtures.huge_page(made))[0]
+    dpi, pixels = ocr_dpi(page)
+    assert pixels > OCR_MAX_PIXELS
+    assert dpi < 300
+    assert int(4000 * dpi / 72) ** 2 <= OCR_MAX_PIXELS
+    letter = pymupdf.open(ROOT / "tests" / "fixtures" / "scanned.pdf")[0]
+    assert ocr_dpi(letter)[0] == 300  # every real page keeps 300 dpi
+
+
+def _need_tesseract():
+    from markerlite.extraction import discover_tesseract
+
+    if discover_tesseract() is None:
+        pytest.skip("needs Tesseract")
+
+
+def test_ocr_over_the_pixel_budget_renders_lower_and_warns(made, monkeypatch):
+    _need_tesseract()
+    from markerlite import extraction
+
+    monkeypatch.setattr(extraction, "OCR_MAX_PIXELS", 2_000_000)
+    md, info = convert(
+        ROOT / "tests" / "fixtures" / "scanned.pdf", _dir(made / "ocrpx")
+    )
+    records = _limits(info, "ocr_pixels")
+    assert records and "dpi instead of 300" in records[0]["action"]
+    assert info["stats"]["ocr_pages"] == 2
+    assert content_words(md.read_text(encoding="utf-8")) > 100
+
+
+def test_ocr_tsv_over_the_cap_is_cut_at_a_line_and_warns(made, monkeypatch):
+    _need_tesseract()
+    from markerlite import extraction
+
+    monkeypatch.setattr(extraction, "OCR_MAX_TSV_BYTES", 4000)
+    md, info = convert(
+        ROOT / "tests" / "fixtures" / "scanned.pdf", _dir(made / "ocrtsv")
+    )
+    records = _limits(info, "ocr_tsv_bytes")
+    assert records and all(r["cap"] == 4000 for r in records)
+    assert 0 < content_words(md.read_text(encoding="utf-8"))

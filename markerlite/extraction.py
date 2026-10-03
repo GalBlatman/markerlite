@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import os
 import pathlib
 import re
@@ -282,6 +283,22 @@ def _page_is_image_only(page: pymupdf.Page, native_chars: int, native_lines=()) 
     return False
 
 
+def ocr_dpi(page: pymupdf.Page, dpi: int = OCR_DPI) -> Tuple[int, int]:
+    """(dpi to render at, pixels the page would have at ``dpi``).
+
+    The page is rendered for Tesseract at OCR_DPI. A crafted page can be
+    metres wide: its pixel count is computed from the page box before
+    anything is rendered, and above OCR_MAX_PIXELS the resolution is lowered
+    so that the render stays within the budget."""
+    w = page.rect.width * dpi / 72.0
+    h = page.rect.height * dpi / 72.0
+    pixels = int(w) * int(h)
+    if pixels <= OCR_MAX_PIXELS:
+        return dpi, pixels
+    lowered = int(dpi * math.sqrt(OCR_MAX_PIXELS / pixels))
+    return max(lowered, 1), pixels
+
+
 def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = OCR_DPI) -> Optional[Page]:
     """OCR stand-in for surya's recognition model.
 
@@ -298,25 +315,37 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = OCR_DPI) -> Optional
         executable = discover_tesseract()
         if executable is None:
             return None
+        requested = dpi
+        dpi, pixels = ocr_dpi(page, dpi)
         pix = page.get_pixmap(dpi=dpi)
         with tempfile.TemporaryDirectory() as td:
             img = pathlib.Path(td) / "page.png"
             pix.save(img)
-            proc = subprocess.run(
-                [
-                    executable,
-                    str(img),
-                    "stdout",
-                    "--psm",
-                    str(OCR_PSM),
-                    "-c",
-                    "preserve_interword_spaces=1",
-                    "tsv",
-                ],
-                capture_output=True,
-                text=True,
-                timeout=OCR_TIMEOUT_SECONDS,
-            )
+            tsv_path = pathlib.Path(td) / "page.tsv"
+            with open(tsv_path, "wb") as tsv_file:
+                proc = subprocess.run(
+                    [
+                        executable,
+                        str(img),
+                        "stdout",
+                        "--psm",
+                        str(OCR_PSM),
+                        "-c",
+                        "preserve_interword_spaces=1",
+                        "tsv",
+                    ],
+                    stdout=tsv_file,
+                    stderr=subprocess.DEVNULL,
+                    timeout=OCR_TIMEOUT_SECONDS,
+                )
+            # Tesseract's output is written to a file and at most
+            # OCR_MAX_TSV_BYTES of it are read, cut at a line end.
+            tsv_size = tsv_path.stat().st_size
+            with open(tsv_path, "rb") as fh:
+                data = fh.read(OCR_MAX_TSV_BYTES)
+            if tsv_size > OCR_MAX_TSV_BYTES:
+                data = data[: data.rfind(b"\n") + 1]
+            tsv = data.decode("utf-8", errors="replace")
         if proc.returncode != 0:
             return None
     except Exception as exc:  # pragma: no cover
@@ -324,7 +353,7 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = OCR_DPI) -> Optional
         return None
 
     scale = 72.0 / dpi
-    rows = [r.split("\t") for r in proc.stdout.splitlines()[1:] if r.strip()]
+    rows = [r.split("\t") for r in tsv.splitlines()[1:] if r.strip()]
     grouped: dict = defaultdict(list)
     order: List[tuple] = []
     recognised = 0
@@ -390,7 +419,7 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = OCR_DPI) -> Optional
             )
         )
 
-    return Page(
+    result = Page(
         page_idx=page_idx,
         width=page.rect.width,
         height=page.rect.height,
@@ -398,6 +427,23 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = OCR_DPI) -> Optional
         ocr_used=True,
         source_words=recognised,
     )
+    if dpi != requested:
+        note_limit(
+            result,
+            "ocr_pixels",
+            pixels,
+            OCR_MAX_PIXELS,
+            f"page rendered for OCR at {dpi} dpi instead of {requested}",
+        )
+    if tsv_size > OCR_MAX_TSV_BYTES:
+        note_limit(
+            result,
+            "ocr_tsv_bytes",
+            tsv_size,
+            OCR_MAX_TSV_BYTES,
+            "recognised text cut at the cap",
+        )
+    return result
 
 
 def _attach_drop_caps(blocks: List[Block]) -> int:

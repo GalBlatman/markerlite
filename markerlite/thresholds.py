@@ -183,3 +183,11 @@ FIGURE_VECTOR_MAX_DRAWINGS = 4000
 # page, figure detection uses the non-decoding placement call, and --images
 # exports a page render of the placement instead of the source.
 FIGURE_IMAGE_MAX_PIXELS = 240_000_000
+
+# OCR rendering. Measured: the largest page rendered for OCR has 8.4 million
+# pixels at 300 dpi (Suchman 1995; 8.7 million for any page in the corpus),
+# and Tesseract's TSV output is at most 42.5 KB (Kostova 1999). Limits:
+# 90 million pixels (10x), above which the page is rendered at a lower dpi;
+# 1 MB of TSV (23x), above which the recognised text is cut at a line end.
+OCR_MAX_PIXELS = 90_000_000
+OCR_MAX_TSV_BYTES = 1_000_000

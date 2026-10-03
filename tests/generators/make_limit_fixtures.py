@@ -208,7 +208,19 @@ def huge_image(out: pathlib.Path, side: int = 20000) -> pathlib.Path:
     return path
 
 
+def huge_page(out: pathlib.Path) -> pathlib.Path:
+    """A blank page 4,000 pt square: 16,667 px a side at 300 dpi, 278 million
+    pixels, over OCR_MAX_PIXELS (90 million). With no text layer it goes to
+    OCR."""
+    doc = pymupdf.open()
+    doc.new_page(width=4000, height=4000)
+    path = out / "limit_huge_page.pdf"
+    doc.save(path)
+    return path
+
+
 FIXTURES = {
+    "huge_page": huge_page,
     "huge_image": huge_image,
     "vector_drawings": vector_drawings,
     "provenance_pieces": provenance_pieces,
