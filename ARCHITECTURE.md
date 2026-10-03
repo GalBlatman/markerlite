@@ -23,7 +23,8 @@ The package follows the conversion order:
 a behavior change: verify its fixture and motivating real document rather than
 folding it into refactoring.
 
-The safety boundary is `tests/golden/v0.1.14.json`. It hashes Markdown,
+The safety boundary is `tests/golden/v0.1.16.json`, recorded from the
+archived v0.1.16 tag (`v0.1.14.json` is kept for history). It hashes Markdown,
 canonical stats, hand-off manifests, and crops for generated fixtures, local
 reference PDFs, and the external Packet corpus. OCR hashes compare only when
 the Tesseract version matches. `tests/regress.py` retains readable Markdown

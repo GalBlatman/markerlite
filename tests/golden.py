@@ -29,7 +29,9 @@ from markerlite.extraction import (  # noqa: E402
     tesseract_version as detected_tesseract_version,
 )
 
-DEFAULT_MANIFEST = ROOT / "tests" / "golden" / "v0.1.14.json"
+# The baseline every audit compares with: the latest released version.
+# Older manifests stay beside it for history (v0.1.14.json).
+DEFAULT_MANIFEST = ROOT / "tests" / "golden" / "v0.1.16.json"
 PACKET_GLOB = "*PACKET-*.json"
 
 
@@ -231,7 +233,8 @@ def record(args) -> int:
             entries.append(run_one(spec, source, work))
     payload = {
         "schema": 1,
-        "baseline": "v0.1.14",
+        "baseline": "v"
+        + (ROOT / "markerlite" / "VERSION").read_text(encoding="ascii").strip(),
         "created_with": environment(),
         "entries": entries,
     }
