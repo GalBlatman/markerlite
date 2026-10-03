@@ -9,8 +9,21 @@ and the scorer, `tests/score_gold_tables.py`, with its unit test.
 Every item was transcribed by one agent from rendered pages and the PDF text
 layer, never from converter output, and then re-checked cell by cell by a
 second, independent agent (`transcribed_by`, `checked_by`, `check_notes`).
-The set as of 2026-10-02 holds 29 tables and 9 non-table controls; its
-composition and the v0.1.15 baseline are in tests/PLAN-tables.md, block 2.
+The set as of 2026-10-02 holds 29 tables, 8 non-table controls and 1
+ambiguous item; its composition and the v0.1.15 baseline are in
+tests/PLAN-tables.md, block 2.
+
+Owner rulings (block 2, stop 1):
+
+- S0009 p. 17 (a numbered reference list under a "Table 6" caption, between
+  rules) is `"kind": "ambiguous"`: scored like a control but reported on its
+  own line, outside the table and control totals. The control target, zero
+  false grids, applies to the remaining 8 controls.
+- York 2018 Table 2 continues across the page break by columns (p. 14: the
+  variables and models 1-4; p. 15: models 5-12, no row labels). It carries
+  `segments` and is scored per page segment. **Known limitation:** joining
+  the two halves into one grid is not attempted, not credited and stays
+  ranked low; a converter that emits two correct grids scores EXACT.
 
 Run, from WSL where the pipeline PDFs are:
 
@@ -70,7 +83,9 @@ the image, and say so in `notes`.
   several bullet items in one cell are joined with single spaces.
 - Indentation is not text: an indented row label is written without leading spaces.
 - Multi-page table: ONE gold item, `pages` lists all pages, the matrix holds all rows in
-  page order. A repeated header on a continuation page is NOT repeated in the matrix;
+  page order. A table that continues by COLUMNS on the next page (side by side) is
+  one matrix too, plus `"segments": [{"page": P, "cols": [...]}, ...]` naming which
+  matrix columns are printed on which page. A repeated header on a continuation page is NOT repeated in the matrix;
   say "continued header omitted" in `notes`.
 - A "table" that the page shows only as a figure (boxes and arrows) is NOT a table.
 

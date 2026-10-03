@@ -4,12 +4,22 @@ The gold set is third-party content and is never committed: it lives in the
 git-ignored ``tests/gold-tables/`` beside ``tests/real/``. Each JSON file there
 describes one item:
 
-    {"id": "york2018-t1", "kind": "table" | "control",
+    {"id": "york2018-t1", "kind": "table" | "control" | "ambiguous",
      "doc": "york2018", "sha256": "<source pdf sha256>",
      "pages": [12], "layout": ["ruled", "wrapped", ...],
      "matrix": [["", "Mean", ...], ...],      # tables: every printed cell
      "bbox": [x0, y0, x1, y1],                # controls: the region, PDF points
+     "segments": [{"page": 14, "cols": [0, 1]}, ...],   # optional, tables
      "description": "..."}
+
+A table printed across two pages side by side (its columns continue on the
+next page) carries ``segments``: each page's columns of the matrix are scored
+against that page alone, and the segment results combine into the table's
+result. Joining the two halves is not credited or required.
+
+An ``ambiguous`` item is a region whose status as a table the owner left
+open (S0009 p. 17). It is scored like a control and reported on its own
+line, outside both the table and the control totals.
 
 A gold matrix is written by reading the rendered page, then re-checked
 independently; see tests/PLAN-tables.md, block 2.
@@ -32,7 +42,9 @@ Metrics, per table:
 Each table gets one outcome: EXACT; GRID-NEAR (adjacency F1 >= 0.9); GRID-WRONG
 (a grid below that); PROSE (no grid, >= 0.95 of the tokens kept); LOST (fewer
 tokens kept). A control gets FALSE-GRID when a grid region intersects its
-bbox, FALSE-MARKER when a fallback region does, else CLEAN.
+bbox, FALSE-MARKER when a fallback region does, else CLEAN. A segmented
+table is EXACT only if every segment is; its association is the cell-weighted
+mean and its adjacency F1 comes from the summed relation counts.
 
 usage:
     python tests/score_gold_tables.py [--gold DIR] [--corpus-root DIR ...]
@@ -115,8 +127,73 @@ def jaccard(a: list[str], b: list[str]) -> float:
     return sum((ca & cb).values()) / union if union else 0.0
 
 
-def score_table(gold: dict, regions: list[dict], page_text: str) -> dict:
-    gm = trim(gold["matrix"])
+def score_table(gold: dict, regions: list[dict], pages: dict[int, str]) -> dict:
+    """Score one gold table against the regions and text of its pages."""
+    if not gold.get("segments"):
+        text = plain(" ".join(pages.get(p, "") for p in gold["pages"]))
+        res = _score_matrix(gold, gold["matrix"], regions, text)
+    else:
+        parts = []
+        for seg in gold["segments"]:
+            sub = [
+                [row[c] if c < len(row) else "" for c in seg["cols"]]
+                for row in gold["matrix"]
+            ]
+            regs = [r for r in regions if r["page"] == seg["page"]]
+            parts.append(
+                _score_matrix(gold, sub, regs, plain(pages.get(seg["page"], "")))
+            )
+        res = _combine(parts)
+    return {k: v for k, v in res.items() if not k.startswith("_")}
+
+
+def _combine(parts: list[dict]) -> dict:
+    cells = sum(p["gold_cells"] for p in parts)
+    hit = sum(p["_hit"] for p in parts)
+    p_ = hit / max(1, sum(p["_n_pred"] for p in parts))
+    rc = hit / max(1, sum(p["_n_gold"] for p in parts))
+    f1 = 2 * p_ * rc / (p_ + rc) if p_ + rc else 0.0
+    grids = sum(p["grid_regions"] for p in parts)
+    kept = sum(p["tokens_kept"] * p["_n_tokens"] for p in parts) / max(
+        1, sum(p["_n_tokens"] for p in parts)
+    )
+    exact = all(p["exact"] for p in parts)
+    if exact:
+        outcome = "EXACT"
+    elif grids:
+        outcome = "GRID-NEAR" if f1 >= NEAR_F1 else "GRID-WRONG"
+    else:
+        outcome = "PROSE" if kept >= PROSE_KEEP else "LOST"
+    out = dict(parts[0])
+    out.update(
+        gold_cells=cells,
+        tokens_kept=round(kept, 3),
+        grid_regions=grids,
+        fallback_regions=sum(p["fallback_regions"] for p in parts),
+        exact=exact,
+        cell_assoc=round(
+            sum(p["cell_assoc"] * p["gold_cells"] for p in parts) / max(1, cells), 3
+        ),
+        adj_p=round(p_, 3),
+        adj_r=round(rc, 3),
+        adj_f1=round(f1, 3),
+        outcome=outcome,
+        segments=[
+            {
+                "outcome": p["outcome"],
+                "cell_assoc": p["cell_assoc"],
+                "adj_f1": p["adj_f1"],
+            }
+            for p in parts
+        ],
+    )
+    return out
+
+
+def _score_matrix(
+    gold: dict, matrix: list, regions: list[dict], page_text: str
+) -> dict:
+    gm = trim(matrix)
     gold_cells = [c for r in gm for c in r if c]
     gold_tokens = [t for c in gold_cells for t in c.split()]
     kept = Counter(gold_tokens) & Counter(tokens(page_text))
@@ -143,6 +220,10 @@ def score_table(gold: dict, regions: list[dict], page_text: str) -> dict:
         "tokens_kept": round(keep_share, 3),
         "grid_regions": len(grids),
         "fallback_regions": sum(1 for r in mine if r["kind"] == "fallback"),
+        "_n_tokens": len(gold_tokens),
+        "_hit": 0,
+        "_n_pred": 0,
+        "_n_gold": sum(relations(gm).values()),
     }
     if not grids:
         result.update(
@@ -170,6 +251,8 @@ def score_table(gold: dict, regions: list[dict], page_text: str) -> dict:
     f1 = 2 * p * rc / (p + rc) if p + rc else 0.0
     exact = pm == gm
     result.update(
+        _hit=hit,
+        _n_pred=sum(pr.values()),
         exact=exact,
         cell_assoc=round(sum(assoc) / max(1, len(assoc)), 3),
         adj_p=round(p, 3),
@@ -199,7 +282,7 @@ def score_control(gold: dict, regions: list[dict]) -> dict:
     )
     return {
         "id": gold["id"],
-        "kind": "control",
+        "kind": gold["kind"],
         "doc": gold["doc"],
         "pages": gold["pages"],
         "outcome": outcome,
@@ -321,13 +404,13 @@ def main(argv=None) -> int:
                     continue
                 cache[key] = convert_with_regions(pdf)
         md, regions = cache[key]
-        if item["kind"] == "control":
+        if item["kind"] in ("control", "ambiguous"):
             res = score_control(item, regions)
         else:
-            pages = page_slices(md)
-            text = plain(" ".join(pages.get(p, "") for p in item["pages"]))
             res = score_table(
-                item, [r for r in regions if r["page"] in item["pages"]], text
+                item,
+                [r for r in regions if r["page"] in item["pages"]],
+                page_slices(md),
             )
         results.append(res)
         if res["kind"] == "table":
@@ -336,9 +419,10 @@ def main(argv=None) -> int:
                 f"assoc={res['cell_assoc']:.3f} adjF1={res['adj_f1']:.3f} kept={res['tokens_kept']:.3f}"
             )
         else:
-            print(f"{res['outcome']:11s} {res['id']:28s} control")
+            print(f"{res['outcome']:11s} {res['id']:28s} {res['kind']}")
     tables = [r for r in results if r["kind"] == "table"]
     controls = [r for r in results if r["kind"] == "control"]
+    ambiguous = [r for r in results if r["kind"] == "ambiguous"]
     if tables:
         outcomes = Counter(r["outcome"] for r in tables)
         print(
@@ -354,6 +438,12 @@ def main(argv=None) -> int:
         outcomes = Counter(r["outcome"] for r in controls)
         print(
             f"controls {len(controls)}: "
+            + ", ".join(f"{k} {v}" for k, v in sorted(outcomes.items()))
+        )
+    if ambiguous:
+        outcomes = Counter(r["outcome"] for r in ambiguous)
+        print(
+            f"ambiguous {len(ambiguous)} (scored apart): "
             + ", ".join(f"{k} {v}" for k, v in sorted(outcomes.items()))
         )
     if args.json:

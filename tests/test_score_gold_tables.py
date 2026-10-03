@@ -45,6 +45,14 @@ def _items(tmp_path):
             "pages": [1],
             "bbox": [72, 160, 540, 275],
         },
+        "ambiguous": {
+            "id": "ambiguous",
+            "kind": "ambiguous",
+            "doc": pdf.stem,
+            "sha256": sha,
+            "pages": [1],
+            "bbox": [72, 160, 540, 275],
+        },
     }
     for name, item in items.items():
         (tmp_path / f"{name}.json").write_text(json.dumps(item), encoding="utf-8")
@@ -70,6 +78,39 @@ def test_scorer_outcomes_on_a_fixture(tmp_path):
     assert res["exact"]["outcome"] == "EXACT" and res["exact"]["cell_assoc"] == 1.0
     assert res["merged"]["outcome"] == "GRID-WRONG" and res["merged"]["adj_f1"] < 0.9
     assert res["control"]["outcome"] == "CLEAN"
+    assert res["ambiguous"]["kind"] == "ambiguous"
+    assert res["ambiguous"]["outcome"] == res["control"]["outcome"]
+
+
+def test_segmented_table_is_scored_per_page():
+    """A table whose columns continue on the next page: each page's columns
+    against that page only; joining the halves is neither needed nor
+    credited."""
+    gold = {
+        "id": "seg",
+        "kind": "table",
+        "doc": "d",
+        "pages": [1, 2],
+        "matrix": MATRIX,
+        "segments": [{"page": 1, "cols": [0, 1, 2]}, {"page": 2, "cols": [3, 4]}],
+    }
+    left = [row[:3] for row in MATRIX]
+    right = [row[3:] for row in MATRIX]
+    regions = [
+        {"page": 1, "kind": "grid", "bbox": [0, 0, 1, 1], "matrix": left},
+        {"page": 2, "kind": "grid", "bbox": [0, 0, 1, 1], "matrix": right},
+    ]
+    pages = {
+        1: " ".join(c for r in left for c in r),
+        2: " ".join(c for r in right for c in r),
+    }
+    res = s.score_table(gold, regions, pages)
+    assert res["outcome"] == "EXACT" and res["cell_assoc"] == 1.0
+    assert [seg["outcome"] for seg in res["segments"]] == ["EXACT", "EXACT"]
+    assert not any(k.startswith("_") for k in res)
+    # the right half missing on page 2: prose there, the table is not exact
+    res = s.score_table(gold, regions[:1], pages)
+    assert res["outcome"] == "GRID-WRONG" and res["segments"][1]["outcome"] == "PROSE"
 
 
 def test_normalisation_unifies_dashes_ligatures_and_bullets():
