@@ -32,8 +32,9 @@ def windows_build() -> str:
     return f"{platform.system()} {platform.release()}".strip()
 
 
-def bug_report_line(tesseract: str | None, system: str,
-                    version: str = __version__) -> str:
+def bug_report_line(
+    tesseract: str | None, system: str, version: str = __version__
+) -> str:
     """The line the version label copies, for pasting into a bug report.
 
     ``tesseract`` is Tesseract's first version line ("tesseract 5.5.0") or

@@ -1,8 +1,6 @@
 import dataclasses
 import pathlib
 
-ROOT_VERSION = pathlib.Path(__file__).resolve().parents[1] / "markerlite" / "VERSION"
-
 from markerlite.gui_logic import (
     output_directory,
     provenance_comments,
@@ -12,6 +10,8 @@ from markerlite.gui_logic import (
 )
 from markerlite.model import Page
 from markerlite.stats import build_stats
+
+ROOT_VERSION = pathlib.Path(__file__).resolve().parents[1] / "markerlite" / "VERSION"
 
 
 def test_output_directory_uses_fixed_or_source_parent(tmp_path):
