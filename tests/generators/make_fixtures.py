@@ -2205,6 +2205,56 @@ def make_manuscript_numcol():
     make_manuscript("manuscript_numcol.pdf", number_column=True)
 
 
+def make_first_page_masthead():
+    """A first-page citation block whose first line is the journal name, and
+    the same name as the running head on the following even pages.
+
+    Geometry from R00014 (Academy of Management Annals), text synthetic:
+    page 1 sets the name at the left margin in 6.3 pt, above the volume and
+    DOI lines; pages 2, 4 and 6 centre it in 8.3 pt at nearly the same
+    height, beside a folio; odd pages carry a different, right-aligned head.
+
+    Bug: the masthead matched the running head by text and band and was
+    suppressed as furniture, so page 1 opened with the volume line. The
+    heads must still be suppressed.
+    """
+    pdf = Doc()
+    w = pdf.w
+    name = "Journal of Fixture Studies"
+    paras = paragraphs(12, start=61, step=2, width=4)
+    for n in range(1, 7):
+        pdf.add_page()
+        if n == 1:
+            pdf.text_at(47, 46, name, font="Helvetica", style="I", size=6.3)
+            pdf.text_at(
+                47, 55, "2023, Vol. 17, No. 1, 1-30.", font="Helvetica", size=6.3
+            )
+            pdf.text_at(
+                47,
+                64,
+                "https://doi.org/10.0000/fixture.2023.0001",
+                font="Helvetica",
+                size=6.3,
+            )
+            # R00014 ends the block with an invisible space set at 11.5 pt;
+            # it makes the first line look small beside "the rest".
+            pdf.text_at(41, 70, " ", size=11.5)
+            pdf.centered(110, "A SYNTHETIC HISTORY OF FIXTURES", size=15)
+            top = 150
+        else:
+            if n % 2 == 0:
+                pdf.text_at(54, 47, str(n), size=8.3)
+                pdf.centered(47, name, style="I", size=8.3)
+            else:
+                pdf.right(47, "A Synthetic History of Fixtures", style="I", size=8.3)
+                pdf.text_at(w - 66, 47, str(n), size=8.3)
+            top = 80
+        f = Flow(pdf, [(72, top, w - 144, 740)], size=10, leading=13)
+        f.paragraph(paras[2 * (n - 1)], space_after=8)
+        f.paragraph(paras[2 * (n - 1) + 1], space_after=8)
+    pdf.out("first_page_masthead.pdf")
+
+
 def make_hard_footer_first():
     make_hard("hard_footer_first.pdf", footer_first=True)
 
@@ -2798,6 +2848,7 @@ MAKERS = {
     "images_inline": make_images_inline,
     "bibliography_symbols": make_bibliography_symbols,
     "list_lookalikes": make_list_lookalikes,
+    "first_page_masthead": make_first_page_masthead,
     "figure_dedup": make_figure_dedup,
     "caption_inside_table": make_caption_inside_table,
     "garbled_font": make_garbled_font,

@@ -96,6 +96,10 @@ FURNITURE_HEADER_BAND = 0.10
 FURNITURE_FOOTER_BAND = 0.87
 FURNITURE_TOUCH_TOL = 2
 FURNITURE_X_TOL = 3
+# Repetition evidence must also agree on alignment (left edge, right edge or
+# centre within this share of the page width) and on type size (ratio).
+FURNITURE_ALIGN_TOL = 0.03
+FURNITURE_SIZE_RATIO = 1.2
 LINE_NUMBER_MARGIN_FRAC = 0.14
 LINE_NUMBER_MIN_COUNT = 8
 LINE_NUMBER_MIN_INCREASING = 0.8

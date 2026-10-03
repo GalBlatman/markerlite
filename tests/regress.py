@@ -118,6 +118,14 @@ def check_source_suppression(pdf, workdir):
         assert "| Final | 20 |" in text and "| Final | 21 |" in text
         assert "Publisher footer" not in text
         assert sum("Publisher footer" in r["text"] for r in records) == 2
+    elif pdf.stem == "first_page_masthead":
+        name = "Journal of Fixture Studies"
+        page1 = text.split("<!-- page 2 -->")[0]
+        assert name in page1 and page1.index(name) < page1.index("2023, Vol. 17")
+        heads = [r for r in records if r["text"].strip() == name]
+        assert sorted(r["page"] for r in heads) == [2, 4, 6]
+        assert not any(r["page"] == 1 and name in r["text"] for r in records)
+        assert sum("A Synthetic History" in r["text"] for r in records) == 2
     else:
         assert all(str(y) in text for y in range(1987, 1995))
         removed = [r for r in records if r["reason"] == "proc_line_numbers"]
@@ -697,6 +705,7 @@ def main(argv=None) -> int:
                 "edge_content",
                 "year_column",
                 "figure_source_labels",
+                "first_page_masthead",
             ):
                 failures += check_source_suppression(pdf, workdir)
             if stem == "journal_front_matter":

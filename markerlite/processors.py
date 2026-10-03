@@ -92,6 +92,46 @@ def _furniture_protected(page: Page, block: Block) -> bool:
     )
 
 
+def _evidence(page, bbox, text, size):
+    """One piece of repetition evidence: where a line sits, what it says,
+    and how large it is set. ``size`` may be None (a suppressed record keeps
+    no type size)."""
+    return (page, _furniture_band(page, bbox), bbox[1] / page.height, text, bbox, size)
+
+
+def _same_place(page, bbox, size, other, other_bbox, other_size) -> bool:
+    """Two lines in the same band are the same furniture only if they are
+    also aligned alike and set at a similar size. A running head and a
+    line of an article's own citation block can share their text and their
+    band (R00014 p. 1: the journal name, left-aligned in 6.3 pt, above the
+    volume line; the even-page head, centred in 8.3 pt); they are told
+    apart by alignment and size. Aligned means the left edges, the right
+    edges or the centres agree within FURNITURE_ALIGN_TOL of the page width,
+    which tolerates heads whose page number changes length.
+
+    On an OCR page the size is Tesseract's line-box height, not a font
+    size: descenders and noise move it by a third (Kitchener 2002 p. 22:
+    the same running head measures 8.6 pt there and 6.2 pt on every other
+    even page). If either line is on an OCR page only position decides."""
+    tol = FURNITURE_ALIGN_TOL * max(page.width, other.width)
+    aligned = (
+        abs(bbox[0] - other_bbox[0]) <= tol
+        or abs(bbox[2] - other_bbox[2]) <= tol
+        or abs((bbox[0] + bbox[2]) - (other_bbox[0] + other_bbox[2])) / 2 <= tol
+    )
+    if not aligned:
+        return False
+    if size and other_size and not (page.ocr_used or other.ocr_used):
+        return max(size, other_size) / min(size, other_size) <= FURNITURE_SIZE_RATIO
+    return True
+
+
+def _line_size(lines) -> float:
+    return max(
+        (s.size for ln in lines for s in ln.spans if s.text.strip()), default=0.0
+    )
+
+
 def _positional_repeat(page, block, norm, corpus):
     if not norm:
         return False  # numeric fragments must never match the empty string
@@ -99,13 +139,15 @@ def _positional_repeat(page, block, norm, corpus):
     if band is None:
         return False
     y = block.y_start / page.height
+    size = _line_size(block.lines)
     return any(
         other.page_idx != page.page_idx
         and other_band == band
         and abs(y - other_y) <= FURNITURE_HEIGHT_TOL
         and text
         and fuzz.ratio(norm, text) > 90
-        for other, other_band, other_y, text in corpus
+        and _same_place(page, block.bbox, size, other, other_bbox, other_size)
+        for other, other_band, other_y, text, other_bbox, other_size in corpus
     )
 
 
@@ -224,18 +266,20 @@ def proc_ignore_common(pages: List[Page]) -> None:
             if not _furniture_protected(page, block):
                 candidates.append((page, block))
     corpus = [
-        (p, _furniture_band(p, b.bbox), b.y_start / p.height, _clean_text(b.text))
+        _evidence(p, b.bbox, _clean_text(b.text), _line_size(b.lines))
         for p, b in candidates
     ]
     for page, block in candidates:
         norm = _clean_text(block.text)
+        size = _line_size(block.lines)
         matches = {
             p.page_idx
-            for p, band, y, text in corpus
+            for p, band, y, text, other_bbox, other_size in corpus
             if band == _furniture_band(page, block.bbox)
             and abs(y - block.y_start / page.height) <= FURNITURE_HEIGHT_TOL
             and norm
             and fuzz.ratio(norm, text) > 90
+            and _same_place(page, block.bbox, size, p, other_bbox, other_size)
         }
         # Retain the original common-boundary pass's four-page minimum.
         # Marginalia below accepts two-page evidence in its narrower bands.
@@ -389,19 +433,14 @@ def proc_marginalia(
     lookup = {p.page_idx: p for p in pages}
     for idx, blk, norm in candidates:
         p = lookup[idx]
-        corpus.append((p, _furniture_band(p, blk.bbox), blk.y_start / p.height, norm))
+        corpus.append(_evidence(p, blk.bbox, norm, _line_size(blk.lines)))
     # Earlier furniture removal must not erase the repetition evidence for
     # a split header (year, author and page number in separate blocks).
     for page in pages:
         for record in page.suppressed:
             if record["reason"] == "proc_ignore_common":
                 corpus.append(
-                    (
-                        page,
-                        _furniture_band(page, record["bbox"]),
-                        record["bbox"][1] / page.height,
-                        _clean_text(record["text"]),
-                    )
+                    _evidence(page, record["bbox"], _clean_text(record["text"]), None)
                 )
     merged = []
     for page in pages:
@@ -422,7 +461,9 @@ def proc_marginalia(
                 char_pos=first.char_pos,
             )
             norm = _clean_text(first.text)
-            corpus.append((page, "header", first.bbox[1] / page.height, norm))
+            # the first line of a block is header evidence wherever its band
+            entry = _evidence(page, first.bbox, norm, _line_size([first]))
+            corpus.append((page, "header", *entry[2:]))
             merged.append((page, blk, probe, norm))
     for idx, blk, norm in candidates:
         page = lookup[idx]
