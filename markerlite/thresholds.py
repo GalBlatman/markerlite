@@ -161,4 +161,3 @@ TABLE_PROJECTION_MARGIN = 3.0
 # segments (13x) and 400 rows (13x); above them the zone search is skipped.
 TABLE_RULES_MAX = 1000
 TABLE_RULE_ROWS_MAX = 400
-
