@@ -99,7 +99,37 @@ def rule_segments(out: pathlib.Path) -> pathlib.Path:
     return _rules_page(out, "limit_rule_segments.pdf", 100, 11)
 
 
+def _code_page(out, name, size, indent_pt, width=612):
+    """A monospaced block of four lines; the third is indented by
+    ``indent_pt``."""
+    doc = pymupdf.open()
+    page = doc.new_page(width=width, height=792)
+    page.insert_text((72, 60), "Listing", fontsize=12)
+    lines = ["def f(x):", "    if x:", "return x", "    return 0"]
+    for i, text in enumerate(lines):
+        x = 72 + (indent_pt if i == 2 else 0)
+        page.insert_text(
+            (x, 100 + i * size * 1.4), text, fontsize=size, fontname="cour"
+        )
+    path = out / name
+    doc.save(path)
+    return path
+
+
+def code_tiny_glyphs(out: pathlib.Path) -> pathlib.Path:
+    """Courier at 0.3 pt: glyphs 0.18 pt wide, under CODE_MIN_CHAR_WIDTH."""
+    return _code_page(out, "limit_code_tiny.pdf", 0.3, 50)
+
+
+def code_deep_indent(out: pathlib.Path) -> pathlib.Path:
+    """Courier at 10 pt on a 4000 pt wide page, one line indented by
+    3000 pt: about 500 spaces, over CODE_MAX_INDENT (120)."""
+    return _code_page(out, "limit_code_indent.pdf", 10, 3000, width=4000)
+
+
 FIXTURES = {
+    "code_tiny_glyphs": code_tiny_glyphs,
+    "code_deep_indent": code_deep_indent,
     "projection": projection,
     "rule_rows": rule_rows,
     "rule_segments": rule_segments,

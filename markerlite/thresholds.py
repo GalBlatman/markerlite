@@ -161,3 +161,10 @@ TABLE_PROJECTION_MARGIN = 3.0
 # segments (13x) and 400 rows (13x); above them the zone search is skipped.
 TABLE_RULES_MAX = 1000
 TABLE_RULE_ROWS_MAX = 400
+
+# Code indentation. Measured: one code block in the corpus (R00443), average
+# glyph width 2.706 pt, widest indent 12 spaces. Limits: a glyph narrower
+# than 0.25 pt is implausible (a tenth of the narrowest seen); an indent is
+# cut at 120 spaces (10x).
+CODE_MIN_CHAR_WIDTH = 0.25
+CODE_MAX_INDENT = 120

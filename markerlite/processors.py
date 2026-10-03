@@ -832,7 +832,14 @@ def proc_list_indent(pages: List[Page], min_x_indent=LIST_MIN_INDENT) -> None:
 
 
 def proc_code(pages: List[Page]) -> None:
-    """marker/processors/code.py - rebuild leading indentation from geometry."""
+    """marker/processors/code.py - rebuild leading indentation from geometry.
+
+    The indent is the line's offset over the block's average glyph width. A
+    crafted PDF can make that width non-finite or vanishingly small, and the
+    indent then becomes millions of spaces. Below CODE_MIN_CHAR_WIDTH the
+    lines keep no rebuilt indent; an indent above CODE_MAX_INDENT is cut to
+    it. Either way the code text is kept and the page records the limit.
+    """
     for page in pages:
         for blk in page.blocks:
             if blk.btype != "Code":
@@ -841,13 +848,39 @@ def proc_code(pages: List[Page]) -> None:
             total_width = sum(ln.width for ln in blk.lines)
             total_chars = sum(len(ln.text) for ln in blk.lines)
             avg_char_width = total_width / max(total_chars, 1)
+            usable = (
+                math.isfinite(avg_char_width) and avg_char_width >= CODE_MIN_CHAR_WIDTH
+            )
+            if avg_char_width and not usable:
+                note_limit(
+                    page,
+                    "code_char_width",
+                    round(avg_char_width, 4)
+                    if math.isfinite(avg_char_width)
+                    else "non-finite",
+                    CODE_MIN_CHAR_WIDTH,
+                    "indentation not rebuilt",
+                )
+            widest = 0
             out = []
             for ln in blk.lines:
                 prefix = ""
-                if avg_char_width:
-                    spaces = int((ln.x_start - min_left) / avg_char_width)
-                    prefix = " " * max(0, spaces)
+                if usable:
+                    offset = ln.x_start - min_left
+                    spaces = (
+                        int(offset / avg_char_width) if math.isfinite(offset) else 0
+                    )
+                    widest = max(widest, spaces)
+                    prefix = " " * min(max(0, spaces), CODE_MAX_INDENT)
                 out.append(prefix + ln.text)
+            if widest > CODE_MAX_INDENT:
+                note_limit(
+                    page,
+                    "code_indent",
+                    widest,
+                    CODE_MAX_INDENT,
+                    "indentation cut to the cap",
+                )
             blk.code = "\n".join(out).rstrip()
 
 

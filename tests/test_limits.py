@@ -121,3 +121,20 @@ def test_rule_limits_degrade_with_a_warning(made, make, limit):
     assert record["observed"] > record["cap"]
     assert f"{limit} p1" in summarize(info["stats"])
     assert "Ruled page" in md.read_text(encoding="utf-8")
+
+
+def test_code_with_implausibly_small_glyphs_keeps_its_text_unindented(made):
+    md, info = convert(fixtures.code_tiny_glyphs(made), made)
+    text = md.read_text(encoding="utf-8")
+    assert _limits(info, "code_char_width")
+    assert max(len(line) for line in text.splitlines()) < 40
+    for word in ("def f(x):", "return x", "return 0"):
+        assert word in text
+
+
+def test_code_indent_is_cut_at_the_cap(made):
+    md, info = convert(fixtures.code_deep_indent(made), made)
+    [record] = _limits(info, "code_indent")
+    assert record["observed"] > record["cap"] == 120
+    longest = max(len(line) for line in md.read_text(encoding="utf-8").splitlines())
+    assert longest <= 120 + len("    return 0")
