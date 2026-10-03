@@ -767,26 +767,45 @@ def _drop_ocr_notice(page: Page, provenance: List[str]) -> None:
             provenance.append(comment)
 
 
-def _drop_provenance_lines(page: Page, drop_lines: set) -> None:
-    """Hide blocks made only of provenance lines. A stamp that is several
-    native pieces ("Downloaded from ", "oss.sagepub.com", " at ...") is one
-    OCR line, so a line also matches when it is the pieces run together."""
+def _norm_space(t: str) -> str:
+    return re.sub(r"\s+", " ", t).strip()
 
-    def norm(t):
-        return re.sub(r"\s+", " ", t).strip()
 
-    def is_prov(t):
-        t = norm(t)
-        if t in drop_lines:
+class ProvenanceMatcher:
+    """Decides whether a line is provenance. Built once per document.
+
+    A line matches when it is one of the exact native stamp lines, or, since
+    OCR reads a stamp of several native pieces ("Downloaded from ",
+    "oss.sagepub.com", " at ...") as one line, when it is complete pieces run
+    together. Substrings or bags of stamp words are not provenance: they also
+    match real table glyphs. The run-together pattern used to be rebuilt for
+    every line; it is compiled here once. Above PROVENANCE_MAX_PIECES pieces
+    it is not built at all (``capped``): exact stamp lines are still dropped,
+    joined ones are kept as text, and the document records the limit.
+    """
+
+    def __init__(self, drop_lines: set):
+        self.lines = drop_lines
+        pieces = [re.escape(_norm_space(p)) for p in drop_lines if _norm_space(p)]
+        self.pieces = len(pieces)
+        self.capped = self.pieces > PROVENANCE_MAX_PIECES
+        self.pattern = None
+        if pieces and not self.capped:
+            piece = "(?:" + "|".join(pieces) + ")"
+            self.pattern = re.compile(piece + r"(?:\s+" + piece + ")*")
+
+    def __call__(self, text: str) -> bool:
+        t = _norm_space(text)
+        if t in self.lines:
             return True
-        # OCR can join complete native stamp pieces. Substrings or bags of
-        # stamp words are not provenance: they also match real table glyphs.
-        pieces = [re.escape(norm(piece)) for piece in drop_lines if norm(piece)]
-        if not pieces:
-            return False
-        piece = "(?:" + "|".join(pieces) + ")"
-        return bool(re.fullmatch(piece + r"(?:\s+" + piece + ")*", t))
+        return bool(self.pattern and self.pattern.fullmatch(t))
 
+
+def _drop_provenance_lines(
+    page: Page, drop_lines: set, matcher: ProvenanceMatcher | None = None
+) -> None:
+    """Hide blocks made only of provenance lines (see ProvenanceMatcher)."""
+    is_prov = matcher or ProvenanceMatcher(drop_lines)
     for blk in page.blocks:
         if blk.lines and all(is_prov(ln.text) for ln in blk.lines):
             _suppress_block(page, blk, "provenance")

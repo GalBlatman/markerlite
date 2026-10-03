@@ -168,3 +168,7 @@ TABLE_RULE_ROWS_MAX = 400
 # cut at 120 spaces (10x).
 CODE_MIN_CHAR_WIDTH = 0.25
 CODE_MAX_INDENT = 120
+
+# Provenance stamp pieces per document. Measured: at most 8 (the
+# provenance_pages fixture; 6 on a real document, Suchman 1995). Limit 80.
+PROVENANCE_MAX_PIECES = 80

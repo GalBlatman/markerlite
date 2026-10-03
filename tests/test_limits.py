@@ -138,3 +138,28 @@ def test_code_indent_is_cut_at_the_cap(made):
     assert record["observed"] > record["cap"] == 120
     longest = max(len(line) for line in md.read_text(encoding="utf-8").splitlines())
     assert longest <= 120 + len("    return 0")
+
+
+def test_provenance_pieces_over_the_cap_warn_and_keep_exact_matching(made):
+    md, info = convert(fixtures.provenance_pieces(made), made)
+    text = md.read_text(encoding="utf-8")
+    [record] = _limits(info, "provenance_pieces")
+    assert record["observed"] > record["cap"] == 80
+    assert text.count("Body text of page") == 100
+    assert "Downloaded from" not in text  # every exact stamp line still dropped
+
+
+def test_provenance_matcher_joins_pieces_below_the_cap_only():
+    from markerlite.extraction import ProvenanceMatcher
+
+    pieces = {"Downloaded from ", "fixture.sagepub.com", "at Library 1 on May 2, 2020"}
+    joined = "Downloaded from fixture.sagepub.com at Library 1 on May 2, 2020"
+    small = ProvenanceMatcher(pieces)
+    assert not small.capped and small(joined) and small("fixture.sagepub.com")
+    assert not small("Downloaded from the archive")  # not complete pieces
+    many = ProvenanceMatcher(
+        pieces | {f"at Library {n} on May 2, 2020" for n in range(100)}
+    )
+    assert many.capped
+    assert many("fixture.sagepub.com")  # exact lines still match
+    assert not many(joined)  # the run-together form is not attempted

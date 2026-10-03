@@ -9,6 +9,7 @@ import pymupdf
 
 from .classification import body_font_size, classify
 from .extraction import (
+    ProvenanceMatcher,
     _drop_ocr_notice,
     _drop_provenance_lines,
     _remap_pi_fonts,
@@ -65,6 +66,7 @@ def convert(
     doc = pymupdf.open(path)
     drop_pages, drop_lines, provenance = detect_provenance(doc)
     pages = []
+    provenance_matcher = ProvenanceMatcher(drop_lines)
     for i in range(len(doc)):
         if i in drop_pages:
             # An aggregator cover: nothing on it is the article. Keep an
@@ -92,9 +94,17 @@ def convert(
         p = extract_page(doc[i], i)  # may turn a sideways page upright, in memory
         # On an OCR'd page the native layer is gone, but Tesseract reads the
         # stamp off the rendered page, so the same texts are dropped there.
-        _drop_provenance_lines(p, drop_lines)
+        _drop_provenance_lines(p, drop_lines, provenance_matcher)
         _drop_ocr_notice(p, provenance)
         pages.append(p)
+    if provenance_matcher.capped and pages:
+        note_limit(
+            pages[0],
+            "provenance_pieces",
+            provenance_matcher.pieces,
+            PROVENANCE_MAX_PIECES,
+            "joined stamp pieces not matched; exact stamp lines still dropped",
+        )
     # Glyph repair needs the whole document's font inventory and must happen
     # before tables are built from the characters, so tables come second.
     pi_spans = _remap_pi_fonts(pages)

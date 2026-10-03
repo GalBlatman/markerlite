@@ -127,7 +127,32 @@ def code_deep_indent(out: pathlib.Path) -> pathlib.Path:
     return _code_page(out, "limit_code_indent.pdf", 10, 3000, width=4000)
 
 
+def provenance_pieces(out: pathlib.Path) -> pathlib.Path:
+    """100 pages, each with a body line and its own SAGE-style download
+    stamp: 100 distinct stamp pieces, over PROVENANCE_MAX_PIECES (80). The
+    last page also carries two pieces run together on one line, as OCR
+    would read them."""
+    doc = pymupdf.open()
+    for n in range(100):
+        page = doc.new_page(width=612, height=792)
+        page.insert_text((72, 100), f"Body text of page {n + 1}.", fontsize=11)
+        page.insert_text(
+            (72, 770),
+            f"Downloaded from fixture.sagepub.com at Library {n} on May {n % 28 + 1}, 2020",
+            fontsize=7,
+        )
+    joined = (
+        "Downloaded from fixture.sagepub.com at Library 1 on May 2, 2020 "
+        "Downloaded from fixture.sagepub.com at Library 2 on May 3, 2020"
+    )
+    doc[-1].insert_text((72, 300), joined, fontsize=7)
+    path = out / "limit_provenance.pdf"
+    doc.save(path)
+    return path
+
+
 FIXTURES = {
+    "provenance_pieces": provenance_pieces,
     "code_tiny_glyphs": code_tiny_glyphs,
     "code_deep_indent": code_deep_indent,
     "projection": projection,
