@@ -10,6 +10,7 @@ import sys
 
 from .api import convert
 from .figures import apply_figures, apply_math
+from .paths import ManifestPathError, manifest_target
 from .stats import summarize
 
 
@@ -72,21 +73,34 @@ def main() -> None:
     args = ap.parse_args()
 
     outdir = pathlib.Path(args.outdir)
-    if args.apply_figures:
-        mpath = pathlib.Path(args.apply_figures)
-        manifest = json.loads(mpath.read_text(encoding="utf-8"))
-        stem = (
-            manifest["stem"]
-            if isinstance(manifest, dict) and manifest.get("stem")
-            else re.sub(r"_figures$", "", mpath.stem)
-        )
-        md = outdir / (stem + ".md")
-        print(f"applied {apply_figures(md, mpath)} figure description(s) to {md}")
-        return
-    if args.apply_math:
-        mpath = pathlib.Path(args.apply_math)
-        md = outdir / (json.loads(mpath.read_text())["stem"] + ".md")
-        print(f"applied {apply_math(md, mpath)} equation(s) to {md}")
+    if args.apply_figures or args.apply_math:
+        mpath = pathlib.Path(args.apply_figures or args.apply_math)
+        try:
+            manifest = json.loads(mpath.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            sys.exit(f"markerlite: cannot read manifest {mpath}: {exc}")
+        if args.apply_figures:
+            stem = (
+                manifest.get("stem")
+                if isinstance(manifest, dict) and manifest.get("stem")
+                else re.sub(r"_figures$", "", mpath.stem)
+            )
+        else:
+            stem = manifest.get("stem") if isinstance(manifest, dict) else None
+        # The manifest is untrusted: its stem may only name a file directly
+        # in --outdir (markerlite/paths.py).
+        try:
+            md = manifest_target(outdir, stem)
+        except ManifestPathError as exc:
+            sys.exit(f"markerlite: refused: {exc}")
+        if not md.is_file():
+            sys.exit(f"markerlite: no Markdown file {md} to apply the manifest to")
+        if args.apply_figures:
+            n = apply_figures(md, mpath)
+            print(f"applied {n} figure description(s) to {md}")
+        else:
+            n = apply_math(md, mpath)
+            print(f"applied {n} equation(s) to {md}")
         return
 
     outdir.mkdir(parents=True, exist_ok=True)
