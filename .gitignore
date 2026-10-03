@@ -9,3 +9,6 @@ dist/
 
 # real-document validation inputs: not ours to publish
 tests/real/
+
+# gold tables set: cell matrices of third-party tables, never committed
+tests/gold-tables/
