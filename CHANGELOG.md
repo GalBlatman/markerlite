@@ -23,7 +23,7 @@ audit (tests/golden.py) lists which reference documents changed and why.
   reference document changes.
 - **A dash between two numbers survives a line break.** "3370-" / "3381" is
   now "3370-3381" (was "33703381"); the same for en and em dashes and year
-  ranges. 94 joins change across 23 reference documents, all ranges or
+  ranges. 94 joins change across 24 reference documents, all ranges or
   numbers.
 
 ### New warnings (flag only; no text removed)
