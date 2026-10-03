@@ -277,6 +277,10 @@ class Block:
     # for classification, but must not propose them as tables again.
     journal_front_matter: bool = False
     journal_title: bool = False
+    # A failed find_tables candidate without table evidence returned these
+    # blocks to the page (tables._looks_like_a_table); the second-chance
+    # proposal pass must not make a grid of the same text.
+    table_released: bool = False
     figure_text: List[str] = field(default_factory=list)
     code: Optional[str] = None
     image_path: Optional[str] = None

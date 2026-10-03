@@ -855,6 +855,8 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
         ):
             # Not a table: the candidate is dropped and its blocks stay on the
             # page, to be classified like any other text, with no marker.
+            for b in touched:
+                b.table_released = True
             page.table_candidates_released += 1
             continue
         page.tables_emitted += 1
@@ -939,6 +941,7 @@ def propose_tables_from_text(pages: List[Page], min_score=PROPOSAL_MIN_SCORE) ->
             if (
                 blk.btype == "Table"
                 or blk.journal_front_matter
+                or blk.table_released
                 or len(blk.lines) < 3
                 or blk.ignore_for_output
             ):
