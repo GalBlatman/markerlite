@@ -1,6 +1,8 @@
 import dataclasses
 import pathlib
 
+ROOT_VERSION = pathlib.Path(__file__).resolve().parents[1] / "markerlite" / "VERSION"
+
 from markerlite.gui_logic import (
     output_directory,
     provenance_comments,
@@ -58,3 +60,32 @@ def test_provenance_reads_source_comments_from_the_initial_window(tmp_path):
         "source: too late",
     ]
     assert provenance_comments(tmp_path / "missing.md") == []
+
+
+def test_title_and_label_come_from_the_single_version_source():
+    import markerlite
+    from markerlite.gui_logic import version_label, window_title
+
+    version = markerlite.__version__
+    assert version == (ROOT_VERSION.read_text(encoding="ascii").strip())
+    assert window_title() == f"markerlite {version}"
+    assert version_label() == f"v{version}"
+    # nothing hard-coded: another version gives another title
+    assert window_title("9.9.9") == "markerlite 9.9.9"
+    assert version_label("9.9.9") == "v9.9.9"
+
+
+def test_bug_report_line_names_version_tesseract_and_windows():
+    import markerlite
+    from markerlite.gui_logic import bug_report_line
+
+    v = markerlite.__version__
+    assert bug_report_line("tesseract 5.5.0", "Windows 10.0.26300") == (
+        f"markerlite {v} \u00b7 Tesseract 5.5.0 \u00b7 Windows 10.0.26300"
+    )
+    assert bug_report_line("tesseract v5.4.0.20240606", "Windows 10.0.22631") == (
+        f"markerlite {v} \u00b7 Tesseract v5.4.0.20240606 \u00b7 Windows 10.0.22631"
+    )
+    assert bug_report_line(None, "Windows 10.0.26300") == (
+        f"markerlite {v} \u00b7 Tesseract not found \u00b7 Windows 10.0.26300"
+    )

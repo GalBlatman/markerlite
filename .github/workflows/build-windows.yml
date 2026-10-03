@@ -56,6 +56,9 @@ jobs:
           $env:PATH = (($env:PATH -split ';') | Where-Object { $_ -notmatch 'Tesseract-OCR|chocolatey\\bin' }) -join ';'
           if (Get-Command tesseract -ErrorAction SilentlyContinue) { throw "tesseract unexpectedly remains on PATH" }
           python markerlite_gui.py --diag
+          $want = "markerlite $(python -c "import markerlite; print(markerlite.__version__)")"
+          $first = Get-Content markerlite-diag.txt -TotalCount 1
+          if ($first -ne $want) { throw "diag first line is '$first', expected '$want'" }
           Select-String -Path markerlite-diag.txt -Pattern "tesseract.*path=.*Tesseract-OCR"
           python -c "import pathlib,tempfile,markerlite; d=tempfile.TemporaryDirectory(); _,i=markerlite.convert(pathlib.Path('tests/fixtures/scanned.pdf'), pathlib.Path(d.name)); assert i['stats']['ocr_pages'] == 2; assert i['stats']['words'] > 100"
           Remove-Item markerlite-diag.txt
@@ -94,6 +97,11 @@ jobs:
           if ($diag.ExitCode -ne 0) { throw "diagnostics exited $($diag.ExitCode)" }
           if (!(Test-Path dist\markerlite\markerlite-diag.txt)) { throw "diagnostics missing" }
           Select-String -Path dist\markerlite\markerlite-diag.txt -Pattern "frozen=True", "TkinterDnD.Tk\(\)  OK"
+          # The windowed exe has no console: its version is read from the
+          # first line of the diagnostics file, never from exe --version.
+          $want = "markerlite $(python -c "import markerlite; print(markerlite.__version__)")"
+          $first = Get-Content dist\markerlite\markerlite-diag.txt -TotalCount 1
+          if ($first -ne $want) { throw "frozen diag first line is '$first', expected '$want'" }
 
       - name: Check embedded icon resources
         run: python tools/check_exe_icon.py dist\markerlite\markerlite.exe assets\icon.ico

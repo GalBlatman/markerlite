@@ -24,11 +24,15 @@ from tkinter import filedialog, ttk
 from markerlite.extraction import discover_tesseract, tesseract_version
 from markerlite.gui_logic import (
     ConversionOptions,
+    bug_report_line,
     output_directory,
     provenance_comments,
     snapshot_options,
     summary_text,
+    version_label,
     warning_lines,
+    window_title,
+    windows_build,
 )
 
 # Crisp text on high-DPI Windows displays; harmless elsewhere.
@@ -86,7 +90,10 @@ class App:
         self.running = False
         self.log_paths: list[pathlib.Path] = []
 
-        root.title(f"{APP} — PDF to Markdown")
+        # The version comes from markerlite/VERSION through __version__: the
+        # windowed exe has no console, so this is where a user reads it.
+        root.title(window_title())
+        self.tess_version: str | None = None
         root.configure(bg=BG)
 
         self._style()
@@ -160,8 +167,10 @@ class App:
         exe = discover_tesseract()
         if exe:
             version = tesseract_version(exe)
+            self.tess_version = version
             self.tess_label.configure(text=f"OCR: {version} ({exe})", style="Ok.TLabel")
             return True
+        self.tess_version = None
         self.tess_label.configure(
             text="Tesseract not found \u2014 install Tesseract, or set "
             "TESSERACT_CMD to tesseract.exe",
@@ -440,10 +449,25 @@ class App:
 
         self.status = ttk.Label(statusbar, text="No files yet", style="Muted.TLabel")
         self.status.pack(side="left")
+        # The version, at the right end. A click copies one line with the
+        # version, Tesseract and Windows build, ready for a bug report.
+        self.version_label = ttk.Label(
+            statusbar, text=version_label(), style="Muted.TLabel", cursor="hand2"
+        )
+        self.version_label.pack(side="right", padx=(10, 0))
+        self.version_label.bind("<Button-1>", self.copy_version)
         # Tesseract state, right-aligned: scanned PDFs silently produce no
         # text without it, and that was only discoverable from the output.
         self.tess_label = ttk.Label(statusbar, text="", style="Muted.TLabel")
         self.tess_label.pack(side="right")
+
+    def copy_version(self, _event=None) -> str:
+        """Copy the bug-report line to the clipboard and say so."""
+        line = bug_report_line(self.tess_version, windows_build())
+        self.root.clipboard_clear()
+        self.root.clipboard_append(line)
+        self.status.configure(text=f"Copied: {line}")
+        return line
 
     # ---------------------------------------------------------------- files
     def _sync_out(self):
@@ -856,7 +880,10 @@ def write_diagnostics() -> pathlib.Path:
     base = pathlib.Path(
         getattr(sys, "_MEIPASS", pathlib.Path(__file__).resolve().parent)
     )
+    from markerlite import __version__
+
     lines = [
+        f"markerlite {__version__}",
         f"python      {sys.version.split()[0]}  frozen={frozen}",
         f"platform    {platform.system()} {platform.release()} {platform.machine()}"
         f"  PROCESSOR_ARCHITECTURE={os.environ.get('PROCESSOR_ARCHITECTURE')}",

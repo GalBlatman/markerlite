@@ -153,7 +153,14 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
   of the monitor it opens on, then measured and shrunk if off-screen. Bottom
   controls are packed first with side=bottom so they can never be clipped.
   The user has two monitors with different scaling — test both.
-- `markerlite.exe --diag` writes markerlite-diag.txt beside the exe.
+- `markerlite.exe --diag` writes markerlite-diag.txt beside the exe. Its first
+  line is `markerlite <version>`.
+- The version is visible without a console: the window title is
+  `markerlite <version>` and a muted `v<version>` label sits at the right end
+  of the status bar. Clicking it copies `markerlite <version> · Tesseract
+  <version or not found> · Windows <platform.version()>` for a bug report.
+  All three strings come from `markerlite/gui_logic.py` and `__version__`;
+  nothing is hard-coded. No About dialog or menu.
 - The status bar shows Tesseract's version (or a warning) at startup and on
   every Convert. After a batch each row shows pages / content words / OCR
   pages / tables (fallbacks); a row with any `stat_warnings()` entry gets a
@@ -194,6 +201,13 @@ The downstream bump protocol consumes these field names; keep them stable.
 - `markerlite/VERSION` is the one version source. Packaging and
   `markerlite.__version__` read it; `markerlite --version`, conversion metadata,
   and release CI all use that value, and a `v*` tag must match it.
+- Release checklist for the Windows app: the windowed exe has no console, so
+  `markerlite.exe --version` prints nothing; never use it to check a build,
+  and do not add a console --version to the exe. Check the window title
+  (`markerlite X.Y.Z`), the status-bar label (`vX.Y.Z`) and the first line
+  of the `--diag` file (`markerlite X.Y.Z`). Windows CI asserts that line
+  for the source run and the frozen exe. `markerlite --version` from pip or
+  source covers the command line.
 - `pyproject.toml` carries compatible dependency ranges. CI, `build_exe.bat`,
   and pinned pipelines install through `requirements-lock.txt`.
 - Commit messages: imperative subject, body explains WHY. Every commit ends
