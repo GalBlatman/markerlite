@@ -8,9 +8,28 @@ import sys
 from dataclasses import dataclass
 
 from . import __version__
+from .display import safe_display
 from .stats import ConversionStats, stat_warnings, summarize
 
 APP_NAME = "markerlite"
+
+
+def run_log_line(name: str, summary: str, warnings: list[str]) -> str:
+    """One run-log line for a converted file. The file name is displayed
+    safely: a name holding a line feed must not forge a second log line."""
+    line = f"{safe_display(name)}: {summary}"
+    if warnings:
+        line += " | WARNINGS: " + "; ".join(warnings)
+    return line
+
+
+def failure_message(exc: BaseException) -> str:
+    """The text shown and logged for a conversion that raised."""
+    return safe_display(f"{type(exc).__name__}: {exc}")
+
+
+def failure_log_line(name: str, message: str) -> str:
+    return f"{safe_display(name)}: FAILED {message}"
 
 
 def window_title(version: str = __version__) -> str:

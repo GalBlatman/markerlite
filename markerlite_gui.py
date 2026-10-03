@@ -21,12 +21,16 @@ import tkinter as tk
 import traceback
 from tkinter import filedialog, ttk
 
+from markerlite.display import safe_display
 from markerlite.extraction import discover_tesseract, tesseract_version
 from markerlite.gui_logic import (
     ConversionOptions,
     bug_report_line,
+    failure_log_line,
+    failure_message,
     output_directory,
     provenance_comments,
+    run_log_line,
     snapshot_options,
     summary_text,
     version_label,
@@ -505,7 +509,11 @@ class App:
                 continue
             self.files.append(p)
             self.tree.insert(
-                "", "end", iid=str(p), text=p.name, values=("queued", "", "", "", "")
+                "",
+                "end",
+                iid=str(p),
+                text=safe_display(p.name),
+                values=("queued", "", "", "", ""),
             )
             added += 1
         skipped = len(found) - added
@@ -604,15 +612,11 @@ class App:
                 )
                 stats = manifest.get("stats", {})
                 warns = stat_warnings(stats)
-                log(
-                    outdir,
-                    f"{pdf.name}: {summarize(stats)}"
-                    + (" | WARNINGS: " + "; ".join(warns) if warns else ""),
-                )
+                log(outdir, run_log_line(pdf.name, summarize(stats), warns))
                 self.events.put(("done", str(pdf), str(md), stats))
             except Exception as exc:
-                msg = f"{type(exc).__name__}: {exc}"
-                log(outdir, f"{pdf.name}: FAILED {msg}")
+                msg = failure_message(exc)
+                log(outdir, failure_log_line(pdf.name, msg))
                 self.events.put(("error", str(pdf), msg))
         self.events.put(("finished", sorted(logs)))
 
@@ -628,7 +632,9 @@ class App:
                         tags=("busy",),
                     )
                     self.tree.see(ev[1])
-                    self.status.configure(text=f"Converting {pathlib.Path(ev[1]).name}")
+                    self.status.configure(
+                        text=f"Converting {safe_display(pathlib.Path(ev[1]).name)}"
+                    )
                 elif kind == "done":
                     _, src, md, stats = ev
                     eqs = stats.get("equations", 0)
@@ -646,7 +652,7 @@ class App:
                         else "\u2013",
                         f"{tables} ({fell})" if tables else "\u2013",
                     )
-                    name = pathlib.Path(src).name
+                    name = safe_display(pathlib.Path(src).name)
                     self.tree.item(
                         src,
                         text=("\u26a0 " + name) if warnings else name,
@@ -797,7 +803,7 @@ class App:
         try:
             text = pathlib.Path(res["md"]).read_text(encoding="utf-8")
         except Exception as exc:
-            text = f"Could not read output: {exc}"
+            text = f"Could not read output: {safe_display(exc)}"
         if len(text) > 200_000:
             text = text[:200_000] + "\n\n… truncated for preview …"
         self._set_preview(text)
@@ -818,7 +824,7 @@ class App:
             else:
                 subprocess.run(["xdg-open", str(path)], check=False)
         except Exception as exc:
-            self.status.configure(text=f"Could not open folder: {exc}")
+            self.status.configure(text=f"Could not open folder: {safe_display(exc)}")
 
     def open_out(self):
         """Open each distinct output directory.

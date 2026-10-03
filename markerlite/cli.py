@@ -9,6 +9,7 @@ import re
 import sys
 
 from .api import convert
+from .display import safe_display
 from .figures import apply_figures, apply_math
 from .paths import ManifestPathError, manifest_target
 from .stats import summarize
@@ -78,7 +79,10 @@ def main() -> None:
         try:
             manifest = json.loads(mpath.read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:
-            sys.exit(f"markerlite: cannot read manifest {mpath}: {exc}")
+            sys.exit(
+                f"markerlite: cannot read manifest {safe_display(mpath)}: "
+                f"{safe_display(exc)}"
+            )
         if args.apply_figures:
             stem = (
                 manifest.get("stem")
@@ -92,15 +96,17 @@ def main() -> None:
         try:
             md = manifest_target(outdir, stem)
         except ManifestPathError as exc:
-            sys.exit(f"markerlite: refused: {exc}")
+            sys.exit(f"markerlite: refused: {safe_display(exc)}")
         if not md.is_file():
-            sys.exit(f"markerlite: no Markdown file {md} to apply the manifest to")
+            sys.exit(
+                f"markerlite: no Markdown file {safe_display(md)} to apply the manifest to"
+            )
         if args.apply_figures:
             n = apply_figures(md, mpath)
-            print(f"applied {n} figure description(s) to {md}")
+            print(f"applied {n} figure description(s) to {safe_display(md)}")
         else:
             n = apply_math(md, mpath)
-            print(f"applied {n} equation(s) to {md}")
+            print(f"applied {n} equation(s) to {safe_display(md)}")
         return
 
     outdir.mkdir(parents=True, exist_ok=True)
@@ -114,5 +120,5 @@ def main() -> None:
             args.page_markers,
             args.flag_figures,
         )
-        print(f"{path.name} -> {out}")
+        print(f"{safe_display(path.name)} -> {safe_display(out)}")
         print(f"   {summarize(manifest.get('stats', {}))}")
