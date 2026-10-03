@@ -163,3 +163,52 @@ def test_provenance_matcher_joins_pieces_below_the_cap_only():
     assert many.capped
     assert many("fixture.sagepub.com")  # exact lines still match
     assert not many(joined)  # the run-together form is not attempted
+
+
+def _old_clusters(rects):
+    """The clustering loop before the limit commit, kept as the reference."""
+    import pymupdf
+
+    clusters = []
+    for r in rects:
+        placed = False
+        for cl in clusters:
+            merged = pymupdf.Rect(cl[0])
+            for other in cl:
+                merged |= other
+            if merged.intersects(r + (-14, -14, 14, 14)):
+                cl.append(r)
+                placed = True
+                break
+        if not placed:
+            clusters.append([r])
+    return [[tuple(r) for r in cl] for cl in clusters]
+
+
+def test_vector_clustering_is_identical_with_incremental_bounds():
+    import random
+
+    import pymupdf
+
+    from markerlite.figures import _cluster_rects
+
+    rng = random.Random(7)
+    for _trial in range(300):
+        rects = []
+        for _ in range(rng.randint(0, 80)):
+            x, y = rng.uniform(0, 600), rng.uniform(0, 780)
+            w = rng.choice((0, 0, 1, 5, 30, 200))
+            h = rng.choice((0, 0, 1, 5, 30, 200))
+            rects.append(pymupdf.Rect(x, y, x + w, y + h))
+        new = [[tuple(r) for r in cl] for cl in _cluster_rects(rects)]
+        assert new == _old_clusters(rects)
+
+
+def test_vector_drawings_over_the_cap_keep_text_and_caption(made):
+    md, info = convert(fixtures.vector_drawings(made), made)
+    text = md.read_text(encoding="utf-8")
+    [record] = _limits(info, "vector_drawings")
+    assert record["observed"] == 4500 and record["cap"] == 4000
+    assert "A paragraph before the chart." in text
+    assert "A paragraph after the chart." in text
+    assert "<!-- figure: p. 1; caption: Figure 1. A dense chart. -->" in text

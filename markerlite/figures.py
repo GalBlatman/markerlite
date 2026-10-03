@@ -167,10 +167,68 @@ def _insert_pos(page: Page, y0: float) -> float:
     return max((b.char_pos for b in page.blocks), default=0) + 0.5
 
 
+def _page_drawings(pmpage: pymupdf.Page, page: Optional[Page] = None) -> list:
+    """The page's drawings, read once per page when ``page`` is given."""
+    if page is not None and "drawings" in page.figure_cache:
+        return page.figure_cache["drawings"]
+    try:
+        drawings = pmpage.get_drawings()
+    except Exception:
+        drawings = []
+    if page is not None:
+        page.figure_cache["drawings"] = drawings
+    return drawings
+
+
+def _page_vector_regions(pmpage: pymupdf.Page, page: Page) -> list:
+    """_vector_regions computed once per page. The regions depend only on the
+    page's drawings, which do not change during a conversion."""
+    if "vector_regions" not in page.figure_cache:
+        drawings = _page_drawings(pmpage, page)
+        if len(drawings) > FIGURE_VECTOR_MAX_DRAWINGS:
+            note_limit(
+                page,
+                "vector_drawings",
+                len(drawings),
+                FIGURE_VECTOR_MAX_DRAWINGS,
+                "vector figures not clustered; captions still mark figures",
+            )
+            page.figure_cache["vector_regions"] = []
+        else:
+            page.figure_cache["vector_regions"] = _vector_regions(
+                pmpage, drawings=drawings
+            )
+    return page.figure_cache["vector_regions"]
+
+
+def _cluster_rects(rects: list) -> List[list]:
+    """Group drawing boxes that lie within 14 pt of a growing cluster, in
+    order. Each cluster keeps its bounding box as it grows; rebuilding it from
+    every member for every box tested was quadratic in the cluster's size.
+    The clusters are the same."""
+    clusters: List[list] = []
+    bounds: List[pymupdf.Rect] = []
+    for r in rects:
+        placed = False
+        for i, cl in enumerate(clusters):
+            if bounds[i].intersects(r + (-14, -14, 14, 14)):
+                cl.append(r)
+                # Assign: Rect's "|=" builds a new object, so an in-place
+                # update of a loop variable would not reach the list.
+                bounds[i] = bounds[i] | r
+                placed = True
+                break
+        if not placed:
+            clusters.append([r])
+            bounds.append(pymupdf.Rect(r) | r)
+    return clusters
+
+
 def _vector_regions(
     pmpage: pymupdf.Page,
     min_items=FIGURE_VECTOR_MIN_SEGMENTS,
     min_side=FIGURE_VECTOR_MIN_SIDE,
+    drawings: Optional[list] = None,
 ):
     """Bounding boxes of vector drawings (charts, diagrams, flowcharts).
 
@@ -179,10 +237,11 @@ def _vector_regions(
     was previously extracted as nothing at all. Cluster the paths and treat a
     dense enough cluster as a figure.
     """
-    try:
-        drawings = pmpage.get_drawings()
-    except Exception:
-        return []
+    if drawings is None:
+        try:
+            drawings = pmpage.get_drawings()
+        except Exception:
+            return []
     rects = [
         pymupdf.Rect(d["rect"])
         for d in drawings
@@ -192,19 +251,7 @@ def _vector_regions(
     if len(rects) < min_items:
         return []
 
-    clusters: List[list] = []
-    for r in rects:
-        placed = False
-        for cl in clusters:
-            merged = pymupdf.Rect(cl[0])
-            for other in cl:
-                merged |= other
-            if merged.intersects(r + (-14, -14, 14, 14)):
-                cl.append(r)
-                placed = True
-                break
-        if not placed:
-            clusters.append([r])
+    clusters = _cluster_rects(rects)
 
     out = []
     page_area = pmpage.rect.width * pmpage.rect.height
@@ -289,7 +336,7 @@ def _figure_regions(pm: pymupdf.Page, page: Page) -> List[Tuple[str, int, int, t
         ("img", n, xref, bbox) for n, xref, bbox in _content_images(pm)
     ]
     taken = [f[3] for f in found]
-    for n, box in enumerate(_vector_regions(pm)):
+    for n, box in enumerate(_page_vector_regions(pm, page)):
         bt = tuple(box)
         if any(_overlap_frac(bt, tk) > FIGURE_TABLE_OVERLAP for tk in taken):
             continue  # already captured as a raster
@@ -545,10 +592,9 @@ def _locate_caption_figure(pm: pymupdf.Page, page: Page, caption) -> Optional[tu
     prect = pm.rect
     gap = FIGURE_GROW_GAP * prect.height
     rects = []
-    try:
-        drawings = pm.get_drawings()
-    except Exception:
-        drawings = []
+    drawings = _page_drawings(pm, page)
+    if len(drawings) > FIGURE_VECTOR_MAX_DRAWINGS:
+        return None  # recorded as vector_drawings by _page_vector_regions
     tables = [b.bbox for b in page.blocks if b.btype == "Table"]
     for d in drawings:
         r = d.get("rect")

@@ -151,7 +151,28 @@ def provenance_pieces(out: pathlib.Path) -> pathlib.Path:
     return path
 
 
+def vector_drawings(out: pathlib.Path) -> pathlib.Path:
+    """A chart drawn with 4,500 separate short strokes, over
+    FIGURE_VECTOR_MAX_DRAWINGS (4000), with a caption and a paragraph."""
+    doc = pymupdf.open()
+    page = doc.new_page(width=612, height=792)
+    page.insert_text((72, 80), "A paragraph before the chart.", fontsize=11)
+    for i in range(4500):
+        shape = page.new_shape()
+        x = 100 + (i % 90) * 4.5
+        y = 120 + (i // 90) * 5
+        shape.draw_line((x, y), (x + 3, y + 3))
+        shape.finish(color=(0, 0, 0), width=0.5)
+        shape.commit()
+    page.insert_text((72, 400), "Figure 1. A dense chart.", fontsize=10)
+    page.insert_text((72, 430), "A paragraph after the chart.", fontsize=11)
+    path = out / "limit_vector_drawings.pdf"
+    doc.save(path)
+    return path
+
+
 FIXTURES = {
+    "vector_drawings": vector_drawings,
     "provenance_pieces": provenance_pieces,
     "code_tiny_glyphs": code_tiny_glyphs,
     "code_deep_indent": code_deep_indent,

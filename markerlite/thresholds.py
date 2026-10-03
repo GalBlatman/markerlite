@@ -172,3 +172,7 @@ CODE_MAX_INDENT = 120
 # Provenance stamp pieces per document. Measured: at most 8 (the
 # provenance_pages fixture; 6 on a real document, Suchman 1995). Limit 80.
 PROVENANCE_MAX_PIECES = 80
+
+# Vector figure clustering. Measured: at most 326 drawings on a page (R00032).
+# Limit 4000 (12x); above it the page's paths are not clustered.
+FIGURE_VECTOR_MAX_DRAWINGS = 4000

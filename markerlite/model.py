@@ -359,6 +359,9 @@ class Page:
     # Resource limits that tripped on this page (note_limit): each record is
     # reported in stats["resource_limits"] and as a warning.
     limit_events: List[dict] = field(default_factory=list)
+    # The figure code's per-page geometry, computed once (figures.py):
+    # the page's drawings and its vector-figure regions.
+    figure_cache: dict = field(default_factory=dict)
     table_zones: List[tuple] = field(default_factory=list)
     figure_zones: List[tuple] = field(default_factory=list)
     figure_cores: List[tuple] = field(default_factory=list)
