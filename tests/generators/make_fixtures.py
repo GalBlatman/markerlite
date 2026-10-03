@@ -2812,6 +2812,84 @@ def make_digit_breaks():
     pdf.out("digit_breaks.pdf")
 
 
+def make_fragment_text():
+    """Text that keeps its word count but not its words: page 2 holds a
+    table's cells broken into one- and two-character pieces, as a hidden
+    OCR layer of a sideways scanned table reads (R00443 pp. 14 and 16,
+    R02027 pp. 30, 31, 36; text synthetic). Page 1 is ordinary prose; page
+    3 is a list of legal citations at the density of the most
+    abbreviation-heavy ordinary page in the sweep (R02027 p. 46, 0.50:
+    "U.S.", "S.Ct.", "F.2d" between case names).
+
+    Bug: per-page word conservation counts the pieces as words, so page 2
+    passed every check and nothing told the reader it was unreadable. It
+    must be flagged as a fragment page, with its text unchanged; pages 1
+    and 3 must not be flagged.
+    """
+    pdf = Doc()
+    margin = 72.0
+    pdf.add_page()
+    f = Flow(pdf, [(margin, 72, LETTER_W - 2 * margin, 700)], size=10, leading=13)
+    for para in paragraphs(4, start=2, step=5, width=4):
+        f.paragraph(para, space_after=8)
+    pdf.add_page()
+    pieces = [
+        "o",
+        "0",
+        "t",
+        "I",
+        "in",
+        "00",
+        "C",
+        "m",
+        "ur",
+        "b",
+        "N",
+        "e",
+        "Q",
+        "Io",
+        "5",
+        "a",
+        "O",
+        "n",
+        "on",
+        "z",
+        "H",
+        "0)",
+        "c",
+        "r",
+        "1f",
+        "s",
+        "w",
+        "C1",
+    ]
+    y = 72.0
+    for row in range(26):
+        line = " ".join(pieces[(row * 7 + k * 3) % len(pieces)] for k in range(9))
+        pdf.text_at(margin, y, line, size=9)
+        y += 12
+    pdf.add_page()
+    pdf.text_at(margin, 60, "Cases", style="B", size=12)
+    y = 84.0
+    names = ["Abel", "Baker", "Carter", "Dalton", "Ellis", "Foster", "Grant", "Hollis"]
+    parties = [
+        "Department of Transportation of the Commonwealth",
+        "Associated Manufacturers and Distributors",
+        "Movement for Opportunity and Equality",
+        "Regional Council of Carpenters and Joiners",
+    ]
+    for k, name in enumerate(names):
+        cite = (
+            f"{name} v. {parties[k % 4]}, {401 + k} U.S. {424 + 9 * k}, "
+            f"{91 + k} S.Ct. {849 + k}, {28 + k} L.Ed. 2d {158 + k} ({1971 + k}); "
+            f"cert. denied, {628 + k} F.2d {1264 + k} (7th Cir. {1980 + k})."
+        )
+        pdf.text_at(margin, y, cite[:92], size=10)
+        pdf.text_at(margin + 18, y + 12.5, cite[92:], size=10)
+        y += 31
+    pdf.out("fragment_text.pdf")
+
+
 def make_sectioned_running_heads():
     """Three repeated section heads are content; an alternating pair is not."""
     pdf = Doc()
@@ -2911,6 +2989,7 @@ MAKERS = {
     "tall_cell": make_tall_cell,
     "no_table_marker": make_no_table_marker,
     "digit_breaks": make_digit_breaks,
+    "fragment_text": make_fragment_text,
     "journal_front_matter": make_journal_front_matter,
     "continued_table_header": make_continued_table_header,
     "figure_source_labels": make_figure_source_labels,

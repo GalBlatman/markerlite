@@ -19,6 +19,12 @@ class SuppressionRecord(TypedDict):
     reason: str
 
 
+class FragmentPage(TypedDict):
+    page: int
+    letter_tokens: int
+    short_share: float
+
+
 class LossyPage(TypedDict):
     page: int
     source: int
@@ -55,6 +61,7 @@ class ConversionStats(TypedDict):
     section_heads_emitted: list[dict]
     resource_limits: list[dict]
     table_candidates_released: int
+    fragment_pages: list[FragmentPage]
 
 
 SUPPRESSION_REASONS = frozenset(
@@ -88,6 +95,34 @@ def _emitted_words(page: Page) -> int:
         for child in blk.children:
             total += len(child.text.split())
     return total
+
+
+_LETTER_RUN = re.compile(r"[^\W\d_]+")
+
+
+def _fragment_share(page: Page) -> tuple[int, float]:
+    """(letter tokens, share of them at most FRAGMENT_MAX_LETTERS long) in
+    the text this page emits. Figure text is a comment and not counted; a
+    table counts the cell text of the HTML it renders from."""
+    runs: List[str] = []
+    for blk in page.blocks:
+        if blk.ignore_for_output or blk.btype in (
+            "PageHeader",
+            "PageFooter",
+            "ImageMarker",
+        ):
+            continue
+        if blk.btype == "Table" and not blk.fallback_paragraphs:
+            text = unescape(re.sub(r"<[^<>]*>", " ", blk.html or ""))
+        else:
+            text = blk.text
+        runs.extend(_LETTER_RUN.findall(text))
+        for child in blk.children:
+            runs.extend(_LETTER_RUN.findall(child.text))
+    if not runs:
+        return 0, 0.0
+    short = sum(1 for run in runs if len(run) <= FRAGMENT_MAX_LETTERS)
+    return len(runs), short / len(runs)
 
 
 def content_words(md: str) -> int:
@@ -125,7 +160,17 @@ def build_stats(
     """Build the exact v0.1.14 public stats shape in one typed location."""
     low_yield = []
     lossy = []
+    fragments = []
     for page in pages:
+        letters, share = _fragment_share(page)
+        if letters >= FRAGMENT_MIN_LETTER_TOKENS and share >= FRAGMENT_SHORT_SHARE:
+            fragments.append(
+                {
+                    "page": page.page_idx + 1,
+                    "letter_tokens": letters,
+                    "short_share": round(share, 3),
+                }
+            )
         emitted = _emitted_words(page)
         if page.raster_covered and emitted < LOW_YIELD_WORDS:
             low_yield.append(page.page_idx + 1)
@@ -183,6 +228,9 @@ def build_stats(
     limits = [record for page in pages for record in page.limit_events]
     if limits:
         stats["resource_limits"] = limits
+    # Flag only: the text stays as emitted. Present only when a page trips.
+    if fragments:
+        stats["fragment_pages"] = fragments
     return stats
 
 
@@ -222,6 +270,14 @@ def stat_warnings(stats: ConversionStats) -> List[str]:
         )
         shown += ", \u2026" if len(lossy) > 6 else ""
         out.append(f"{len(lossy)} lossy page{'s' * (len(lossy) != 1)} ({shown})")
+    fragments = stats.get("fragment_pages") or []
+    if fragments:
+        shown = ", ".join(f"p{d['page']}" for d in fragments[:8])
+        shown += ", \u2026" if len(fragments) > 8 else ""
+        out.append(
+            f"{len(fragments)} page{'s' * (len(fragments) != 1)} emit text as "
+            f"fragments ({shown}): mostly one- or two-letter pieces, check the source"
+        )
     if stats.get("tables_fallback"):
         n = stats["tables_fallback"]
         out.append(

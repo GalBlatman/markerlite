@@ -298,6 +298,33 @@ def check_fallback_prose(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     return 0
 
 
+def check_fragment_pages(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
+    """fragment_text: the page of one- and two-letter pieces is flagged, the
+    prose and citation pages are not, and every piece is still emitted."""
+    from collections import Counter
+
+    import pymupdf
+
+    directory = workdir / "fragment-pages"
+    directory.mkdir(exist_ok=True)
+    output, info = markerlite.convert(pdf, directory)
+    text = output.read_text(encoding="utf-8")
+    flagged = [d["page"] for d in info["stats"].get("fragment_pages", [])]
+    with pymupdf.open(pdf) as doc:
+        source = Counter(doc[1].get_text().split())
+    missing = source - Counter(text.replace("**", " ").split())
+    warned = any(
+        "emit text as fragments" in w for w in markerlite.stat_warnings(info["stats"])
+    )
+    if flagged != [2] or missing or not warned:
+        print(
+            f"FAIL  fragment-pages: flagged {flagged}, {sum(missing.values())} pieces missing"
+        )
+        return 1
+    print("ok    fragment-pages   p2 flagged, prose and citations not; text unchanged")
+    return 0
+
+
 def check_no_table_marker(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     """no_table_marker: a failed candidate without table evidence (prose and a
     figure behind Word's white line boxes) is released to the page with no
@@ -712,6 +739,8 @@ def main(argv=None) -> int:
                 failures += check_journal_front_matter(pdf, workdir)
             if stem == "tall_cell":
                 failures += check_fallback_prose(pdf, workdir)
+            if stem == "fragment_text":
+                failures += check_fragment_pages(pdf, workdir)
             if stem == "no_table_marker":
                 failures += check_no_table_marker(pdf, workdir)
             if stem == "justified_scan":

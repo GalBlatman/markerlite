@@ -30,6 +30,15 @@ MAX_LINE_TILT = 0.1
 LOW_YIELD_WORDS = 15
 CONSERVATION_MIN = 0.5
 CONSERVATION_MIN_SOURCE = 20
+# Fragment pages: a page whose emitted words are mostly one or two letters
+# long is text in pieces (sideways table data read from a hidden OCR layer,
+# R00443 pp. 14 and 16), whatever its word count. Measured on 1,326 pages
+# with >= 40 letter tokens (tests/real and the golden packet documents):
+# every ordinary page <= 0.35 except one page of legal citations at 0.50
+# ("U.S.", "S.Ct."); every fragment page >= 0.92. The share sits mid-gap.
+FRAGMENT_MIN_LETTER_TOKENS = 30
+FRAGMENT_MAX_LETTERS = 2
+FRAGMENT_SHORT_SHARE = 0.7
 
 # Pi-font/drop-cap evidence: pi_minus and dropcap fixtures.
 PI_FONT_MIN_GLYPHS = 5
