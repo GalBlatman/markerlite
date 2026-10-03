@@ -16,6 +16,8 @@ and its claims have been deliberately made honest — do not inflate them.
 
 Public repo: github.com/GalBlatman/markerlite · Apache-2.0 · current release
 v0.1.15 (`/releases/latest` is the download link the README and blog use).
+v0.1.16 is a release candidate (VERSION, CHANGELOG.md) awaiting the owner's
+tag; after the tag, verify the release job as tests/REPORT-security.md says.
 
 ## Layout
 
@@ -359,6 +361,27 @@ parentheses fails if the fix is undone):
 - EBSCOhost notice pages, native or OCR'd, are provenance (`provenance_pages`
   p6, `ebsco_notice_scan`).
 - a significance legend ("* p < .05") is not a footnote (`table_legend`).
+- running-head evidence must agree on alignment (FURNITURE_ALIGN_TOL) and,
+  unless either line is on an OCR page, on type size (FURNITURE_SIZE_RATIO)
+  (`first_page_masthead`; R00014 p. 1 lost its journal-name masthead to the
+  even-page head). On OCR pages the size is a Tesseract line box, so only
+  position decides: without that, Kitchener p. 22 and Kostova p. 4 heads
+  came back.
+- a failed table candidate keeps the "reconstruction failed" marker only
+  with table evidence (a rule touching it, or two recurring column starts,
+  and no curve); otherwise its blocks return to the page unmarked and
+  `table_released` keeps the proposal pass off them (`no_table_marker`,
+  tests/test_released_candidate.py; Word's white line boxes made
+  find_tables candidates over R00023's prose). Peng p. 2 is the one real
+  table released; its text stays.
+- a dash after a digit with a digit on the next line is never removed by
+  dehyphenation ("3370-" / "3381" -> "3370-3381", also en/em dash)
+  (`digit_breaks`; R00023 "33703381").
+- a page whose emitted letter tokens are mostly <= 2 letters is flagged in
+  stats["fragment_pages"] with a warning, text unchanged (`fragment_text`;
+  R00443 pp. 14, 16 and R02027 pp. 30, 31, 36 are the only pages flagged in
+  the reference set). Threshold 0.7 on >= 30 letter tokens, from the gap
+  0.50 (legal citations) to 0.92.
 - pi fonts: minus and "<" that extract as "2" and "," are repaired from the
   document's font inventory, BEFORE tables are built (`pi_minus`). convert()
   therefore extracts all pages first and runs detect_tables second.
@@ -427,12 +450,14 @@ parentheses fails if the fix is undone):
 - Packet B source-line suppression is fixed (44/44 cases); see
   tests/REPORT-suppression.md. Packet A's 79 structural cases remain batch C
   evidence in tests/PLAN-tables.md, not implemented by the suppression fix.
-- Block 2 (table structure) is planned in tests/PLAN-tables.md, "Block 2",
-  pending review: gold tables set (git-ignored tests/gold-tables/, protocol
-  tests/GOLD-TABLES.md, scorer tests/score_gold_tables.py; v0.1.15: 1 of 29
-  exact, 18 wrong grids, 6 false grids and 3 false markers on 9 controls),
-  evidence tests/REPORT-block2-evidence.md, a table-confidence gate, and E1-E3
-  first. No converter change before review.
+- Block 2 (table structure) is planned in tests/PLAN-tables.md, "Block 2":
+  gold tables set (git-ignored tests/gold-tables/, protocol
+  tests/GOLD-TABLES.md, scorer tests/score_gold_tables.py; 29 tables, 8
+  controls, 1 ambiguous item), evidence tests/REPORT-block2-evidence.md.
+  Stop 1 (E1-E3) is done (tests/REPORT-block2-stop1.md); false markers on
+  controls 3 -> 0, five false grids remain. Stop 2 (the table-confidence
+  gate, rotated pages investigated first) starts only after v0.1.16 is
+  published.
 - Table work follows tests/PLAN-tables.md; items 0, 1, 7, 8, 11b done;
   fallback-to-prose done; item 5 not needed after fallback-to-prose (no evidence
   in 44 remaining reference regions); item 6 done; 2,3,4 then 9,10,11a,11c pending review; 12 is evidence only. Items 2 and 5 carry extra

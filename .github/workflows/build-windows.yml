@@ -113,17 +113,24 @@ jobs:
       - name: Ship license texts with the build
         # Apache-2.0 requires the license and NOTICE to accompany redistributions.
         run: |
-          Copy-Item LICENSE, NOTICE, README.md -Destination dist\markerlite\
+          Copy-Item LICENSE, NOTICE, README.md, CHANGELOG.md -Destination dist\markerlite\
           New-Item -ItemType Directory -Force dist\markerlite\third_party\marker | Out-Null
           Copy-Item third_party\marker\LICENSE -Destination dist\markerlite\third_party\marker\
 
       - name: Zip the folder build
         run: Compress-Archive -Path dist\markerlite -DestinationPath markerlite-windows.zip
 
+      - name: Write the release notes
+        # This version's CHANGELOG section; fails if there is none. The
+        # release job checks out nothing, so the notes travel with the zip.
+        run: python tools/release_notes.py release-notes.md
+
       - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: markerlite-windows
-          path: markerlite-windows.zip
+          path: |
+            markerlite-windows.zip
+            release-notes.md
           if-no-files-found: error
 
   # A run artifact is not a download link: it expires and needs a GitHub
@@ -164,11 +171,12 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           tag="$GITHUB_REF_NAME"
-          notes="Windows build. Unzip, run markerlite.exe from inside the folder. Windows SmartScreen will warn once: click More info, then Run anyway. Scanned PDFs need Tesseract installed separately; digital PDFs do not."
           # Idempotent: if a release for this tag already exists (created by
-          # hand, or by an earlier attempt), replace its zip rather than fail.
+          # hand, or by an earlier attempt), replace its zip and notes rather
+          # than fail.
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" markerlite-windows.zip --clobber
+            gh release edit "$tag" --notes-file release-notes.md
           else
-            gh release create "$tag" markerlite-windows.zip --title "markerlite $tag" --notes "$notes" --latest
+            gh release create "$tag" markerlite-windows.zip --title "markerlite $tag" --notes-file release-notes.md --latest
           fi

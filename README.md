@@ -24,9 +24,12 @@ source install, command line, what it gets right and wrong — is below.
   its learned reading-order head; the same signal is available from PyMuPDF, and
   it is what keeps a two-column journal article from interleaving its columns.
 - **Running headers, footers and page numbers**, suppressed on evidence of
-  repetition across pages rather than on position alone.
+  repetition across pages rather than on position alone. The repeated line
+  must also sit in the same place and, on digital pages, in the same type
+  size, so a journal name in an article's own citation block survives.
 - **Paragraph flow** — text rejoined across line, column and page breaks, with
-  hyphenation undone.
+  hyphenation undone. A dash between two numbers is kept: a page range broken
+  after "3370-" comes out as "3370-3381".
 - **Headings**, with levels taken from section numbering when the document
   numbers its sections, and from font-size clustering otherwise.
 - **Lists**, including nesting depth from indentation.
@@ -46,8 +49,12 @@ content to the wrong row, which shifts values silently. When reconstruction
 fails or keeps fewer than 90% of the geometric grid's words, the region's source
 text is kept as ordered prose with a `<!-- table p. N: reconstruction failed;
 text kept as prose -->` marker. This preserves text but loses the table layout,
-even when the geometric grid was usable. Successful reconstructions can still
-misassign cells. **Verify any table you intend to read as data.**
+even when the geometric grid was usable. The marker appears only where the
+failed candidate looks like a table (ruling lines, or columns that recur from
+row to row); when the detector matched body prose, a reference list or a
+figure, that text comes out as ordinary text with no marker. Successful
+reconstructions can still misassign cells. **Verify any table you intend to
+read as data.**
 
 **Figures.** markerlite does not read figures; it hands them to something that
 can. Every figure it finds leaves a placeholder at its position in the text,
@@ -81,6 +88,16 @@ is readable, not clean.
 citation banner is recognised by its boilerplate and left out of the body; the
 citation it carried (title, source line, DOI or Stable URL) is written as an
 HTML comment at the top of the Markdown, so the origin is not lost.
+
+**Warnings.** The summary line, the app's file list and the run log say when
+a document needs a look; nothing is removed to produce a warning. Besides
+lossy, low-yield and garbled pages, a page whose text comes out mostly in one-
+and two-letter pieces is reported as a fragment page (typically a sideways
+scanned table read from a hidden OCR layer; its word count looks normal). A
+malformed or hostile PDF can no longer stall a batch or exhaust memory: table
+geometry, drawings, image sizes and OCR are bounded well above anything seen
+in real documents, and a document that reaches a bound keeps its content and
+reports "resource limit reached" with the details in the stats.
 
 **Heading recovery on real journal articles** is decent but not complete. A
 document that styles every heading identically, with no numbering, gives the
@@ -175,7 +192,9 @@ insert page markers. The preview pane shows the Markdown of whichever file is
 selected; read it before trusting a document, because the table and heading
 defects described above are quiet. **Open Markdown** and **Open output folder**
 do what they say. When a batch finishes, the status line reports it as
-`17 pages → 76 KB Markdown · 3 figures · 2 equation crops`.
+`17 pages → 76 KB Markdown · 3 figures · 2 equation crops`. The version is in
+the window title and at the right of the status bar; click it to copy the
+markerlite, Tesseract and Windows versions for a bug report.
 
 ### The command line
 

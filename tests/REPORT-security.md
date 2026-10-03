@@ -111,6 +111,10 @@ aaf1d74 on (one failure, 394f062, was a formatting slip fixed in
 3. The `release` job's step "Check the bundled version against the tag"
    succeeds, and the release page shows `markerlite-windows.zip`.
 4. A push to main still produces no release and no `release` job run.
+4a. The release page's notes are the download instructions followed by the
+   tag's CHANGELOG.md section (added before v0.1.16: the build job writes
+   `release-notes.md` beside the zip in the artifact, and the release job,
+   still without a checkout, publishes it with `--notes-file`).
 5. If the release step fails with a permissions error, the repository's
    Settings, Actions, Workflow permissions must allow the per-job grant
    (the workflow asks for `contents: write` only in that job).
