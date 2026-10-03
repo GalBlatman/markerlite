@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import bisect
 import math
 import re
 import warnings
@@ -526,6 +527,90 @@ def _projection_ok(lines: list, page: Page) -> Tuple[bool, float]:
     return worst <= TABLE_PROJECTION_MARGIN, worst
 
 
+def _rule_rows(physical_rules: list, page: Page) -> list:
+    """(y, x0, x1) of each row of horizontal rules that can bound a table,
+    in first-seen order: the segments of one row (y rounded to 0.1 pt) are
+    coalesced into their full extent."""
+    # Publisher edge rules are not table boundaries. An actual admitted
+    # table remains protected independently; a table caption can also
+    # establish a genuine top rule inside the header band. The caption ends
+    # are found once per page, not once per rule.
+    caption_ends = [b.y_end for b in page.blocks if TABLE_LABEL.match(b.text.strip())]
+    rows = defaultdict(list)
+    for y, x0, x1 in physical_rules:
+        caption_above = any(0 <= y - end <= 30 for end in caption_ends)
+        if y > TABLE_PHYSICAL_EDGE_Y * page.height or (
+            y < TABLE_TOP_EDGE_Y * page.height and not caption_above
+        ):
+            continue
+        rows[round(y, 1)].append((x0, x1))
+    return [(y, min(a for a, b in xs), max(b for a, b in xs)) for y, xs in rows.items()]
+
+
+def _rule_zones(physical_rules: list, page: Page) -> list:
+    """Table zones delimited by matching horizontal rules.
+
+    Two rule rows with the same left and right edges, a plausible height
+    apart, and a third matching row between them bound a zone. Broken or
+    segmented booktabs strokes may not form a find_tables candidate; the
+    zone still protects their content from furniture suppression. It does
+    not admit a table.
+
+    The search used to try every middle row for every pair of rows, cubic in
+    the number of rows. For each row the matching rows' heights are now
+    sorted once, and a pair qualifies when a matching height lies strictly
+    between them (a binary search). The zones and their order are the same.
+    Above TABLE_RULES_MAX rule segments or TABLE_RULE_ROWS_MAX rows the
+    search is skipped and the page records the limit.
+    """
+    if len(physical_rules) > TABLE_RULES_MAX:
+        note_limit(
+            page,
+            "table_rules",
+            len(physical_rules),
+            TABLE_RULES_MAX,
+            "rule-bounded table zones not searched",
+        )
+        return []
+    extents = _rule_rows(physical_rules, page)
+    if len(extents) > TABLE_RULE_ROWS_MAX:
+        note_limit(
+            page,
+            "table_rule_rows",
+            len(extents),
+            TABLE_RULE_ROWS_MAX,
+            "rule-bounded table zones not searched",
+        )
+        return []
+    tol = TABLE_RULE_EDGE_TOL
+    matching = [
+        sorted(
+            mid
+            for mid, left, right in extents
+            if abs(left - x0) < tol and abs(right - x1) < tol
+        )
+        for _y, x0, x1 in extents
+    ]
+    zones = []
+    for i, (y0, x0, x1) in enumerate(extents):
+        if not x1 - x0 > TABLE_RULE_MIN_WIDTH_FRAC * page.width:
+            continue
+        mids = matching[i]
+        first_above = bisect.bisect_right(mids, y0)
+        for y1, a, b in extents:
+            if (
+                TABLE_RULE_MIN_HEIGHT
+                < y1 - y0
+                < TABLE_RULE_MAX_HEIGHT_FRAC * page.height
+                and abs(x0 - a) < tol
+                and abs(x1 - b) < tol
+                and first_above < len(mids)
+                and mids[first_above] < y1
+            ):
+                zones.append((x0, y0, x1, y1))
+    return zones
+
+
 def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
     """Find table regions with PyMuPDF, then rebuild the grid.
 
@@ -572,40 +657,7 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
     # Two matching horizontal rules with intervening text still delimit table
     # content for furniture protection; this does not admit a new table.
     physical_rules, _ = _page_graphics(pmpage)
-    rows = defaultdict(list)
-    for y, x0, x1 in physical_rules:
-        # Publisher edge rules are not table boundaries. An actual admitted
-        # table remains protected independently; a table caption can also
-        # establish a genuine top rule inside the header band.
-        caption_above = any(
-            TABLE_LABEL.match(b.text.strip()) and 0 <= y - b.y_end <= 30
-            for b in page.blocks
-        )
-        if y > TABLE_PHYSICAL_EDGE_Y * page.height or (
-            y < TABLE_TOP_EDGE_Y * page.height and not caption_above
-        ):
-            continue
-        rows[round(y, 1)].append((x0, x1))
-    extents = [
-        (y, min(a for a, b in xs), max(b for a, b in xs)) for y, xs in rows.items()
-    ]
-    for y0, x0, x1 in extents:
-        for y1, a, b in extents:
-            if (
-                TABLE_RULE_MIN_HEIGHT
-                < y1 - y0
-                < TABLE_RULE_MAX_HEIGHT_FRAC * page.height
-                and x1 - x0 > TABLE_RULE_MIN_WIDTH_FRAC * page.width
-                and abs(x0 - a) < TABLE_RULE_EDGE_TOL
-                and abs(x1 - b) < TABLE_RULE_EDGE_TOL
-                and any(
-                    y0 < mid < y1
-                    and abs(left - x0) < TABLE_RULE_EDGE_TOL
-                    and abs(right - x1) < TABLE_RULE_EDGE_TOL
-                    for mid, left, right in extents
-                )
-            ):
-                page.table_zones.append((x0, y0, x1, y1))
+    page.table_zones.extend(_rule_zones(physical_rules, page))
     if not found:
         return
 

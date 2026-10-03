@@ -64,7 +64,46 @@ def projection(out: pathlib.Path) -> pathlib.Path:
     return path
 
 
-FIXTURES = {"projection": projection}
+def _rules_page(
+    out: pathlib.Path, name: str, rows: int, segments_per_row: int
+) -> pathlib.Path:
+    """A page of horizontal rules between 10% and 90% of its height, each
+    row drawn as ``segments_per_row`` touching segments, plus one line of
+    text so the page is not empty."""
+    doc = pymupdf.open()
+    page = doc.new_page(width=612, height=792)
+    page.insert_text((72, 40), "Ruled page", fontsize=10)
+    shape = page.new_shape()
+    top, bottom = 0.1 * 792, 0.9 * 792
+    step = (bottom - top) / max(rows - 1, 1)
+    width = (540 - 72) / segments_per_row
+    for r in range(rows):
+        y = top + r * step
+        for k in range(segments_per_row):
+            shape.draw_line((72 + k * width, y), (72 + (k + 1) * width, y))
+    shape.finish(color=(0, 0, 0), width=0.3)
+    shape.commit()
+    path = out / name
+    doc.save(path)
+    return path
+
+
+def rule_rows(out: pathlib.Path) -> pathlib.Path:
+    """450 full-width rule rows: over TABLE_RULE_ROWS_MAX (400)."""
+    return _rules_page(out, "limit_rule_rows.pdf", 450, 1)
+
+
+def rule_segments(out: pathlib.Path) -> pathlib.Path:
+    """100 rule rows of 11 segments each, 1,100 segments: over
+    TABLE_RULES_MAX (1000)."""
+    return _rules_page(out, "limit_rule_segments.pdf", 100, 11)
+
+
+FIXTURES = {
+    "projection": projection,
+    "rule_rows": rule_rows,
+    "rule_segments": rule_segments,
+}
 
 
 def main(argv: list[str]) -> None:

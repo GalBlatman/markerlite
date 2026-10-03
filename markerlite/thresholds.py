@@ -155,3 +155,10 @@ WRAP_MAX_RECORD_KEY_WORDS = 6
 # coordinate; at most 172.5 pt outside a 612 x 792 pt page (0.22 of its larger
 # side, SBTi). Limit 3.0 page sides.
 TABLE_PROJECTION_MARGIN = 3.0
+
+# Rule pairing for table zones. Measured: at most 75 horizontal rule
+# segments on a page (R00023) and 31 distinct rule rows (R00293). Limits 1000
+# segments (13x) and 400 rows (13x); above them the zone search is skipped.
+TABLE_RULES_MAX = 1000
+TABLE_RULE_ROWS_MAX = 400
+

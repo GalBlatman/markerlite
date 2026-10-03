@@ -57,3 +57,67 @@ def test_projection_fixture_degrades_to_prose_with_a_warning(made):
 def test_no_limit_record_on_an_ordinary_document(made):
     _md, info = convert(ROOT / "tests" / "fixtures" / "caption_inside_table.pdf", made)
     assert "resource_limits" not in info["stats"]
+
+
+def _old_rule_zones(extents, page):
+    """The pairing search before the limit commit, kept as the reference."""
+    from markerlite.thresholds import (
+        TABLE_RULE_EDGE_TOL,
+        TABLE_RULE_MAX_HEIGHT_FRAC,
+        TABLE_RULE_MIN_HEIGHT,
+        TABLE_RULE_MIN_WIDTH_FRAC,
+    )
+
+    zones = []
+    for y0, x0, x1 in extents:
+        for y1, a, b in extents:
+            if (
+                TABLE_RULE_MIN_HEIGHT
+                < y1 - y0
+                < TABLE_RULE_MAX_HEIGHT_FRAC * page.height
+                and x1 - x0 > TABLE_RULE_MIN_WIDTH_FRAC * page.width
+                and abs(x0 - a) < TABLE_RULE_EDGE_TOL
+                and abs(x1 - b) < TABLE_RULE_EDGE_TOL
+                and any(
+                    y0 < mid < y1
+                    and abs(left - x0) < TABLE_RULE_EDGE_TOL
+                    and abs(right - x1) < TABLE_RULE_EDGE_TOL
+                    for mid, left, right in extents
+                )
+            ):
+                zones.append((x0, y0, x1, y1))
+    return zones
+
+
+def test_rule_pairing_is_identical_to_the_cubic_search():
+    import random
+
+    from markerlite.tables import _rule_rows, _rule_zones
+
+    rng = random.Random(20261002)
+    page = Page(page_idx=0, width=612, height=792, blocks=[])
+    for _trial in range(300):
+        rules = []
+        for _ in range(rng.randint(0, 40)):
+            y = round(rng.uniform(60, 760), rng.choice((0, 1, 2)))
+            x0 = rng.choice((72, 72.5, 74, 90, 300))
+            x1 = rng.choice((540, 539, 536, 450, 320))
+            for _ in range(rng.randint(1, 3)):
+                rules.append(
+                    (y, x0 + rng.choice((0, 1, 5)), x1 - rng.choice((0, 1, 5)))
+                )
+        extents = _rule_rows(rules, page)
+        assert _rule_zones(rules, page) == _old_rule_zones(extents, page)
+
+
+@pytest.mark.parametrize(
+    "make,limit",
+    [("rule_rows", "table_rule_rows"), ("rule_segments", "table_rules")],
+)
+def test_rule_limits_degrade_with_a_warning(made, make, limit):
+    pdf = getattr(fixtures, make)(made)
+    md, info = convert(pdf, made)
+    [record] = _limits(info, limit)
+    assert record["observed"] > record["cap"]
+    assert f"{limit} p1" in summarize(info["stats"])
+    assert "Ruled page" in md.read_text(encoding="utf-8")
