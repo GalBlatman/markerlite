@@ -15,8 +15,9 @@ use. A blog post about it is planned; the README is written for that audience
 and its claims have been deliberately made honest — do not inflate them.
 
 Public repo: github.com/GalBlatman/markerlite · Apache-2.0 · current release
-v0.1.16 (`/releases/latest` is the download link the README and blog use;
-release notes are the tag's CHANGELOG.md section).
+v0.1.17 (`/releases/latest` is the download link the README and blog use;
+release notes are the tag's CHANGELOG.md section). The golden baseline
+is still tests/golden/v0.1.16.json: v0.1.17 changed no conversion output.
 
 ## Layout
 
