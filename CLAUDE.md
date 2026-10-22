@@ -154,6 +154,19 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
   of the monitor it opens on, then measured and shrunk if off-screen. Bottom
   controls are packed first with side=bottom so they can never be clipped.
   The user has two monitors with different scaling — test both.
+- Cancel (v0.1.17): Convert becomes Cancel, Esc too; markerlite/cancel.py
+  token checked between pages, Tesseract killed, Cancelled is a
+  BaseException so `except Exception` never swallows it. Worst measured
+  latency 6.63 s; the worker-process design waits in tests/PLAN-cleanup.md.
+- Output is atomic (markerlite/output.py): `.part` files and folders,
+  renamed into place only on success. Never write an output file directly.
+- Single instance (markerlite/instance.py): per-user mutex, AF_PIPE hand-off
+  with authkey, JSON bytes only (never pickle). Hand-offs reach Tk through
+  the event queue drained by after(). Send to = a SendTo shortcut written
+  via PowerShell/WScript.Shell with paths in environment variables
+  (markerlite/sendto.py); the GUI checkbox exists only in the frozen exe.
+  Pure GUI decisions (menu enablement, cancel status, hand-off queueing,
+  launch arguments) live in gui_logic.py and are unit-tested.
 - `markerlite.exe --diag` writes markerlite-diag.txt beside the exe. Its first
   line is `markerlite <version>`.
 - The version is visible without a console: the window title is

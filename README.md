@@ -196,6 +196,23 @@ do what they say. When a batch finishes, the status line reports it as
 the window title and at the right of the status bar; click it to copy the
 markerlite, Tesseract and Windows versions for a bug report.
 
+While a batch runs, **Convert** becomes **Cancel** (Esc does the same). The
+file being converted is abandoned and leaves nothing behind, files already
+converted stay, and the rest are skipped; the run log says which. Cancel
+takes effect between pages, usually within a second; a long whole-document
+step can hold it for a few seconds (the worst measured was 6.6 s).
+
+Right-click a file for Open Markdown, Open PDF, Show in folder, Copy
+Markdown, Show warnings (that file's lossy pages, fragment pages, tables
+kept as prose and resource limits), Re-convert and Remove from list. Entries
+that do not apply are greyed out, and Remove only takes the file off the
+list. The preview pane has Copy and Select all.
+
+Output is written whole or not at all: each file is written under a
+`.part` name and renamed into place only when the conversion succeeds, so a
+failed or cancelled conversion never replaces a good earlier result with
+half a file. The same holds on the command line, where Ctrl+C cancels.
+
 **Send to.** In the Windows app, tick *Add markerlite to Explorer's Send to
 menu*. Then select PDFs in Explorer, right-click, *Send to* → *markerlite*:
 they are added to the list and converted with the current settings. If

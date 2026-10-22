@@ -3,6 +3,84 @@
 Changes that affect output or use, newest first. Every release's golden
 audit (tests/golden.py) lists which reference documents changed and why.
 
+## v0.1.17
+
+An interim release for the Windows app. Conversion output is unchanged:
+every reference document converts to the same Markdown and stats as in
+v0.1.16 (golden audit 85/85 after every commit).
+
+### App
+
+- **Cancel.** While a batch runs, Convert becomes Cancel; Esc does the
+  same. "Cancelling…" shows at once. The current file is abandoned between
+  pages (a running Tesseract is stopped) and leaves no output; finished
+  files stay; the rest are skipped. The run log names the cancelled and
+  skipped files.
+- **Right-click menu** on file rows: Open Markdown, Open PDF, Show in
+  folder, Copy Markdown, Show warnings, Re-convert, Remove from list
+  (entries enabled only when they apply; nothing is deleted from disk).
+  The preview pane has Copy and Select all.
+- **Explorer "Send to".** An option, off by default, adds markerlite to
+  Explorer's Send to menu (a shortcut in your own SendTo folder; no
+  registry change, no admin rights). Files sent while markerlite is open
+  go to that window and queue behind a running batch. Untick the option
+  before deleting the markerlite folder.
+- **One window.** A second launch hands its files to the open window over
+  a local, per-user, authenticated pipe instead of opening another.
+
+### Output
+
+- **Atomic output.** Every output file and folder is written under a
+  `.part` name and renamed into place only when the whole conversion
+  succeeds. A failure, a cancel or Ctrl+C on the command line leaves no
+  `.part` behind and the previous complete output intact.
+
+### Command line
+
+- Ctrl+C cancels with the same cleanup, lists the cancelled and skipped
+  files, and exits with status 130.
+
+### Build
+
+- The zip no longer ships the CI runner's `markerlite-diag.txt`; the
+  build log prints the zip's SHA-256; artifact actions moved to versions
+  on Node 24, still pinned to commit SHAs.
+
+### Measured cancel latency, as is
+
+Time from Cancel to idle on every reference document, cancelling at
+10/30/50/70/90% of its conversion, with Tesseract available and hidden.
+Worst case 6.63 s. Long cancels happen inside whole-document steps that
+check for a cancel only before and after; a worker-process design that
+would make cancel immediate is recorded in tests/PLAN-cleanup.md.
+
+| Document | OCR | Conversion | Worst cancel |
+| --- | --- | --- | --- |
+| capiq_keydev.pdf | yes | 57.5 s | 0.39 s |
+| greenwood2006.pdf | yes | 10.4 s | 0.27 s |
+| jay2013.pdf | yes | 20.7 s | 0.23 s |
+| kitchener2002.pdf | yes | 116.1 s | 3.48 s |
+| kostova1999.pdf | yes | 63.7 s | 0.04 s |
+| peng2009.pdf | yes | 6.5 s | 0.28 s |
+| R02027.pdf | yes | 35.2 s | 0.22 s |
+| Ragins craft of clear writing 2012.pdf | yes | 2.6 s | 0.19 s |
+| suchman1995.pdf | yes | 110.9 s | 0.34 s |
+| Target-Validation-Protocol.pdf | yes | 57.3 s | 6.63 s |
+| wry2013.pdf | yes | 8.9 s | 0.16 s |
+| york2018.pdf | yes | 10.0 s | 0.28 s |
+| capiq_keydev.pdf | hidden | 44.1 s | 0.28 s |
+| greenwood2006.pdf | hidden | 7.8 s | 0.23 s |
+| jay2013.pdf | hidden | 15.2 s | 0.53 s |
+| kitchener2002.pdf | hidden | 22.5 s | 2.21 s |
+| kostova1999.pdf | hidden | 6.2 s | 0.51 s |
+| peng2009.pdf | hidden | 4.9 s | 0.22 s |
+| R02027.pdf | hidden | 29.1 s | 3.72 s |
+| Ragins craft of clear writing 2012.pdf | hidden | 2.4 s | 0.06 s |
+| suchman1995.pdf | hidden | 6.2 s | 0.09 s |
+| Target-Validation-Protocol.pdf | hidden | 45.1 s | 1.73 s |
+| wry2013.pdf | hidden | 6.4 s | 0.12 s |
+| york2018.pdf | hidden | 7.5 s | 0.41 s |
+
 ## v0.1.16
 
 ### Output changes
