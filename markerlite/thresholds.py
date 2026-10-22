@@ -51,6 +51,10 @@ LOCAL_BODY_MIN_CHARS = 400
 # evidence is unreliable), and listed in stats["heading_guard_pages"].
 HEADING_DENSITY_MAX = 1 / 3
 HEADING_DENSITY_MIN_LINES = 12
+# A paragraph's last line on a page counts as full width when it ends within
+# this many points of the block's widest line (proc_continuation).
+CONTINUATION_FULL_TOL = 1.0
+CONTINUATION_TOL_MIN_WORDS = 3
 # A raster-covered page whose text layer is fragments is a sideways scan
 # OCR'd without orientation (R00443 pp. 14, 16; R02027 pp. 30, 31, 36).
 # Tesseract's orientation detection (--psm 0) is asked; it answered

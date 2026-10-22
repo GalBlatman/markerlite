@@ -788,8 +788,25 @@ def proc_continuation(
         lines = [ln for ln in blk.lines if ln.width > 1]
         last_full_width = last_hyphenated = False
         if lines:
-            max_x = math.floor(max(ln.x_end for ln in lines))
-            last_full_width = lines[-1].x_end >= max_x
+            # Full width within CONTINUATION_FULL_TOL: justified lines end a
+            # fraction of a point apart, and flooring the widest one made a
+            # full last line at 542.97 "short" of 543 (review bundle, six
+            # paragraphs cut at a page break).
+            max_x = max(ln.x_end for ln in lines)
+            last_full_width = lines[-1].x_end >= math.floor(max_x)
+            if not last_full_width and lines[-1].x_end >= max_x - CONTINUATION_FULL_TOL:
+                # Only prose qualifies on the tolerance: a column of numbers
+                # from an undetected table ends near its widest line too, and
+                # a paragraph never runs on into a table or figure caption.
+                tail = lines[-1].text.strip()
+                last_full_width = (
+                    len(tail.split()) >= CONTINUATION_TOL_MIN_WORDS
+                    and not re.search(r"[.!?]['\"’”)]*$", tail)
+                    and not re.match(
+                        r"(?i)(table|figure|fig\.|exhibit)\s+[\dIVX]",
+                        nxt.lines[0].text.strip(),
+                    )
+                )
             last_hyphenated = bool(HYPHEN_END.match(lines[-1].text.strip()))
         if len(blk.lines) < 2 and not last_hyphenated:
             continue
