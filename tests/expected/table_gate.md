@@ -1,6 +1,6 @@
 ## Table 2 Practices by sector
 
-<!-- table p. 1: grid from ruling lines -->
+<!-- table p. 1: grid from ruling lines; verify before use -->
 
 | Sector | Firms | Practice |
 | --- | --- | --- |

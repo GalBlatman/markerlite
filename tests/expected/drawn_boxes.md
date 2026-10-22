@@ -92,7 +92,7 @@ The boxes are stages; arrows show the order.
 
 # Table 4 Stages by site
 
-<!-- table p. 2: grid from ruling lines -->
+<!-- table p. 2: grid from ruling lines; verify before use -->
 
 | Site | Stage | Months |
 | --- | --- | --- |

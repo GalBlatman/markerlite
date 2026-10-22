@@ -1,6 +1,6 @@
 ## All-text inventory: ruled
 
-<!-- table p. 1: grid from ruling lines -->
+<!-- table p. 1: grid from ruling lines; verify before use -->
 
 | Record | Requirement | Assessment |
 | --- | --- | --- |

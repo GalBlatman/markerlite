@@ -328,7 +328,8 @@ def check_drawn_boxes(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
         and "| North | Routines | 14 |" in text
         and "<!-- table p. 1" in text
         and "sensemaking" in text
-        and text.count("<!-- table p. 2: grid from ruling lines -->") == 1
+        and text.count("<!-- table p. 2: grid from ruling lines; verify before use -->")
+        == 1
     )
     if not ok:
         print(f"FAIL  drawn-boxes: gated {gated}")

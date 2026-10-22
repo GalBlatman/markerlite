@@ -1,4 +1,4 @@
-<!-- table p. 1: grid from ruling lines -->
+<!-- table p. 1: grid from ruling lines; verify before use -->
 
 | Category | Description | Assessment |
 | --- | --- | --- |
@@ -6,7 +6,7 @@
 | Alpha revised | Reported exclusions | Reviewed |
 | Alpha final | Published account | Accepted |
 
-<!-- table p. 2: grid from ruling lines -->
+<!-- table p. 2: grid from ruling lines; verify before use -->
 
 | Category | Description | Assessment |
 | --- | --- | --- |
@@ -16,7 +16,7 @@
 
 Unique margin observation
 
-<!-- table p. 3: grid from ruling lines -->
+<!-- table p. 3: grid from ruling lines; verify before use -->
 
 | Category | Description | Assessment |
 | --- | --- | --- |

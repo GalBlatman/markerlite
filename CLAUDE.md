@@ -154,8 +154,8 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
   emitted grids that are correct, on >= 50 held-out kept grids labelled
   from rendered pages with an independent second check) is the standing
   table metric (v0.1.18: 16/49 held out, 95% interval 0.21-0.47).
-  Every emitted grid carries `<!-- table p. N: grid from ruling lines -->`
-  or `<!-- table p. N: grid from aligned text; verify before use -->`
+  Every emitted grid carries
+  `<!-- table p. N: grid from ruling lines; verify before use -->` or `<!-- table p. N: grid from aligned text; verify before use -->`
   (gate.evidence_kind; cell edges that line up count as rules). It names
   the evidence, not a confidence: ruled grids were not more often correct.
 - **Token preservation ≠ structural correctness.** A table can keep every

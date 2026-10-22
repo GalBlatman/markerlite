@@ -93,7 +93,7 @@ def test_every_grid_names_its_evidence(tmp_path):
     ruled = ROOT / "tests" / "fixtures" / "hard.pdf"  # one stroked box per cell
     md, _info = markerlite.convert(ruled, tmp_path)
     text = md.read_text(encoding="utf-8")
-    assert "<!-- table p. 2: grid from ruling lines -->\n\n|" in text
+    assert "<!-- table p. 2: grid from ruling lines; verify before use -->\n\n|" in text
     assert gate.evidence_kind({"hrules": 0, "vrules": 0}) == "text"
     assert gate.evidence_kind({"hrules": 0, "vrules": 0, "hrules_joined": 3}) == "rules"
 

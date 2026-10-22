@@ -2,7 +2,7 @@
 
 The text-layer path handles digital publications; a raster copy of the same file drives the recognition path. Both paths converge on the same block structure before any processor runs. Nothing in the pipeline depends on a downloaded model, which is the constraint that motivated the project. Line heights are clustered to recover heading levels when a document has no section numbers.
 
-<!-- table p. 1: grid from ruling lines -->
+<!-- table p. 1: grid from ruling lines; verify before use -->
 
 | Criterion | Requirement | Assessment |
 | --- | --- | --- |

@@ -30,7 +30,7 @@ The remaining processors are direct ports and are documented against the source 
 
 [^2]: The footer zone is the bottom thirteen percent of the page in the reference implementation.
 
-<!-- table p. 2: grid from ruling lines -->
+<!-- table p. 2: grid from ruling lines; verify before use -->
 
 | Feature | Precision | Recall | N |
 | --- | --- | --- | --- |

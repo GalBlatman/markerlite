@@ -4,7 +4,7 @@ Journals that style every heading identically defeat the height clustering and l
 
 Expected outputs are committed beside the fixtures and compared byte for byte. A behaviour change that is intended is recorded by rewriting the expected files in the same commit. An unintended change fails the build before it reaches a release. The vendored table code is treated as third-party and is not edited locally.
 
-<!-- table p. 2: grid from ruling lines -->
+<!-- table p. 2: grid from ruling lines; verify before use -->
 
 | Variable | Mean | SD | VIF |
 | --- | --- | --- | --- |
@@ -17,7 +17,7 @@ Expected outputs are committed beside the fixtures and compared byte for byte. A
 
 Notes: N = 5,110 observations. All values are synthetic.
 
-<!-- table p. 3: grid from ruling lines -->
+<!-- table p. 3: grid from ruling lines; verify before use -->
 
 | Variable | Mean | SD | VIF |
 | --- | --- | --- | --- |

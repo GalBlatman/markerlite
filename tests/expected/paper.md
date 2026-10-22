@@ -40,7 +40,7 @@ Each condition comprised roughly 120 trials, randomized within block.[^1]
 
 Table 1 reports descriptives by condition. Both treatments exceed baseline, and Treatment A exceeds Treatment B.
 
-<!-- table p. 1: grid from ruling lines -->
+<!-- table p. 1: grid from ruling lines; verify before use -->
 
 | Condition | N | Mean | SD |
 | --- | --- | --- | --- |

@@ -2,7 +2,7 @@ Journal of Fixtures 12(3)
 
 *Table 1 Study 1 Descriptive Statistics of Model Variables by Experimental Condition*
 
-<!-- table p. 1: grid from ruling lines -->
+<!-- table p. 1: grid from ruling lines; verify before use -->
 
 | Variable | Hybrid A | Business | Hybrid B | Charity |
 | --- | --- | --- | --- | --- |

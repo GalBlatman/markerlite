@@ -372,7 +372,7 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                     # Say what the grid stands on, so a reader knows which
                     # tables to check before using them as data.
                     out.append(
-                        f"<!-- table p. {page.page_idx + 1}: grid from ruling lines -->"
+                        f"<!-- table p. {page.page_idx + 1}: grid from ruling lines; verify before use -->"
                         if blk.grid_evidence == "rules"
                         else f"<!-- table p. {page.page_idx + 1}: "
                         "grid from aligned text; verify before use -->"

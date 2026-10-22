@@ -51,11 +51,13 @@ usual cause. A confidence gate keeps a grid only when the page and the grid
 show it is a table and its cells hold the source's words. Most of what it
 removes are non-tables and broken grids, and some correct tables are lost
 to it. Every grid is labelled just before it:
-`<!-- table p. N: grid from ruling lines -->` when drawn rules support it,
-or `<!-- table p. N: grid from aligned text; verify before use -->` when
-only the alignment of the text does. The label says what the grid stands
-on, not whether it is right: ruled grids were no more often correct in
-that sample. When reconstruction fails or the gate stops a grid, the
+`<!-- table p. N: grid from ruling lines; verify before use -->` when
+drawn rules support it, or
+`<!-- table p. N: grid from aligned text; verify before use -->` when only
+the alignment of the text does. The label states what the grid stands on,
+not how reliable it is: in that sample, ruled grids were correct in 11 of
+36 cases and aligned-text grids in 5 of 13, so both carry the same
+caution. When reconstruction fails or the gate stops a grid, the
 region's text is kept as ordered prose with a `<!-- table p. N:
 reconstruction failed; text kept as prose -->` marker. The text is
 preserved and the layout is lost. The marker appears only where the region

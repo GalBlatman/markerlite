@@ -29,11 +29,11 @@ is listed in tests/REPORT-block2-stop2.md and the commit messages.
   held-out samples of about 50 grids. Most remaining errors are rows and
   columns misassigned inside real tables, which a gate cannot catch.
 - **Evidence labels.** Every emitted grid has a comment immediately before
-  it: `<!-- table p. N: grid from ruling lines -->` or
+  it: `<!-- table p. N: grid from ruling lines; verify before use -->` or
   `<!-- table p. N: grid from aligned text; verify before use -->`. The
-  label states what the grid stands on, not how trustworthy it is: on
-  the held-out sample, ruling-line grids were good in 11 of 36 cases and
-  aligned-text grids in 5 of 13.
+  label states what the grid stands on, not how reliable it is: on the
+  held-out sample, ruling-line grids were correct in 11 of 36 cases and
+  aligned-text grids in 5 of 13, so both carry the same caution.
 - **Drawn-box test.** Three or more stroked boxes in a region, none
   touching another, are a diagram (a model or flow figure), not table
   cells. On the labelled sets it removes 4 grids, all figures or

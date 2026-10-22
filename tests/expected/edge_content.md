@@ -8,7 +8,7 @@ Researcher, A. 2001. An example reference.
 
 39: 432-478.
 
-<!-- table p. 1: grid from ruling lines -->
+<!-- table p. 1: grid from ruling lines; verify before use -->
 
 | Measure | Value |
 | --- | --- |
@@ -25,7 +25,7 @@ Researcher, A. 2001. An example reference.
 
 653-669.
 
-<!-- table p. 2: grid from ruling lines -->
+<!-- table p. 2: grid from ruling lines; verify before use -->
 
 | Measure | Value |
 | --- | --- |

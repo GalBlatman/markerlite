@@ -10,7 +10,7 @@ This study examines how researchers interpret organizational decisions when diff
 
 Keywords: organizations, decisions, evidence
 
-<!-- table p. 1: grid from ruling lines -->
+<!-- table p. 1: grid from ruling lines; verify before use -->
 
 | Group | Observed | Expected |
 | --- | --- | --- |
@@ -30,7 +30,7 @@ DOI: 10.1000/second-layout
 
 Keywords: organizations, decisions, evidence
 
-<!-- table p. 2: grid from ruling lines -->
+<!-- table p. 2: grid from ruling lines; verify before use -->
 
 | Group | Observed | Expected |
 | --- | --- | --- |
@@ -40,7 +40,7 @@ Keywords: organizations, decisions, evidence
 
 ## First-page booktabs control
 
-<!-- table p. 3: grid from ruling lines -->
+<!-- table p. 3: grid from ruling lines; verify before use -->
 
 | Group | Observed | Expected |
 | --- | --- | --- |
