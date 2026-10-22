@@ -30,8 +30,8 @@ from markerlite.extraction import (  # noqa: E402
 )
 
 # The baseline every audit compares with: the latest released version.
-# Older manifests stay beside it for history (v0.1.14.json).
-DEFAULT_MANIFEST = ROOT / "tests" / "golden" / "v0.1.16.json"
+# Older manifests stay beside it for history (v0.1.14.json, v0.1.16.json).
+DEFAULT_MANIFEST = ROOT / "tests" / "golden" / "v0.1.18.json"
 PACKET_GLOB = "*PACKET-*.json"
 # Local, git-ignored list of tests/real files that must never enter a
 # recorded manifest (confidential documents): one file name per line.

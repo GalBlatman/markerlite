@@ -16,8 +16,10 @@ and its claims have been deliberately made honest — do not inflate them.
 
 Public repo: github.com/GalBlatman/markerlite · Apache-2.0 · current release
 v0.1.17 (`/releases/latest` is the download link the README and blog use;
-release notes are the tag's CHANGELOG.md section). The golden baseline
-is still tests/golden/v0.1.16.json: v0.1.17 changed no conversion output.
+release notes are the tag's CHANGELOG.md section). v0.1.18 is the
+release candidate awaiting its tag; the golden baseline is
+tests/golden/v0.1.18.json (recorded from the candidate, cmr_review.pdf
+excluded). v0.1.16.json stays for history.
 
 ## Layout
 
@@ -132,6 +134,10 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
 - **Heading levels come from section numbering when present** (`3.1` → h3),
   else KMeans over line heights. Two bugs in Marker's own sectionheader.py
   are fixed here (axis=0 sort scrambling pairs; forced 4 clusters).
+- **Confidential inputs.** tests/real/cmr_review.pdf is confidential: never
+  commit it or its text, quote none of it, describe pages by number only.
+  It is listed in the git-ignored tests/real/.golden-exclude, which
+  golden.py record honours.
 - **Equation detection uses glyphs + placement, not just font names**, so
   Symbol+Times equations are caught. Equations are NOT converted to LaTeX;
   `--flag-math` crops them for a vision pass, `--apply-math` splices results.
@@ -141,12 +147,18 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
   The table-confidence gate (markerlite/gate.py) applies this: a grid
   without rule or column evidence, under two rows or columns, over a
   curve, mostly sentences (>= 0.40), not holding its source words
-  (> 0.05 off) or with continuation rows (>= 0.15) is kept as prose. Its
+  (> 0.05 off), with continuation rows (>= 0.15) or drawn as three or
+  more separate stroked boxes none touching another (a diagram, test 7)
+  is kept as prose. Its
   thresholds were checked on held-out documents; do not loosen them on
   the labels they were measured on. Kept-grid precision (share of
   emitted grids that are correct, on >= 50 held-out kept grids labelled
   from rendered pages with an independent second check) is the standing
-  table metric.
+  table metric (v0.1.18: 16/49 held out, 95% interval 0.21-0.47).
+  Every emitted grid carries `<!-- table p. N: grid from ruling lines -->`
+  or `<!-- table p. N: grid from aligned text; verify before use -->`
+  (gate.evidence_kind; cell edges that line up count as rules). It names
+  the evidence, not a confidence: ruled grids were not more often correct.
 - **Token preservation ≠ structural correctness.** A table can keep every
   word and still be unusable if words land in the wrong cells. Word ratios
   (the 0.9 guards, conservation) catch loss; only per-cell token identity
@@ -480,9 +492,11 @@ parentheses fails if the fix is undone):
   tests/GOLD-TABLES.md, scorer tests/score_gold_tables.py; 29 tables, 8
   controls, 1 ambiguous item), evidence tests/REPORT-block2-evidence.md.
   Stop 1 (E1-E3) is done (tests/REPORT-block2-stop1.md); false markers on
-  controls 3 -> 0, five false grids remain. Stop 2 (the table-confidence
-  gate, rotated pages investigated first) starts only after v0.1.16 is
-  published.
+  controls 3 -> 0, five false grids remain. Stop 2 is done
+  (tests/REPORT-block2-stop2.md): gate, labels, drawn-box test; gold
+  WRONG 18 -> 15, controls FALSE-GRID 5 -> 2. Stop 3 (row/header/column
+  association, aligned-column text proposals, and the measured rule-only
+  fallback option) is planned there and not started.
 - Table work follows tests/PLAN-tables.md; items 0, 1, 7, 8, 11b done;
   fallback-to-prose done; item 5 not needed after fallback-to-prose (no evidence
   in 44 remaining reference regions); item 6 done; 2,3,4 then 9,10,11a,11c pending review; 12 is evidence only. Items 2 and 5 carry extra

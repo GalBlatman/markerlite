@@ -3,6 +3,66 @@
 Changes that affect output or use, newest first. Every release's golden
 audit (tests/golden.py) lists which reference documents changed and why.
 
+## v0.1.18
+
+Tables: a confidence gate, evidence labels and a drawn-box test. Scans:
+sideways scans re-OCRed upright. Headings: per-page body size. The golden
+baseline is now tests/golden/v0.1.18.json; every change against v0.1.16
+is listed in tests/REPORT-block2-stop2.md and the commit messages.
+
+### Tables
+
+- **Table-confidence gate.** A reconstructed grid is emitted only when
+  the page and the grid show it is a table. The page needs ruling lines or
+  recurring column starts, the grid at least two rows and two columns, no
+  curve drawn inside it, and fewer than 40% of its lines ending a sentence.
+  Its cells must hold the source's words (token identity within 5%), and
+  fewer than 15% of its rows may be wrapped continuation lines. Below the
+  gate the region is kept as marked prose with every word. The removed
+  grids are recorded in stats `tables_gated` with the failing test.
+  Measured effect: on 142 held-out documents the gate removed 95 grids,
+  82 of them wrong (a bad grid or not a table) and 13 correct. Correct
+  grids turned into prose are the accepted cost (19 across the training
+  and held-out sets). Gold set: wrong grids 18 -> 15, false grids on
+  controls 5 -> 2. The kept-grid precision did not move measurably:
+  0.34 (95% interval 0.22-0.48) before, 0.33 (0.21-0.47) after, on
+  held-out samples of about 50 grids. Most remaining errors are rows and
+  columns misassigned inside real tables, which a gate cannot catch.
+- **Evidence labels.** Every emitted grid has a comment immediately before
+  it: `<!-- table p. N: grid from ruling lines -->` or
+  `<!-- table p. N: grid from aligned text; verify before use -->`. The
+  label states what the grid stands on, not how trustworthy it is: on
+  the held-out sample, ruling-line grids were good in 11 of 36 cases and
+  aligned-text grids in 5 of 13.
+- **Drawn-box test.** Three or more stroked boxes in a region, none
+  touching another, are a diagram (a model or flow figure), not table
+  cells. On the labelled sets it removes 4 grids, all figures or
+  non-tables, and no correct one.
+
+### Scans
+
+- **Sideways scans re-OCRed upright.** A raster page whose hidden OCR
+  layer reads as fragments because it was made without orientation is
+  OCRed again turned upright, and the result is kept only if it reads as
+  words (R00443 pp. 14, 16; R02027 pp. 30, 31, 36).
+
+### Headings and paragraphs
+
+- **Per-page body size.** A page with enough text of its own is judged
+  against its own body size, never a smaller one, so a 12 pt manuscript
+  bound with a 9.5 pt letter no longer turns every line into a heading.
+- **Heading-density guard.** A page where more than a third of the lines
+  became headings is judged again by weight and shape alone, and listed
+  in stats `heading_guard_pages` with a warning.
+- A justified paragraph that ends a hair short of the column edge now
+  joins its continuation on the next page; cells of one table row are
+  never joined that way.
+
+### Testing
+
+- `tests/golden.py record` skips any `tests/real` file named in the local,
+  git-ignored `tests/real/.golden-exclude`.
+
 ## v0.1.17
 
 An interim release for the Windows app. Conversion output is unchanged:

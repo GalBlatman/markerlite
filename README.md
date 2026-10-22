@@ -43,18 +43,26 @@ the failure modes are quiet ones.
 
 ## What is partial
 
-**Tables.** Sometimes excellent, sometimes wrong. Borderless and scanned tables
-often reconstruct correctly; tables with tall multi-line cells can assign
-content to the wrong row, which shifts values silently. When reconstruction
-fails or keeps fewer than 90% of the geometric grid's words, the region's source
-text is kept as ordered prose with a `<!-- table p. N: reconstruction failed;
-text kept as prose -->` marker. This preserves text but loses the table layout,
-even when the geometric grid was usable. The marker appears only where the
-failed candidate looks like a table (ruling lines, or columns that recur from
-row to row); when the detector matched body prose, a reference list or a
-figure, that text comes out as ordinary text with no marker. Successful
-reconstructions can still misassign cells. **Verify any table you intend to
-read as data.**
+**Tables.** Most emitted grids are wrong somewhere. On a held-out sample of
+journal articles, about one emitted grid in three (16 of 49; 95% interval
+21-47%) matched the printed table; the rest put some values in the wrong
+row or column, which shifts them silently. Tall multi-line cells are the
+usual cause. A confidence gate keeps a grid only when the page and the grid
+show it is a table and its cells hold the source's words. Most of what it
+removes are non-tables and broken grids, and some correct tables are lost
+to it. Every grid is labelled just before it:
+`<!-- table p. N: grid from ruling lines -->` when drawn rules support it,
+or `<!-- table p. N: grid from aligned text; verify before use -->` when
+only the alignment of the text does. The label says what the grid stands
+on, not whether it is right: ruled grids were no more often correct in
+that sample. When reconstruction fails or the gate stops a grid, the
+region's text is kept as ordered prose with a `<!-- table p. N:
+reconstruction failed; text kept as prose -->` marker. The text is
+preserved and the layout is lost. The marker appears only where the region
+looks like a table (ruling lines, or columns that recur from row to row);
+body prose, a reference list or a figure the detector matched comes out as
+ordinary text with no marker. **Verify any table you intend to read as
+data.**
 
 **Figures.** markerlite does not read figures; it hands them to something that
 can. Every figure it finds leaves a placeholder at its position in the text,
