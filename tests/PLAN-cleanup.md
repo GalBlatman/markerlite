@@ -574,3 +574,14 @@ Design, when built:
 
 Trigger for building it: the Unknown Knowns pipeline moves to a newer
 markerlite, or a repeated latency run shows a cancel above 10 s.
+
+## Backlog: bold sentence-case headings (recall)
+
+A whole-line bold heading in sentence case ("Governance after embedding")
+is not a heading: with no size evidence, a bold line needs numbering,
+title case or all caps (classification._is_heading). The confidential
+review bundle has seven on its manuscript pages (pp. 7, 19, 20 x3, 21,
+30; 19 of its 26 real headings are found). Fix to consider: a one-line,
+wholly bold block of a few words with no sentence punctuation, followed
+by body text, is a heading. Needs its own sweep: bold run-in lead-ins and
+bold table labels have the same shape. Known defect 2 is the same class.
