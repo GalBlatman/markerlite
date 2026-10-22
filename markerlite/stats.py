@@ -63,6 +63,7 @@ class ConversionStats(TypedDict):
     table_candidates_released: int
     reocr_pages: list[dict]
     tables_gated: list[dict]
+    heading_guard_pages: list[int]
     fragment_pages: list[FragmentPage]
 
 
@@ -244,6 +245,9 @@ def build_stats(
         stats["reocr_pages"] = reocr
     # Grids the table-confidence gate kept as prose, with the tests they
     # failed and the measures (markerlite/gate.py). Only when non-empty.
+    guarded = [p.page_idx + 1 for p in pages if p.heading_guard]
+    if guarded:
+        stats["heading_guard_pages"] = guarded
     gated = [e for p in pages for e in p.gate_events if e["failed"]]
     if gated:
         stats["tables_gated"] = gated
@@ -293,6 +297,14 @@ def stat_warnings(stats: ConversionStats) -> List[str]:
         out.append(
             f"{len(fragments)} page{'s' * (len(fragments) != 1)} emit text as "
             f"fragments ({shown}): mostly one- or two-letter pieces, check the source"
+        )
+    guarded = stats.get("heading_guard_pages") or []
+    if guarded:
+        shown = ", ".join(f"p{n}" for n in guarded[:8])
+        shown += ", \u2026" if len(guarded) > 8 else ""
+        out.append(
+            f"{len(guarded)} page{'s' * (len(guarded) != 1)} with too many "
+            f"size-only headings ({shown}): judged by weight and shape instead"
         )
     if stats.get("tables_fallback"):
         n = stats["tables_fallback"]

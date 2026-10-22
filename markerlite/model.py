@@ -409,6 +409,10 @@ class Page:
     # Degrees the page was turned for a re-OCR because its text layer was
     # fragments (extraction._reocr_fragments); 0 when not re-OCR'd.
     reocr_rotation: int = 0
+    # Heading-density guard (classification.classify): (text lines, share in
+    # headings) after the first pass, and whether the page was re-judged.
+    heading_density: tuple = (0, 0.0)
+    heading_guard: bool = False
     # The native layer extracts as nonsense (readable share under GARBLE_MIN).
     garbled: bool = False
     readable: float = 1.0

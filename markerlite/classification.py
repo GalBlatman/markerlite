@@ -76,6 +76,92 @@ def local_body_sizes(pages: List[Page], doc_body: float) -> List[float]:
     return out
 
 
+def _classify_page(
+    page: Page, page_body: float, in_refs: bool, list_open: bool, size_evidence=True
+):
+    """Classify one page's blocks; returns the reference-list state after it.
+    With ``size_evidence`` off a block is never a heading for being larger
+    than the body, only for its weight or shape (the heading-density guard)."""
+    for blk in page.blocks:
+        if blk.btype == "Table":
+            continue
+        if blk.btype == "Caption":
+            continue  # split off a table candidate by detect_tables
+        text = blk.text.strip()
+        if not text:
+            blk.ignore_for_output = True
+            continue
+
+        if blk.journal_front_matter:
+            # Keep the original blocks. A narrow journal title may wrap
+            # beyond the ordinary three-line heading limit; author and
+            # DOI typography should remain prose, not headings/equations.
+            blk.btype = "SectionHeader" if blk.journal_title else "Text"
+            continue
+
+        first = blk.lines[0].text.strip()
+        if REF_LIST_HEAD.match(text) and len(blk.lines) == 1:
+            list_open = True
+        else:
+            blk.in_reference_list = list_open
+
+        if _is_equation(blk, page, text):
+            blk.btype = "Equation"
+            blk.needs_vision = True
+            continue
+        if blk.font_ratio("mono") > MONO_MIN_SHARE and len(blk.lines) > 1:
+            blk.btype = "Code"
+            continue
+        if CAPTION_START.match(first) and len(text) < 900:
+            blk.btype = "Caption"
+            continue
+        # Headings are tested BEFORE lists: "2. Method" satisfies the list
+        # pattern too, and a numbered heading must not become a bullet.
+        is_head = _is_heading(
+            blk,
+            page_body if size_evidence else float("inf"),
+            text,
+            first,
+            ocr=page.ocr_used,
+            in_refs=in_refs,
+        )
+        # The references keyword itself is still a heading; the list
+        # starts after it.
+        if BIB_HINT.match(text):
+            in_refs = True
+        if is_head:
+            blk.btype = "SectionHeader"
+            if not REF_LIST_HEAD.match(text):
+                list_open = False
+                blk.in_reference_list = False
+            continue
+        # Footnotes before lists: "1. Smith and Lee..." at the foot of the
+        # page in small type is a note, but it also matches the list-item
+        # pattern, and the list test used to win. Numbered footnotes then
+        # rendered as bullets and never reached the footnote path at all.
+        if _is_footnote(blk, page, page_body, first):
+            blk.btype = "Footnote"
+            continue
+        if LIST_ITEM_START.match(first):
+            blk.btype = "ListItem"
+            continue
+        blk.btype = "Text"
+    return in_refs, list_open
+
+
+def _heading_density(page: Page) -> tuple:
+    """(text lines on the page, share of them inside headings)."""
+    total = heads = 0
+    for blk in page.blocks:
+        if blk.btype in ("Table", "Caption") or blk.ignore_for_output:
+            continue
+        n = len(blk.lines)
+        total += n
+        if blk.btype == "SectionHeader":
+            heads += n
+    return total, (heads / total if total else 0.0)
+
+
 def classify(pages: List[Page], body_size: float) -> None:
     body_by_page = local_body_sizes(pages, body_size)
     # Set once a "References" line has been seen: past it, an OCR page's
@@ -85,65 +171,18 @@ def classify(pages: List[Page], body_size: float) -> None:
     # it a leading star or dagger marks the entry, it does not open a note.
     list_open = False
     for page, page_body in zip(pages, body_by_page):
-        for blk in page.blocks:
-            if blk.btype == "Table":
-                continue
-            if blk.btype == "Caption":
-                continue  # split off a table candidate by detect_tables
-            text = blk.text.strip()
-            if not text:
-                blk.ignore_for_output = True
-                continue
-
-            if blk.journal_front_matter:
-                # Keep the original blocks. A narrow journal title may wrap
-                # beyond the ordinary three-line heading limit; author and
-                # DOI typography should remain prose, not headings/equations.
-                blk.btype = "SectionHeader" if blk.journal_title else "Text"
-                continue
-
-            first = blk.lines[0].text.strip()
-            if REF_LIST_HEAD.match(text) and len(blk.lines) == 1:
-                list_open = True
-            else:
-                blk.in_reference_list = list_open
-
-            if _is_equation(blk, page, text):
-                blk.btype = "Equation"
-                blk.needs_vision = True
-                continue
-            if blk.font_ratio("mono") > MONO_MIN_SHARE and len(blk.lines) > 1:
-                blk.btype = "Code"
-                continue
-            if CAPTION_START.match(first) and len(text) < 900:
-                blk.btype = "Caption"
-                continue
-            # Headings are tested BEFORE lists: "2. Method" satisfies the list
-            # pattern too, and a numbered heading must not become a bullet.
-            is_head = _is_heading(
-                blk, page_body, text, first, ocr=page.ocr_used, in_refs=in_refs
+        state = (in_refs, list_open)
+        in_refs, list_open = _classify_page(page, page_body, in_refs, list_open)
+        lines, share = _heading_density(page)
+        page.heading_density = (lines, round(share, 3))
+        if lines >= HEADING_DENSITY_MIN_LINES and share > HEADING_DENSITY_MAX:
+            # Too many headings for one page: the size evidence is not to be
+            # trusted here (a body set larger than the size it was judged by).
+            # Judge the page again by weight and shape only, and say so.
+            in_refs, list_open = _classify_page(
+                page, page_body, *state, size_evidence=False
             )
-            # The references keyword itself is still a heading; the list
-            # starts after it.
-            if BIB_HINT.match(text):
-                in_refs = True
-            if is_head:
-                blk.btype = "SectionHeader"
-                if not REF_LIST_HEAD.match(text):
-                    list_open = False
-                    blk.in_reference_list = False
-                continue
-            # Footnotes before lists: "1. Smith and Lee..." at the foot of the
-            # page in small type is a note, but it also matches the list-item
-            # pattern, and the list test used to win. Numbered footnotes then
-            # rendered as bullets and never reached the footnote path at all.
-            if _is_footnote(blk, page, page_body, first):
-                blk.btype = "Footnote"
-                continue
-            if LIST_ITEM_START.match(first):
-                blk.btype = "ListItem"
-                continue
-            blk.btype = "Text"
+            page.heading_guard = True
 
     _split_list_blocks(pages)
     _unmark_lone_lists(pages)

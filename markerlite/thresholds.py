@@ -46,6 +46,11 @@ FRAGMENT_SHORT_SHARE = 0.7
 # this many characters (about five lines, where one heading or caption
 # decides the mode) inherits from the nearest page with enough.
 LOCAL_BODY_MIN_CHARS = 400
+# Heading-density guard: a page on which more than a third of the text
+# lines are headings is judged again by weight and shape only (its size
+# evidence is unreliable), and listed in stats["heading_guard_pages"].
+HEADING_DENSITY_MAX = 1 / 3
+HEADING_DENSITY_MIN_LINES = 12
 # A raster-covered page whose text layer is fragments is a sideways scan
 # OCR'd without orientation (R00443 pp. 14, 16; R02027 pp. 30, 31, 36).
 # Tesseract's orientation detection (--psm 0) is asked; it answered
