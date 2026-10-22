@@ -1,11 +1,11 @@
 # Block 2, stop 2: rotated pages and the table-confidence gate
 
-Date 2026-10-22. Item 1 is committed (8ec41af). Item 2, the gate, is
-implemented and measured inside the converter but **not committed**: as
-specified it fails one acceptance criterion (labelled good grids removed on
-audit pages). The measurements and the options are below for the owner's
-ruling. Baseline: tests/golden/v0.1.16.json. Pipeline documents were read
-in place.
+Date 2026-10-22. Item 1 is committed (8ec41af). The gate was committed
+after two owner rulings (f9d8cc5), followed by the grid evidence labels
+(01ebb9f) and the drawn-box test (8a2584e). The final numbers for the
+v0.1.18 release candidate are in the last section; the sections before it
+are the record of how the thresholds were chosen. Baseline:
+tests/golden/v0.1.16.json. Pipeline documents were read in place.
 
 ## Item 1: rotated pages (8ec41af)
 
@@ -228,3 +228,139 @@ Options for the owner:
 
 Not yet done (blocked behind this ruling): item 2 (drawn-box test),
 item 3 final numbers, item 4 release candidate.
+
+## Owner ruling 2 and what was committed
+
+The owner took option 1: prose 0.40 and 2-row grids allowed;
+continuation 0.15 and proposal identity 0.05 as specified (f9d8cc5). The
+acceptance rule was amended: no page loses text, and no page gains a
+wrong grid. A correct grid that becomes marked prose is an accepted,
+listed cost.
+
+## Final numbers (v0.1.18 release candidate)
+
+Gate as committed in f9d8cc5, with the drawn-box test (8a2584e).
+
+### Gold set
+
+| | Before the gate (8ec41af) | v0.1.18 |
+| --- | --- | --- |
+| EXACT / NEAR / WRONG / PROSE | 1 / 4 / 18 / 6 | 1 / 4 / 15 / 9 |
+| Wrong-grid count (tables) | 18 | 15 |
+| Mean cell association | 0.512 | 0.442 |
+| Mean adjacency F1 | 0.369 | 0.335 |
+| Controls CLEAN / FALSE-GRID / FALSE-MARKER | 3 / 5 / 0 | 4 / 2 / 2 |
+| Ambiguous (S0009 p17) | FALSE-GRID | FALSE-GRID |
+
+Prose scores 0 on cell association and adjacency F1 by construction, so
+both means fall when a wrong grid becomes prose. The wrong-grid count is
+the measure the amended rule uses. The two FALSE-MARKER controls are
+R00860 pp60/61: the drawn-box test removed their grids, and the
+reconstruction-failed marker stays because ruling lines touch the region.
+No gold table changed category because of the drawn-box test.
+
+### Held-out documents: the ship rule
+
+142 documents outside the 47, 271 gate decisions. Every grid the gate
+removes was labelled from its rendered page (two independent labellers,
+disagreements adjudicated from the page).
+
+| Removed grids | Count |
+| --- | --- |
+| Wrong (bad grid 62, not a table 20) | 82 |
+| Correct | 13 |
+
+Ship rule: the gate stays only if wrong >= 2x correct (>= 26). 82 >= 26,
+so the gate stays in v0.1.18. The drawn-box test removes one more held-out
+grid (AR0117 p16, two charts, labelled not a table), giving 83 wrong of
+96 removed: 0.865, 95% interval 0.782-0.919 (Wilson).
+
+### Kept-grid precision on held-out documents
+
+A random sample of 50 grids each version keeps, labelled the same way.
+
+| Version | Good / kept sample | Precision | 95% interval (Wilson) |
+| --- | --- | --- | --- |
+| v0.1.17 (no gate) | 17 / 50 | 0.34 | 0.224-0.478 |
+| v0.1.18 gate (f9d8cc5) | 16 / 50 | 0.32 | 0.208-0.458 |
+| v0.1.18 with the drawn-box test | 16 / 49 | 0.327 | 0.212-0.466 |
+
+The intervals overlap almost entirely. The gate removes non-tables and the
+worst grids (the removed set is 86% wrong). Precision on what it keeps
+does not move measurably, because most remaining errors are row and column
+association inside real tables.
+
+By evidence label (v0.1.18 sample with the drawn-box test):
+
+| Label | Good / kept | Precision | 95% interval |
+| --- | --- | --- | --- |
+| grid from ruling lines | 11 / 36 | 0.306 | 0.180-0.469 |
+| grid from aligned text; verify before use | 5 / 13 | 0.385 | 0.177-0.645 |
+
+Ruling lines do not make a grid more trustworthy on this sample. The
+label says what the grid stands on; it is not a confidence score.
+
+### Drawn-box test (8a2584e)
+
+Three or more stroked boxes inside the region, none sharing an edge with
+another, fail the gate. Cells drawn one box each touch, and a frame or row
+band spanning 90% of the region is not counted.
+
+| Set | Test fires | Newly removed | Labels of the newly removed | Good grids lost |
+| --- | --- | --- | --- | --- |
+| 172 labelled training decisions | 7 | 3 (R00263 p8, R00860 p60, p61) | all figure | 0 |
+| 271 held-out decisions | 4 | 1 (AR0117 p16) | not a table | 0 |
+
+No page loses a source word. On AR0117 p16 the chart axis labels move
+from grid cells to figure-text comments beside the two figure placeholders.
+Fixture: `drawn_boxes` (R00860 p60 geometry, synthetic text, plus a table
+drawn cell by cell as the control).
+
+### Correct grids turned into prose (19, the accepted cost)
+
+| Set | Page | Test |
+| --- | --- | --- |
+| training | R00531 p6 (2 grids) | identity |
+| training | R00894 p8 | continuation 0.25 |
+| training | R02027 p34 | identity |
+| training | R02611 p18 | continuation 0.20 |
+| training | Jay 2013 p6 | identity |
+| held out | AR0024 p58, AR0044 p26, AR0080 p10, AR0115 p22, p24, AR0138 p23, R07385 p13 | identity |
+| held out | AR0117 p18, AR0157 p38, AR0163 p9 | continuation |
+| held out | AR0121 p11 | prose 0.44 |
+| held out | R02682 p8, p9 | figure |
+
+Each keeps every word as marked prose.
+
+### Grid evidence labels (01ebb9f)
+
+Every emitted grid has a comment immediately before it:
+`<!-- table p. N: grid from ruling lines -->` or
+`<!-- table p. N: grid from aligned text; verify before use -->`.
+Golden changes from the labels alone: Markdown and the stats byte count,
+on every entry that emits a grid. Against 06307a1, 29 entries changed:
+19 fixture entries (all_text_wrapped, caption_inside_table, edge_content,
+figure_dedup, hard, hard_footer_first, isolated_ocr_page and its
+page-markers mode, journal_front_matter, justified_scan, paper, pi_minus,
+rotated_pages, scanned, scanned_with_stamp, table_legend,
+table_only_footer, tall_cell, watermark), four real entries
+(Ragins, greenwood2006, kitchener2002, peng2009) and six packet entries
+(R00293, R00359, R00373, R00639, R00860, S0009). capiq_keydev, which
+already differed in its stats, now differs in its Markdown too. The other
+25 differing entries already differed from v0.1.16 because of earlier
+commits; the grids in them carry the labels too.
+
+## Stop-3 list
+
+1. Row association (wrapped-line rows, collapsed rows): 8 gold tables.
+2. Header band: 3 gold tables.
+3. Column association: 2 gold tables.
+4. Cross-page joining: 2, last.
+5. Text proposals with aligned columns that pass every gate test: R02055
+   p7 (figure labels), Wry p37 (endnotes), S0009 p17 (bibliography). A
+   proposal-side check, not a gate threshold.
+6. Fallback option, measured alongside 1-3: emit grids only where ruling
+   lines prove the structure and prose elsewhere. Report its kept-grid
+   precision and recall against the association fixes. On the v0.1.18
+   held-out sample the ruling-line grids alone are 11 of 36 good, so the
+   rule-only option needs the association work too.
