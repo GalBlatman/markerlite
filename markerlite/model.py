@@ -287,6 +287,10 @@ class Block:
     # blocks to the page (tables._looks_like_a_table); the second-chance
     # proposal pass must not make a grid of the same text.
     table_released: bool = False
+    # What an emitted grid stands on (gate.evidence_kind): "rules" when
+    # ruling lines frame it, "text" when only aligned text does. Rendered as
+    # a comment before the grid so a reader knows which to verify.
+    grid_evidence: str = ""
     figure_text: List[str] = field(default_factory=list)
     code: Optional[str] = None
     image_path: Optional[str] = None

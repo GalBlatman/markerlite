@@ -38,6 +38,8 @@ That makes the thresholds easy to defend and easy to revise when a new failure a
 
 Journals that style every heading identically defeat the height clustering and lose a level. Scanned pages inherit every error of the recogniser, including stray page numbers in the middle of a paragraph. None of these failures corrupts the surrounding text; they degrade the structure rather than the content. The synthetic set is regenerated from scripts, so a fixture can be changed and the change reviewed.
 
+<!-- table p. 2: grid from ruling lines -->
+
 | Stage | Actors | Outcome |
 | --- | --- | --- |
 | Entry | Founders | Charter |

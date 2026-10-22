@@ -87,3 +87,22 @@ def test_stopped_proposal_stays_a_paragraph(tmp_path):
     gated = info["stats"]["tables_gated"]
     assert any(g["path"] == "proposal" for g in gated)
     assert info["stats"]["proposals"] == 0
+
+
+def test_every_grid_names_its_evidence(tmp_path):
+    ruled = ROOT / "tests" / "fixtures" / "hard.pdf"  # one stroked box per cell
+    md, _info = markerlite.convert(ruled, tmp_path)
+    text = md.read_text(encoding="utf-8")
+    assert "<!-- table p. 2: grid from ruling lines -->\n\n|" in text
+    assert gate.evidence_kind({"hrules": 0, "vrules": 0}) == "text"
+    assert gate.evidence_kind({"hrules": 0, "vrules": 0, "hrules_joined": 3}) == "rules"
+
+
+def test_cell_edges_join_into_rules():
+    edges = [
+        (100.0, 72.0, 160.0),
+        (100.0, 160.0, 206.0),
+        (100.2, 206.0, 282.0),
+        (140.0, 72.0, 100.0),
+    ]
+    assert gate._merge(edges) == [(100.0, 72.0, 282.0), (140.0, 72.0, 100.0)]

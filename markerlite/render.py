@@ -369,6 +369,14 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                     )
                     out.extend(fallback_prose(blk))
                 else:
+                    # Say what the grid stands on, so a reader knows which
+                    # tables to check before using them as data.
+                    out.append(
+                        f"<!-- table p. {page.page_idx + 1}: grid from ruling lines -->"
+                        if blk.grid_evidence == "rules"
+                        else f"<!-- table p. {page.page_idx + 1}: "
+                        "grid from aligned text; verify before use -->"
+                    )
                     out.append(md or (blk.html or ""))
                 for cap in blk.children:
                     if not cap.leads:

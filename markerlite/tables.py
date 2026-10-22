@@ -850,6 +850,7 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
                 html, fell_back = fallback, True
         if not html:
             continue
+        evidence = ""
         if not fell_back:
             # The table-confidence gate: a grid without table evidence, or
             # whose cells do not hold the source's words, is kept as prose.
@@ -861,6 +862,7 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
                 html,
             )
             gate.record(page, "find_tables", region, judged)
+            evidence = gate.evidence_kind(judged["measures"])
             if not judged["passed"]:
                 fell_back = True
         if (
@@ -893,6 +895,7 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
             char_pos=min(m.char_pos for m in members),
             btype="Table",
             html=html if not fell_back else None,
+            grid_evidence=evidence if not fell_back else "",
             # Preserve original block/line stream order. In particular, do
             # not dehyphenate: conservation is a source-token multiset check.
             fallback_paragraphs=[
@@ -1020,5 +1023,6 @@ def propose_tables_from_text(pages: List[Page], min_score=PROPOSAL_MIN_SCORE) ->
                 continue
             page.tables_emitted += 1
             page.proposals_emitted += 1
+            blk.grid_evidence = gate.evidence_kind(judged["measures"])
             blk.btype = "Table"
             blk.html = html

@@ -1,5 +1,7 @@
 ## Table 2 Practices by sector
 
+<!-- table p. 1: grid from ruling lines -->
+
 | Sector | Firms | Practice |
 | --- | --- | --- |
 | Banking | 42 | shared reporting of risk exposure across all regional units |

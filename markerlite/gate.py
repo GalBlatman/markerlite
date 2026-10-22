@@ -145,6 +145,22 @@ def evaluate(
         and min(r[2], y1) - max(r[1], y0) >= GATE_VRULE_SPAN * h
     ]
     hr_levels = len({round(r[0]) for r in hr})
+    # The same counts after joining collinear edges: a table drawn as one
+    # stroked rectangle per cell has no single edge across it, though its
+    # cell edges line up into full rules. Used for the evidence label only;
+    # the gate's own evidence test above is unchanged.
+    mh = [
+        r
+        for r in _merge(graphics["h"])
+        if y0 - pad <= r[0] <= y1 + pad
+        and min(r[2], x1) - max(r[1], x0) >= GATE_RULE_SPAN * w
+    ]
+    mv = [
+        r
+        for r in _merge(graphics["v"])
+        if x0 - pad <= r[0] <= x1 + pad
+        and min(r[2], y1) - max(r[1], y0) >= GATE_VRULE_SPAN * h
+    ]
     cols = recurring_columns(rows_x)
     curves = sum(
         1
@@ -177,6 +193,8 @@ def evaluate(
         "prose": round(prose, 3),
         "identity": round(identity, 3),
         "continuation": round(cont, 3),
+        "hrules_joined": len({round(r[0]) for r in mh}),
+        "vrules_joined": len(mv),
     }
     failed = []
     if not (hr_levels >= GATE_HRULES_MIN or vr or cols >= 2):
@@ -194,6 +212,27 @@ def evaluate(
     return {"passed": not failed, "failed": failed, "measures": measures}
 
 
+def evidence_kind(measures: dict) -> str:
+    """What a grid stands on: "rules" (two horizontal rules across it or a
+    vertical rule, counting cell edges that line up as one rule) or "text"
+    (column starts that recur, nothing drawn)."""
+    h = max(measures.get("hrules", 0), measures.get("hrules_joined", 0))
+    v = max(measures.get("vrules", 0), measures.get("vrules_joined", 0))
+    return "rules" if h >= GATE_HRULES_MIN or v else "text"
+
+
+def _merge(segments, tol: float = 1.5) -> list:
+    """Join collinear segments (same position within 0.5 pt) whose ranges
+    touch or overlap within ``tol``: (pos, start, end)."""
+    out = []
+    for pos, a, b in sorted(segments, key=lambda r: (round(r[0] * 2), r[1])):
+        if out and abs(out[-1][0] - pos) <= 0.5 and a <= out[-1][2] + tol:
+            out[-1] = (out[-1][0], out[-1][1], max(out[-1][2], b))
+        else:
+            out.append((pos, a, b))
+    return out
+
+
 def rows_x_of(tokens_for_recon) -> List[List[float]]:
     """Column-start x of every printed row, from table_recon's token rows."""
     return [[x0 for _t, x0, _x1 in toks] for toks, _y0, _y1 in tokens_for_recon]
@@ -206,6 +245,10 @@ def record(page: "Page", path: str, region, result: dict) -> None:
             "path": path,
             "bbox": [round(v, 1) for v in region],
             "failed": result["failed"],
-            **result["measures"],
+            **{
+                k: v
+                for k, v in result["measures"].items()
+                if not k.endswith("_joined")  # label-only measures
+            },
         }
     )

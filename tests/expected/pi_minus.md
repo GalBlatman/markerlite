@@ -4,6 +4,8 @@ The scope is deliberately narrow: articles with a text layer, converted for read
 
 The effect of density is −0.10 and that of income is −0.09 with p <.05 in 2 of the 3 models.
 
+<!-- table p. 1: grid from ruling lines -->
+
 | Variable | (1) | (2) | (3) |
 | --- | --- | --- | --- |
 | Population density | −0.10 | −0.09 | −0.11 |

@@ -186,7 +186,7 @@ def check_journal_front_matter(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
         any(not re.search(r"(?m)^#{1,6} " + re.escape(t) + r"$", text) for t in titles)
         or "a b s t r a c t\n\nThis study" not in text
         or "**Abstract** This study" not in text
-        or "<!-- table p." in text
+        or "reconstruction failed" in text
     ):
         print("FAIL  journal-front: title or abstract classification")
         return 1

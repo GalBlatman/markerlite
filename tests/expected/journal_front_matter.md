@@ -10,6 +10,8 @@ This study examines how researchers interpret organizational decisions when diff
 
 Keywords: organizations, decisions, evidence
 
+<!-- table p. 1: grid from ruling lines -->
+
 | Group | Observed | Expected |
 | --- | --- | --- |
 | Alpha | 12 | 15 |
@@ -28,6 +30,8 @@ DOI: 10.1000/second-layout
 
 Keywords: organizations, decisions, evidence
 
+<!-- table p. 2: grid from ruling lines -->
+
 | Group | Observed | Expected |
 | --- | --- | --- |
 | Alpha | 12 | 15 |
@@ -35,6 +39,8 @@ Keywords: organizations, decisions, evidence
 | Gamma | 24 | 27 |
 
 ## First-page booktabs control
+
+<!-- table p. 3: grid from ruling lines -->
 
 | Group | Observed | Expected |
 | --- | --- | --- |

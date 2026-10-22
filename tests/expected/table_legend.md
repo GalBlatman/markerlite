@@ -4,6 +4,8 @@ Where the original relied on a learned layout model, a font-size rule stands in 
 
 Books, slides and forms have layouts these heuristics were never shown and would misread. The scope is deliberately narrow: articles with a text layer, converted for reading by a language model. Within that scope the results are stable across the publishers we tried. Outside it, users should expect to check the output before trusting it.
 
+<!-- table p. 1: grid from ruling lines -->
+
 | Variable | (1) | (2) | (3) |
 | --- | --- | --- | --- |
 | Population density | 0.55*** | 0.49*** | 0.50*** |

@@ -2,6 +2,8 @@ Journal of Fixtures 12(3)
 
 *Table 1 Study 1 Descriptive Statistics of Model Variables by Experimental Condition*
 
+<!-- table p. 1: grid from ruling lines -->
+
 | Variable | Hybrid A | Business | Hybrid B | Charity |
 | --- | --- | --- | --- | --- |
 | Intent | 5.16 | 4.91 | 5.19 | 5.40 |
