@@ -299,6 +299,21 @@ def check_fallback_prose(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     return 0
 
 
+def check_mixed_body_sizes(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
+    """mixed_body_sizes: the 12 pt manuscript beside a denser 9.5 pt letter
+    keeps its one real heading; its lines are not headings."""
+    directory = workdir / "mixed-body"
+    directory.mkdir(exist_ok=True)
+    output, _info = markerlite.convert(pdf, directory)
+    text = output.read_text(encoding="utf-8")
+    heads = [ln for ln in text.splitlines() if ln.startswith("#")]
+    if heads != ["## Introduction", "## Response to the reviewers"]:
+        print(f"FAIL  mixed-body: headings {heads[:6]} ({len(heads)})")
+        return 1
+    print("ok    mixed-body       manuscript and letter keep only their real headings")
+    return 0
+
+
 def check_table_gate(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     """table_gate: the control table stays a grid; the sentence box is kept
     as marked prose by the prose test, with every source word."""
@@ -793,6 +808,8 @@ def main(argv=None) -> int:
                 failures += check_journal_front_matter(pdf, workdir)
             if stem == "tall_cell":
                 failures += check_fallback_prose(pdf, workdir)
+            if stem == "mixed_body_sizes":
+                failures += check_mixed_body_sizes(pdf, workdir)
             if stem == "table_gate":
                 failures += check_table_gate(pdf, workdir)
             if stem == "sideways_scan":

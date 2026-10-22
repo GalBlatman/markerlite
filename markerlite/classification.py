@@ -25,14 +25,66 @@ def body_font_size(pages: List[Page]) -> float:
     return weighted.most_common(1)[0][0]
 
 
+def _size_mode(blocks) -> tuple:
+    weighted = Counter()
+    for b in blocks:
+        for s in b.spans:
+            t = s.text.strip()
+            if t:
+                weighted[round(s.size, 1)] += len(t)
+    if not weighted:
+        return None, 0
+    return weighted.most_common(1)[0][0], sum(weighted.values())
+
+
+def local_body_sizes(pages: List[Page], doc_body: float) -> List[float]:
+    """Body size per page: the character-weighted modal size of the page's
+    own non-table text, never below the document's (doc_body).
+
+    Only the upward direction is taken. A page set larger than the
+    document's mode is a different part of a bundle (CMR review: a 12 pt
+    manuscript under a 9.5 pt response letter), and judging it by 9.5 pt
+    made every manuscript line a heading. A page set smaller is usually a
+    reference list or notes (282 of 1,322 corpus pages): judged by its own
+    size, its body-size lines would look bigger and become headings (99
+    headings added across 26 reference documents when tried).
+
+    An OCR page keeps the document's size and lends none: its "sizes" are
+    Tesseract line boxes, and a page of taller boxes erased the size
+    evidence of a real heading (R00639 p. 24).
+    """
+    own = []
+    for p in pages:
+        if p.ocr_used:
+            own.append(None)
+            continue
+        mode, chars = _size_mode(b for b in p.blocks if b.btype != "Table")
+        own.append(mode if chars >= LOCAL_BODY_MIN_CHARS else None)
+    out = []
+    for i in range(len(pages)):
+        if pages[i].ocr_used:
+            out.append(doc_body)
+            continue
+        if own[i] is None:
+            near = [
+                (abs(j - i), own[j]) for j in range(len(pages)) if own[j] is not None
+            ]
+            size = min(near)[1] if near else doc_body
+        else:
+            size = own[i]
+        out.append(max(size, doc_body))
+    return out
+
+
 def classify(pages: List[Page], body_size: float) -> None:
+    body_by_page = local_body_sizes(pages, body_size)
     # Set once a "References" line has been seen: past it, an OCR page's
     # title-case lines are author names, not headings.
     in_refs = False
     # A reference list is open from its heading to the next heading. Inside
     # it a leading star or dagger marks the entry, it does not open a note.
     list_open = False
-    for page in pages:
+    for page, page_body in zip(pages, body_by_page):
         for blk in page.blocks:
             if blk.btype == "Table":
                 continue
@@ -69,7 +121,7 @@ def classify(pages: List[Page], body_size: float) -> None:
             # Headings are tested BEFORE lists: "2. Method" satisfies the list
             # pattern too, and a numbered heading must not become a bullet.
             is_head = _is_heading(
-                blk, body_size, text, first, ocr=page.ocr_used, in_refs=in_refs
+                blk, page_body, text, first, ocr=page.ocr_used, in_refs=in_refs
             )
             # The references keyword itself is still a heading; the list
             # starts after it.
@@ -85,7 +137,7 @@ def classify(pages: List[Page], body_size: float) -> None:
             # page in small type is a note, but it also matches the list-item
             # pattern, and the list test used to win. Numbered footnotes then
             # rendered as bullets and never reached the footnote path at all.
-            if _is_footnote(blk, page, body_size, first):
+            if _is_footnote(blk, page, page_body, first):
                 blk.btype = "Footnote"
                 continue
             if LIST_ITEM_START.match(first):

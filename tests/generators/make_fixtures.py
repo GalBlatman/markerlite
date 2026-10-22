@@ -3063,6 +3063,59 @@ def make_table_gate():
     pdf.out("table_gate.pdf")
 
 
+def make_mixed_body_sizes():
+    """A review bundle: a double-spaced 12 pt manuscript (two pages, one
+    PyMuPDF block per printed line) followed by a longer, denser 9.5 pt
+    response letter (three pages). Geometry from a real review bundle; text
+    synthetic.
+
+    Bug: the document's modal size is 9.5, every 12 pt manuscript line is
+    "bigger" by more than 6%, the one-line blocks never trip the three-line
+    guard, and the manuscript came out as a column of headings. Each page
+    now takes its own body size; the manuscript has its one real heading.
+    """
+    pdf = Doc()
+    margin = 72.0
+    width = LETTER_W - 2 * margin
+
+    def wrap(text, size, w):
+        pdf.set_font("Times", "", size)
+        lines, cur = [], ""
+        for word in text.split():
+            trial = (cur + " " + word).strip()
+            if cur and pdf.get_string_width(trial) > w:
+                lines.append(cur)
+                cur = word
+            else:
+                cur = trial
+        return lines + [cur]
+
+    paras = paragraphs(6, start=3, step=5, width=5)
+    for page_paras, head in ((paras[:3], "Introduction"), (paras[3:6], None)):
+        pdf.add_page()
+        y = 72.0
+        if head:
+            pdf.text_at(margin, y, head, style="B", size=12)
+            y += 28.8
+        for para in page_paras:
+            for i, line in enumerate(wrap(para, 12, width - 36)):
+                pdf.text_at(margin + (36 if i == 0 else 0), y, line, size=12)
+                y += 28.8  # double spacing
+    letter = paragraphs(24, start=1, step=7, width=6)
+    for k in range(3):
+        pdf.add_page()
+        y = 72.0
+        if k == 0:
+            pdf.text_at(margin, y, "Response to the reviewers", style="B", size=11)
+            y += 20
+        for para in letter[k * 8 : (k + 1) * 8]:
+            for line in wrap(para, 9.5, width):
+                pdf.text_at(margin, y, line, size=9.5)
+                y += 11.5
+            y += 6
+    pdf.out("mixed_body_sizes.pdf")
+
+
 def make_sectioned_running_heads():
     """Three repeated section heads are content; an alternating pair is not."""
     pdf = Doc()
@@ -3165,6 +3218,7 @@ MAKERS = {
     "fragment_text": make_fragment_text,
     "sideways_scan": make_sideways_scan,
     "table_gate": make_table_gate,
+    "mixed_body_sizes": make_mixed_body_sizes,
     "journal_front_matter": make_journal_front_matter,
     "continued_table_header": make_continued_table_header,
     "figure_source_labels": make_figure_source_labels,

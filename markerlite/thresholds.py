@@ -39,6 +39,13 @@ CONSERVATION_MIN_SOURCE = 20
 FRAGMENT_MIN_LETTER_TOKENS = 30
 FRAGMENT_MAX_LETTERS = 2
 FRAGMENT_SHORT_SHARE = 0.7
+# Body size per page. A review bundle can set a 12 pt manuscript beside a
+# longer 9.5 pt response letter: the document's modal size is then 9.5 and
+# every manuscript line looks "bigger", so it becomes a heading. Each page
+# takes the modal size of its own non-table text; a page with fewer than
+# this many characters (about five lines, where one heading or caption
+# decides the mode) inherits from the nearest page with enough.
+LOCAL_BODY_MIN_CHARS = 400
 # A raster-covered page whose text layer is fragments is a sideways scan
 # OCR'd without orientation (R00443 pp. 14, 16; R02027 pp. 30, 31, 36).
 # Tesseract's orientation detection (--psm 0) is asked; it answered
