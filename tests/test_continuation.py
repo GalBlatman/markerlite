@@ -74,3 +74,29 @@ def test_tolerance_does_not_join_numbers_sentences_or_captions():
     pages[1].blocks[0].lines[0].spans[0].text = "Table 2"
     proc_continuation(pages)
     assert not a.has_continuation
+
+
+def test_tolerance_does_not_join_two_cells_of_one_row():
+    a = Block(
+        lines=[
+            _line(72, 300, 300.2, "first cell of a row in a table"),
+            _line(72, 314, 299.9, "and its second line goes here"),
+        ],
+        bbox=(72, 300, 300.2, 326),
+        page_idx=0,
+        char_pos=0,
+        btype="Text",
+    )
+    b = Block(
+        lines=[
+            _line(340, 300, 540, "the next cell in the same row"),
+            _line(340, 314, 500, "of the same table"),
+        ],
+        bbox=(340, 300, 540, 326),
+        page_idx=0,
+        char_pos=1,
+        btype="Text",
+    )
+    pages = [Page(page_idx=0, width=612, height=792, blocks=[a, b])]
+    proc_continuation(pages)
+    assert not a.has_continuation

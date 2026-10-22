@@ -801,6 +801,9 @@ def proc_continuation(
                 tail = lines[-1].text.strip()
                 last_full_width = (
                     len(tail.split()) >= CONTINUATION_TOL_MIN_WORDS
+                    # Across a column the continuation starts higher up; two
+                    # cells of one table row start at the same height.
+                    and (page_break or nxt.y_start < blk.y_start - 1)
                     and not re.search(r"[.!?]['\"’”)]*$", tail)
                     and not re.match(
                         r"(?i)(table|figure|fig\.|exhibit)\s+[\dIVX]",
