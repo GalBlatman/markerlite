@@ -33,6 +33,17 @@ from markerlite.extraction import (  # noqa: E402
 # Older manifests stay beside it for history (v0.1.14.json).
 DEFAULT_MANIFEST = ROOT / "tests" / "golden" / "v0.1.16.json"
 PACKET_GLOB = "*PACKET-*.json"
+# Local, git-ignored list of tests/real files that must never enter a
+# recorded manifest (confidential documents): one file name per line.
+EXCLUDE_FILE = ROOT / "tests" / "real" / ".golden-exclude"
+
+
+def excluded_names(path: pathlib.Path | None = None) -> set[str]:
+    path = path or EXCLUDE_FILE
+    if not path.exists():
+        return set()
+    lines = path.read_text(encoding="utf-8").splitlines()
+    return {ln.strip() for ln in lines if ln.strip() and not ln.startswith("#")}
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -103,13 +114,18 @@ def packet_sources(packet_root: pathlib.Path) -> list[dict]:
     return [by_locator[key] for key in sorted(by_locator)]
 
 
-def source_specs(packet_root: pathlib.Path) -> list[dict]:
+def source_specs(
+    packet_root: pathlib.Path, exclude: set[str] | None = None
+) -> list[dict]:
+    exclude = excluded_names() if exclude is None else exclude
     specs = []
     for group, directory in (
         ("fixture", ROOT / "tests" / "fixtures"),
         ("real", ROOT / "tests" / "real"),
     ):
         for path in sorted(directory.glob("*.pdf")):
+            if group == "real" and path.name in exclude:
+                continue
             rel = path.relative_to(ROOT).as_posix()
             specs.append(
                 {
