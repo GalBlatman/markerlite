@@ -32,6 +32,7 @@ from .figures import (
     place_figures,
 )
 from .model import *
+from .output import Output
 from .processors import (
     _protect_numeric_records,
     proc_blockquote,
@@ -65,6 +66,22 @@ def convert(
     ``info`` carries ``regions`` (equation crops, when --flag-math ran) and
     ``stats`` (pages, bytes, figures, equations) for reporting.
     """
+    out = Output(outdir)
+    try:
+        md_path, manifest = _convert(
+            path, out, images, do_flag_math, page_markers, do_flag_figures
+        )
+        out.commit()
+    except BaseException:
+        # A failure or a cancel leaves no .part behind and the previous
+        # complete output as it was (markerlite/output.py).
+        out.discard()
+        raise
+    return md_path, manifest
+
+
+def _convert(path, out, images, do_flag_math, page_markers, do_flag_figures):
+    outdir = out.outdir
     doc = pymupdf.open(path)
     drop_pages, drop_lines, provenance = detect_provenance(doc)
     pages = []
@@ -148,7 +165,7 @@ def convert(
     proc_code(pages)
     # With --flag-figures the crops are the saved figures: --images then
     # links to them instead of saving every figure a second time.
-    save_here = outdir if (images and not do_flag_figures) else None
+    save_here = out if (images and not do_flag_figures) else None
     n_figures = place_figures(doc, pages, save_here, path.stem)
     _promote_figure_captions(pages)
     proc_captions(pages)
@@ -159,9 +176,9 @@ def convert(
 
     manifest = {}
     if do_flag_math:
-        manifest = flag_math(doc, pages, outdir, path.stem)
+        manifest = flag_math(doc, pages, out, path.stem)
     if do_flag_figures:
-        manifest["figures"] = flag_figures(doc, pages, outdir, path.stem, link=images)[
+        manifest["figures"] = flag_figures(doc, pages, out, path.stem, link=images)[
             "regions"
         ]
 
@@ -179,10 +196,9 @@ def convert(
     md = render(pages, page_markers=page_markers)
     if provenance:
         md = "\n".join(provenance) + "\n\n" + md
-    out = outdir / f"{path.stem}.md"
-    out.write_text(md, encoding="utf-8")
+    out.file(f"{path.stem}.md").write_text(md, encoding="utf-8")
     manifest["stats"] = build_stats(
         pages, md, manifest, provenance, pi_spans, n_figures
     )
     doc.close()
-    return out, manifest
+    return outdir / f"{path.stem}.md", manifest

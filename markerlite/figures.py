@@ -12,6 +12,7 @@ import pymupdf
 from .classification import body_font_size
 from .extraction import _bbox_of, oversized_images
 from .model import *
+from .output import target, write_text_atomic
 from .render import block_text
 from .tables import _overlap_frac
 
@@ -566,7 +567,7 @@ def place_figures(
     linked; without it only the placeholder is emitted. Figure interiors are
     never recognised as text.
     """
-    imgdir = outdir / f"{stem}_images" if outdir is not None else None
+    imgdir = target(outdir, f"{stem}_images", True) if outdir is not None else None
     count = 0
     for page in pages:
         if not page.blocks and not page.source_words:
@@ -599,7 +600,7 @@ def place_figures(
                         # stroke width and tick labels just outside.
                         clip = (pymupdf.Rect(bbox) + (-5, -5, 5, 5)) & pm.rect
                         pm.get_pixmap(clip=clip, dpi=200).save(imgdir / name)
-                    path = f"{imgdir.name}/{name}"
+                    path = f"{stem}_images/{name}"
                 except Exception:
                     path = None
             _insert_block(
@@ -721,7 +722,7 @@ def flag_figures(
     given as well) the Markdown links to the same crops, so that nothing is
     saved twice.
     """
-    figdir = outdir / f"{stem}_figures"
+    figdir = target(outdir, f"{stem}_figures", True)
     regions = []
     for page in pages:
         figs = [
@@ -753,7 +754,7 @@ def flag_figures(
                 clip = (pymupdf.Rect(bbox) + (-5, -5, 5, 5)) & pm.rect
                 name = f"{fig_id}.png"
                 pm.get_pixmap(clip=clip, dpi=dpi).save(figdir / name)
-                entry["file"] = f"{figdir.name}/{name}"
+                entry["file"] = f"{stem}_figures/{name}"
                 if link:
                     blk.image_path = entry["file"]
             else:
@@ -763,7 +764,7 @@ def flag_figures(
             regions.append(entry)
     manifest = {"stem": stem, "regions": regions}
     if regions:
-        (outdir / f"{stem}_figures.json").write_text(
+        target(outdir, f"{stem}_figures.json", False).write_text(
             json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
         )
     return manifest
@@ -811,7 +812,7 @@ def apply_figures(md_path: pathlib.Path, manifest_path: pathlib.Path) -> int:
         )
         md = md[:end] + "\n\n> " + FIGURE_DESCRIPTION_MARK + "\n" + quoted + tail
         applied += 1
-    md_path.write_text(md, encoding="utf-8")
+    write_text_atomic(md_path, md)
     return applied
 
 
@@ -829,7 +830,7 @@ def flag_math(
     and hand them to a vision model - here, written to disk with a manifest.
     """
     regions = []
-    cropdir = outdir / f"{stem}_math"
+    cropdir = target(outdir, f"{stem}_math", True)
     for page in pages:
         targets = [b for b in page.blocks if b.needs_vision and not b.ignore_for_output]
         if not targets:
@@ -846,7 +847,7 @@ def flag_math(
                 {
                     "id": eq_id,
                     "page": page.page_idx + 1,
-                    "image": f"{cropdir.name}/{eq_id}.png",
+                    "image": f"{stem}_math/{eq_id}.png",
                     "bbox": [round(v, 1) for v in blk.bbox],
                     "text_layer": blk.text,
                     "latex": "",  # fill in from the crop, then run --apply-math
@@ -854,7 +855,9 @@ def flag_math(
             )
     manifest = {"stem": stem, "regions": regions}
     if regions:
-        (outdir / f"{stem}_math.json").write_text(json.dumps(manifest, indent=2))
+        target(outdir, f"{stem}_math.json", False).write_text(
+            json.dumps(manifest, indent=2)
+        )
     return manifest
 
 
@@ -883,5 +886,5 @@ def apply_math(md_path: pathlib.Path, manifest_path: pathlib.Path) -> int:
             new, n = pictured.subn(lambda _m: f"$$\n{latex}\n$$", md, count=1)
         if n:
             md, applied = new, applied + 1
-    md_path.write_text(md, encoding="utf-8")
+    write_text_atomic(md_path, md)
     return applied

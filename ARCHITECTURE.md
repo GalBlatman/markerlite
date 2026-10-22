@@ -17,6 +17,8 @@ The package follows the conversion order:
 5. `figures.py` locates figures and raster equations and owns the crop/apply
    hand-offs.
 6. `render.py` emits Markdown. `stats.py` builds the stable reporting schema.
+7. `output.py` stages every output as `<name>.part` and renames it into place
+   only when the whole conversion succeeds (CLI, GUI and API alike).
 
 `model.py` owns the page/block/line/span records and text patterns.
 `thresholds.py` owns calibrated numeric behavior gates. A threshold change is
