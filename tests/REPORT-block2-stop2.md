@@ -359,8 +359,12 @@ commits; the grids in them carry the labels too.
 5. Text proposals with aligned columns that pass every gate test: R02055
    p7 (figure labels), Wry p37 (endnotes), S0009 p17 (bibliography). A
    proposal-side check, not a gate threshold.
-6. Fallback option, measured alongside 1-3: emit grids only where ruling
-   lines prove the structure and prose elsewhere. Report its kept-grid
-   precision and recall against the association fixes. On the v0.1.18
-   held-out sample the ruling-line grids alone are 11 of 36 good, so the
-   rule-only option needs the association work too.
+6. Option measured alongside 1-3: tables emitted as marked prose by
+   default, with grids behind an opt-in flag (`--grids` on the command
+   line, an option in the GUI). Chosen if stop 3 cannot raise held-out
+   kept-grid precision well above the current ~0.33.
+
+   Ruled out (owner ruling at the v0.1.18 tag): emitting grids only where
+   ruling lines prove the structure. On the held-out sample ruled grids
+   were correct in 11 of 36 cases and aligned-text grids in 5 of 13, so
+   ruling lines do not separate reliable grids.

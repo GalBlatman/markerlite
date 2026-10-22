@@ -14,11 +14,10 @@ use. A blog post about it is planned; the README is written for that audience
 and its claims have been deliberately made honest — do not inflate them.
 
 Public repo: github.com/GalBlatman/markerlite · Apache-2.0 · current release
-v0.1.17 (`/releases/latest` is the download link the README and blog use;
-release notes are the tag's CHANGELOG.md section). v0.1.18 is the
-release candidate awaiting its tag; the golden baseline is
-tests/golden/v0.1.18.json (recorded from the candidate, cmr_review.pdf
-excluded). v0.1.16.json stays for history.
+v0.1.18 (`/releases/latest` is the download link the README and blog use;
+release notes are the tag's CHANGELOG.md section). The golden baseline is
+tests/golden/v0.1.18.json (cmr_review.pdf excluded); v0.1.16.json stays
+for history.
 
 ## Layout
 
@@ -494,8 +493,10 @@ parentheses fails if the fix is undone):
   controls 3 -> 0, five false grids remain. Stop 2 is done
   (tests/REPORT-block2-stop2.md): gate, labels, drawn-box test; gold
   WRONG 18 -> 15, controls FALSE-GRID 5 -> 2. Stop 3 (row/header/column
-  association, aligned-column text proposals, and the measured rule-only
-  fallback option) is planned there and not started.
+  association, aligned-column text proposals, and a measured
+  prose-by-default option with grids behind an opt-in --grids flag / GUI
+  option) is planned there and not started. The rule-only fallback is
+  ruled out: ruled grids measured no more reliable (11/36 vs 5/13).
 - Table work follows tests/PLAN-tables.md; items 0, 1, 7, 8, 11b done;
   fallback-to-prose done; item 5 not needed after fallback-to-prose (no evidence
   in 44 remaining reference regions); item 6 done; 2,3,4 then 9,10,11a,11c pending review; 12 is evidence only. Items 2 and 5 carry extra
