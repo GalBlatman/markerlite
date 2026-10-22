@@ -94,8 +94,8 @@ SHAs, at the latest release within the major already in use:
 | --- | --- | --- |
 | actions/checkout | fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 | v5.1.0 |
 | actions/setup-python | ece7cb06caefa5fff74198d8649806c4678c61a1 | v6.3.0 |
-| actions/upload-artifact | 330a01c490aca151604b8cf639adc76d48f6c5d4 | v5.0.0 |
-| actions/download-artifact | 634f93cb2916e3fdff6788551b99b062d0335ce0 | v5.0.0 |
+| actions/upload-artifact | cf430e030ddbb5b0abf93d22962f4752f3646cd9 | v7.0.2 (node24; was v5.0.0, node20) |
+| actions/download-artifact | 9000827ccba6bdab643e8b6fd33ac0654aef8333 | v8.0.2 (node24; was v5.0.0, node20) |
 
 Verified: the read-only build and test jobs passed on every push from
 aaf1d74 on (one failure, 394f062, was a formatting slip fixed in

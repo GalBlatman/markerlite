@@ -106,6 +106,9 @@ jobs:
           $want = "markerlite $(python -c "import markerlite; print(markerlite.__version__)")"
           $first = Get-Content dist\markerlite\markerlite-diag.txt -TotalCount 1
           if ($first -ne $want) { throw "frozen diag first line is '$first', expected '$want'" }
+          # The diagnostics file describes this runner, not the user's
+          # machine: it must not ship in the zip.
+          Remove-Item dist\markerlite\markerlite-diag.txt
 
       - name: Check embedded icon resources
         run: python tools/check_exe_icon.py dist\markerlite\markerlite.exe assets\icon.ico
@@ -118,14 +121,20 @@ jobs:
           Copy-Item third_party\marker\LICENSE -Destination dist\markerlite\third_party\marker\
 
       - name: Zip the folder build
-        run: Compress-Archive -Path dist\markerlite -DestinationPath markerlite-windows.zip
+        run: |
+          if (Test-Path dist\markerlite\markerlite-diag.txt) { throw "diagnostics file would ship in the zip" }
+          Compress-Archive -Path dist\markerlite -DestinationPath markerlite-windows.zip
+          # Printed so a downloaded release can be checked against this build.
+          $hash = (Get-FileHash markerlite-windows.zip -Algorithm SHA256).Hash.ToLower()
+          "markerlite-windows.zip SHA-256: $hash"
+          "markerlite-windows.zip SHA-256: ``$hash``" | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
 
       - name: Write the release notes
         # This version's CHANGELOG section; fails if there is none. The
         # release job checks out nothing, so the notes travel with the zip.
         run: python tools/release_notes.py release-notes.md
 
-      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: markerlite-windows
           path: |
@@ -146,7 +155,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: markerlite-windows
 
