@@ -26,11 +26,10 @@ from markerlite.extraction import discover_tesseract, tesseract_version
 from markerlite.gui_logic import (
     ConversionOptions,
     bug_report_line,
-    failure_log_line,
-    failure_message,
+    finish_status,
     output_directory,
     provenance_comments,
-    run_log_line,
+    run_batch,
     snapshot_options,
     summary_text,
     version_label,
@@ -92,6 +91,8 @@ class App:
         self.results: dict[str, dict] = {}
         self.events: "queue.Queue[tuple]" = queue.Queue()
         self.running = False
+        self.cancel_token = None
+        self.outcome: dict = {}
         self.log_paths: list[pathlib.Path] = []
 
         # The version comes from markerlite/VERSION through __version__: the
@@ -106,6 +107,8 @@ class App:
         self._enable_drop()
         self._fit_to_screen()
         self._check_tesseract()
+        # Esc does what the Cancel button does; outside a batch it does nothing.
+        root.bind("<Escape>", lambda _e: self.cancel())
         self.root.after(80, self._drain)
 
     def _work_area(self):
@@ -553,8 +556,13 @@ class App:
                 self.status.configure(text="Add some PDFs first")
             return
         self._check_tesseract()
+        from markerlite.cancel import CancelToken
+
         self.running = True
-        self.go.configure(state="disabled")
+        self.cancel_token = CancelToken()
+        # While a batch runs, Convert is Cancel (no confirmation: a
+        # cancelled file leaves no output and finished files stay).
+        self.go.configure(text="Cancel", command=self.cancel)
         self.bar.pack(
             side="bottom", fill="x", padx=PAD, pady=(0, 6), before=self._opts_ref[0]
         )
@@ -570,12 +578,23 @@ class App:
             self.out_dir.get(),
         )
         threading.Thread(
-            target=self._worker, args=(list(self.files), opts), daemon=True
+            target=self._worker,
+            args=(list(self.files), opts, self.cancel_token),
+            daemon=True,
         ).start()
 
-    def _worker(self, files: list[pathlib.Path], opts: ConversionOptions):
+    def cancel(self):
+        """Cancel the running batch: the current file is abandoned between
+        pages (a running Tesseract is killed), the rest are skipped."""
+        if not self.running or self.cancel_token is None:
+            return
+        self.cancel_token.cancel()
+        self.go.configure(state="disabled")
+        self.status.configure(text="Cancelling…")
+
+    def _worker(self, files: list[pathlib.Path], opts: ConversionOptions, token):
         try:
-            from markerlite import convert, stat_warnings, summarize
+            from markerlite import convert
         except Exception:
             self.events.put(("fatal", traceback.format_exc()))
             return
@@ -602,23 +621,8 @@ class App:
             except Exception:
                 pass
 
-        for pdf in files:
-            self.events.put(("busy", str(pdf)))
-            outdir = output_directory(pdf, opts.mode, opts.directory)
-            try:
-                outdir.mkdir(parents=True, exist_ok=True)
-                md, manifest = convert(
-                    pdf, outdir, opts.images, opts.math, opts.page_markers
-                )
-                stats = manifest.get("stats", {})
-                warns = stat_warnings(stats)
-                log(outdir, run_log_line(pdf.name, summarize(stats), warns))
-                self.events.put(("done", str(pdf), str(md), stats))
-            except Exception as exc:
-                msg = failure_message(exc)
-                log(outdir, failure_log_line(pdf.name, msg))
-                self.events.put(("error", str(pdf), msg))
-        self.events.put(("finished", sorted(logs)))
+        outcome = run_batch(files, opts, convert, token, self.events.put, log)
+        self.events.put(("finished", sorted(logs), outcome))
 
     def _drain(self):
         try:
@@ -669,6 +673,9 @@ class App:
                     self.bar.step(1)
                     if not self.tree.selection():
                         self.tree.selection_set(src)
+                elif kind in ("cancelled", "skipped"):
+                    self.tree.item(ev[1], values=(kind, "", "", "", ""), tags=())
+                    self.bar.step(1)
                 elif kind == "error":
                     _, src, msg = ev
                     self.tree.item(
@@ -687,6 +694,7 @@ class App:
                     self._finish()
                 elif kind == "finished":
                     self.log_paths = list(ev[1]) if len(ev) > 1 else []
+                    self.outcome = ev[2] if len(ev) > 2 else {}
                     self._finish()
         except queue.Empty:
             pass
@@ -694,7 +702,8 @@ class App:
 
     def _finish(self):
         self.running = False
-        self.go.configure(state="normal")
+        self.cancel_token = None
+        self.go.configure(text="Convert", command=self.start, state="normal")
         self.bar.pack_forget()
         done = [r for r in self.results.values() if "md" in r]
         bad = sum(1 for r in self.results.values() if "error" in r)
@@ -719,7 +728,9 @@ class App:
             parts.append(f"\u26a0 {warned} file{'s' * (warned != 1)} with warnings")
         if bad:
             parts.append(f"{bad} failed")
-        self.status.configure(text=" · ".join(parts) or "Nothing converted")
+        self.status.configure(
+            text=finish_status(self.outcome, " · ".join(parts) or "Nothing converted")
+        )
         if done:
             self.open_btn.configure(state="normal")
             self.md_btn.configure(state="normal")

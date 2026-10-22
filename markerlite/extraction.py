@@ -299,7 +299,9 @@ def ocr_dpi(page: pymupdf.Page, dpi: int = OCR_DPI) -> Tuple[int, int]:
     return max(lowered, 1), pixels
 
 
-def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = OCR_DPI) -> Optional[Page]:
+def _ocr_page(
+    page: pymupdf.Page, page_idx: int, dpi: int = OCR_DPI, cancel=None
+) -> Optional[Page]:
     """OCR stand-in for surya's recognition model.
 
     Marker's OCR path gives the recognizer line boxes and gets back text plus
@@ -322,22 +324,32 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = OCR_DPI) -> Optional
             img = pathlib.Path(td) / "page.png"
             pix.save(img)
             tsv_path = pathlib.Path(td) / "page.tsv"
+            args = [
+                executable,
+                str(img),
+                "stdout",
+                "--psm",
+                str(OCR_PSM),
+                "-c",
+                "preserve_interword_spaces=1",
+                "tsv",
+            ]
             with open(tsv_path, "wb") as tsv_file:
-                proc = subprocess.run(
-                    [
-                        executable,
-                        str(img),
-                        "stdout",
-                        "--psm",
-                        str(OCR_PSM),
-                        "-c",
-                        "preserve_interword_spaces=1",
-                        "tsv",
-                    ],
-                    stdout=tsv_file,
-                    stderr=subprocess.DEVNULL,
-                    timeout=OCR_TIMEOUT_SECONDS,
-                )
+                if cancel is not None:
+                    # Registered with the token: a cancel kills it at once.
+                    returncode = cancel.run(
+                        args,
+                        stdout=tsv_file,
+                        stderr=subprocess.DEVNULL,
+                        timeout=OCR_TIMEOUT_SECONDS,
+                    )
+                else:
+                    returncode = subprocess.run(
+                        args,
+                        stdout=tsv_file,
+                        stderr=subprocess.DEVNULL,
+                        timeout=OCR_TIMEOUT_SECONDS,
+                    ).returncode
             # Tesseract's output is written to a file and at most
             # OCR_MAX_TSV_BYTES of it are read, cut at a line end.
             tsv_size = tsv_path.stat().st_size
@@ -346,7 +358,7 @@ def _ocr_page(page: pymupdf.Page, page_idx: int, dpi: int = OCR_DPI) -> Optional
             if tsv_size > OCR_MAX_TSV_BYTES:
                 data = data[: data.rfind(b"\n") + 1]
             tsv = data.decode("utf-8", errors="replace")
-        if proc.returncode != 0:
+        if returncode != 0:
             return None
     except Exception as exc:  # pragma: no cover
         print(f"  ! OCR failed on page {page_idx + 1}: {exc}", file=sys.stderr)
@@ -559,6 +571,7 @@ def extract_page(
     page_idx: int,
     ocr_if_empty: bool = True,
     max_line_tilt: float = MAX_LINE_TILT,
+    cancel=None,
 ) -> Page:
     """Blocks in PDF character-stream order.
 
@@ -590,7 +603,7 @@ def extract_page(
     n_tokens, readable = readable_ratio(page.get_text())
     garbled = n_tokens >= GARBLE_MIN_TOKENS and readable < GARBLE_MIN
     if ocr_if_empty and (text_len < OCR_MIN_NATIVE_CHARS or image_only or garbled):
-        ocr_page = _ocr_page(page, page_idx)
+        ocr_page = _ocr_page(page, page_idx, cancel=cancel)
         if ocr_page is not None:
             ocr_page.garbled = garbled
             ocr_page.readable = readable

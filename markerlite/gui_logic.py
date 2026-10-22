@@ -119,3 +119,69 @@ def provenance_comments(md: pathlib.Path) -> list[str]:
     except OSError:
         pass
     return out
+
+
+def cancelled_log_line(name: str) -> str:
+    return f"{safe_display(name)}: CANCELLED (no output written)"
+
+
+def skipped_log_line(name: str) -> str:
+    return f"{safe_display(name)}: SKIPPED (batch cancelled)"
+
+
+def run_batch(files, opts: ConversionOptions, convert, cancel, emit, log) -> dict:
+    """Convert ``files`` one after another; the GUI worker thread runs this.
+
+    ``convert`` is markerlite.convert; ``cancel`` a CancelToken checked
+    before each file and, inside convert(), between pages; ``emit(event)``
+    reports progress to the window; ``log(outdir, line)`` appends to that
+    folder's run log. A failed file never sinks the batch. On cancel the
+    current file's staged output is discarded by convert(), files already
+    converted stay, and the rest are skipped. Returns counts by outcome.
+    """
+    from .cancel import Cancelled
+    from .stats import stat_warnings as _warnings
+    from .stats import summarize as _summarize
+
+    outcome = {"done": [], "failed": [], "cancelled": [], "skipped": []}
+    for pdf in files:
+        outdir = output_directory(pdf, opts.mode, opts.directory)
+        if cancel is not None and cancel.is_set():
+            outcome["skipped"].append(pdf)
+            log(outdir, skipped_log_line(pdf.name))
+            emit(("skipped", str(pdf)))
+            continue
+        emit(("busy", str(pdf)))
+        try:
+            outdir.mkdir(parents=True, exist_ok=True)
+            md, manifest = convert(
+                pdf, outdir, opts.images, opts.math, opts.page_markers, cancel=cancel
+            )
+        except Cancelled:
+            outcome["cancelled"].append(pdf)
+            log(outdir, cancelled_log_line(pdf.name))
+            emit(("cancelled", str(pdf)))
+            continue
+        except Exception as exc:
+            msg = failure_message(exc)
+            outcome["failed"].append(pdf)
+            log(outdir, failure_log_line(pdf.name, msg))
+            emit(("error", str(pdf), msg))
+            continue
+        stats = manifest.get("stats", {})
+        log(outdir, run_log_line(pdf.name, _summarize(stats), _warnings(stats)))
+        outcome["done"].append(pdf)
+        emit(("done", str(pdf), str(md), stats))
+    return outcome
+
+
+def finish_status(outcome: dict, summary: str) -> str:
+    """The status-bar line after a batch. A cancelled batch says so first."""
+    if outcome.get("cancelled") or outcome.get("skipped"):
+        parts = ["Cancelled"]
+        if outcome.get("done"):
+            parts.append(f"{len(outcome['done'])} converted")
+        if outcome.get("skipped"):
+            parts.append(f"{len(outcome['skipped'])} skipped")
+        return " · ".join(parts)
+    return summary

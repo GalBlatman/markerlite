@@ -447,7 +447,7 @@ def check_garbled(workdir: pathlib.Path) -> int:
 
     (workdir / "garbled").mkdir(parents=True, exist_ok=True)
     with patch.object(
-        markerlite_extraction, "_ocr_page", lambda page, idx, dpi=300: None
+        markerlite_extraction, "_ocr_page", lambda page, idx, dpi=300, cancel=None: None
     ):
         _o, info = markerlite.convert(
             FIXTURES / "garbled_font.pdf", workdir / "garbled"
@@ -640,7 +640,7 @@ def check_low_yield(workdir: pathlib.Path) -> int:
 
     pdf = FIXTURES / "scanned_with_stamp.pdf"
     with patch.object(
-        markerlite_extraction, "_ocr_page", lambda page, idx, dpi=300: None
+        markerlite_extraction, "_ocr_page", lambda page, idx, dpi=300, cancel=None: None
     ):
         (workdir / "lowyield").mkdir(parents=True, exist_ok=True)
         _out, info = markerlite.convert(pdf, workdir / "lowyield")

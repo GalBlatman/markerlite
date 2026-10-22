@@ -110,15 +110,25 @@ def main() -> None:
         return
 
     outdir.mkdir(parents=True, exist_ok=True)
-    for p in args.pdfs:
+    for n, p in enumerate(args.pdfs):
         path = pathlib.Path(p)
-        out, manifest = convert(
-            path,
-            outdir,
-            args.images,
-            args.flag_math,
-            args.page_markers,
-            args.flag_figures,
-        )
+        try:
+            out, manifest = convert(
+                path,
+                outdir,
+                args.images,
+                args.flag_math,
+                args.page_markers,
+                args.flag_figures,
+            )
+        except KeyboardInterrupt:
+            # Ctrl+C: convert() has already discarded this file's staged
+            # output; finished files stay, the rest are not started.
+            print(f"cancelled: {safe_display(path.name)}", file=sys.stderr)
+            for rest in args.pdfs[n + 1 :]:
+                print(
+                    f"skipped: {safe_display(pathlib.Path(rest).name)}", file=sys.stderr
+                )
+            sys.exit(130)
         print(f"{safe_display(path.name)} -> {safe_display(out)}")
         print(f"   {summarize(manifest.get('stats', {}))}")

@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import pathlib
-from typing import Tuple
+from typing import Optional, Tuple
 
 import pymupdf
 
+from .cancel import CancelToken
+from .cancel import check as check_cancel
 from .classification import body_font_size, classify
 from .extraction import (
     ProvenanceMatcher,
@@ -60,16 +62,20 @@ def convert(
     do_flag_math=False,
     page_markers=False,
     do_flag_figures=False,
+    cancel: Optional[CancelToken] = None,
 ) -> Tuple[pathlib.Path, dict]:
     """Convert one PDF. Returns (markdown path, info).
 
     ``info`` carries ``regions`` (equation crops, when --flag-math ran) and
     ``stats`` (pages, bytes, figures, equations) for reporting.
+
+    ``cancel`` (a CancelToken) is checked between pages; a cancel raises
+    Cancelled and, like any failure, leaves no output behind.
     """
     out = Output(outdir)
     try:
         md_path, manifest = _convert(
-            path, out, images, do_flag_math, page_markers, do_flag_figures
+            path, out, images, do_flag_math, page_markers, do_flag_figures, cancel
         )
         out.commit()
     except BaseException:
@@ -80,13 +86,14 @@ def convert(
     return md_path, manifest
 
 
-def _convert(path, out, images, do_flag_math, page_markers, do_flag_figures):
+def _convert(path, out, images, do_flag_math, page_markers, do_flag_figures, cancel):
     outdir = out.outdir
     doc = pymupdf.open(path)
     drop_pages, drop_lines, provenance = detect_provenance(doc)
     pages = []
     provenance_matcher = ProvenanceMatcher(drop_lines)
     for i in range(len(doc)):
+        check_cancel(cancel)
         if i in drop_pages:
             # An aggregator cover: nothing on it is the article. Keep an
             # empty page so page numbers in markers stay true to the PDF.
@@ -112,7 +119,8 @@ def _convert(path, out, images, do_flag_math, page_markers, do_flag_figures):
                 )
             )
             continue
-        p = extract_page(doc[i], i)  # may turn a sideways page upright, in memory
+        # may turn a sideways page upright, in memory
+        p = extract_page(doc[i], i, cancel=cancel)
         big = oversized_images(doc[i])
         if big:
             note_limit(
@@ -139,6 +147,7 @@ def _convert(path, out, images, do_flag_math, page_markers, do_flag_figures):
     # before tables are built from the characters, so tables come second.
     pi_spans = _remap_pi_fonts(pages)
     for p in pages:
+        check_cancel(cancel)
         if p.blocks:
             detect_tables(doc[p.page_idx], p)
 
@@ -150,6 +159,7 @@ def _convert(path, out, images, do_flag_math, page_markers, do_flag_figures):
         if page.blocks or page.source_words:
             _protect_numeric_records(page)
             _prepare_figure_zones(doc[page.page_idx], page)
+    check_cancel(cancel)
     proc_line_numbers(pages)
     proc_reflow(pages)
     proc_ignore_common(pages)
@@ -174,6 +184,7 @@ def _convert(path, out, images, do_flag_math, page_markers, do_flag_figures):
     _attach_figure_source_text(pages)
     place_fill_backed_banners(pages)
 
+    check_cancel(cancel)
     manifest = {}
     if do_flag_math:
         manifest = flag_math(doc, pages, out, path.stem)
@@ -193,6 +204,7 @@ def _convert(path, out, images, do_flag_math, page_markers, do_flag_figures):
         "version": tesseract_version(tesseract) if tesseract else None,
     }
 
+    check_cancel(cancel)
     md = render(pages, page_markers=page_markers)
     if provenance:
         md = "\n".join(provenance) + "\n\n" + md
