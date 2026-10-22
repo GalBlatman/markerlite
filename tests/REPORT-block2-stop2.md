@@ -83,9 +83,11 @@ The 7 good grids and the test that stopped each:
 | Target-Validation-Protocol p42 | CORRECT | find_tables | prose | 0.364 |
 | Jay 2013 p6 | MINOR | proposal | identity | 0.074 |
 
-The shape test also removes 2-row grids that carry no label (4 Capital IQ
-key-value grids, about 14 SBTi criteria grids); they become prose with all
-text.
+The shape test also removes 4 unlabelled 2-row Capital IQ grids. (An
+earlier version of this report also counted "about 14 SBTi criteria
+grids" as 2-row grids. That was wrong: those SBTi grids have one column
+and 4-10 rows, and every setting removes them for having fewer than two
+columns.)
 
 ### What each test costs (172 gate decisions matched to a label)
 
@@ -167,3 +169,62 @@ The 18 GRID-WRONG gold tables before the gate, by their main mechanism
    tables, SBTi criteria pairs).
 3. Then the gate is committed with fixtures (figure_grid, endnote_list,
    ruled_table control, split_rows_table, lossy_grid) and re-measured.
+
+## Owner ruling 1 (third setting): overfitting check, not passed
+
+The owner chose the third setting (continuation 0.30, proposal identity
+0.10, prose 0.40, 2-row grids allowed) on condition that it survive two
+checks. It is not committed: check (b) failed.
+
+**(a) 2-row grids.** Under the third setting the 2-row allowance keeps
+exactly 4 grids in the 47 documents, all Capital IQ one-record tables
+(header plus one record, four columns). Rendered and compared: all 4 good
+(cells hold 8/3/13, 4/3/15, 7/3/12, 5/3/11 words, as printed). No SBTi
+2-row grid exists (see the correction above). Clean.
+
+**(b) Held-out check.** 142 documents outside the 47 (the pipeline's
+run-001 and stack sets), 89 of which produced grids: 271 gate decisions.
+Only 14 differ between the specified and the third setting, so the sample
+is all 14 plus 20 random grids kept by the third setting. Each was
+labelled from its rendered page against the emitted grid by two
+independent labellers (agreement 30 of 34); the 4 disagreements were
+adjudicated from the page (D04, K13, K14 bad; K16 good: only its first
+two period headers are fused).
+
+| Sample | Good | Bad | Prose |
+| --- | --- | --- | --- |
+| 14 grids the third setting keeps and the specified one removes | 8 | 5 | 1 |
+| 20 random grids the third setting keeps | 9 | 10 | 1 |
+
+By loosened test, for the 14 differing decisions:
+
+| Loosened test | Good kept | Bad or prose kept |
+| --- | --- | --- |
+| 2-row grids allowed | 4 | 1 (a quadrant figure) |
+| Continuation 0.15 -> 0.30 | 3 | 4 |
+| Proposal identity 0.05 -> 0.10 | 0 | 1 |
+| Prose 0.35 -> 0.40 | 1 | 0 |
+
+On the 172 training labels the continuation and identity loosening cost
+nothing (40 bad removed against 44, 5 more good kept). Held out they keep
+more bad grids than good: the two thresholds were fitted to the labels.
+The 2-row allowance and the prose threshold hold up on both.
+
+Random kept grids are good in 9 of 20: the gate removes non-tables and
+the worst grids, but most remaining errors are row and column association
+inside real tables, which no gate threshold separates (stop-3 work).
+
+Options for the owner:
+
+1. Third setting without the two fitted loosenings: continuation 0.15 and
+   proposal identity 0.05 as specified, prose 0.40, 2-row grids allowed.
+   On the training labels this keeps 68 of 74 good (losing R00894 p8,
+   R02611 p18 to continuation, R00531 p6 x2, R02027 p34 and Jay p6 to
+   identity) and removes 44 of 98 bad; held out, it removes the 4 bad and
+   1 bad grids above at the cost of 3 good.
+2. The specified setting.
+3. Hold the gate until the row-association work (stop 3) lets the
+   continuation test stay strict without losing wrapped-header tables.
+
+Not yet done (blocked behind this ruling): item 2 (drawn-box test),
+item 3 final numbers, item 4 release candidate.
