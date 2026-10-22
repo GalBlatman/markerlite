@@ -813,6 +813,14 @@ These are estimates: the region labels are one pass each, and the features
 are an offline reimplementation. The implementation step re-measures on the
 gold set and the audit pages before it is committed.
 
+**Acceptance, amended at stop 2 (owner ruling).** "No page loses text, and
+no page gains a wrong grid. A correct grid that becomes marked prose is an
+acceptable, listed cost." This replaces "no audit page worse" (criterion 6
+of section F). The governing principle stands: a wrong grid is worse than
+no grid. Thresholds as committed: prose 0.40 and two-row grids allowed;
+continuation 0.15 and token identity 0.05 as specified (the looser values
+failed a held-out check, tests/REPORT-block2-stop2.md).
+
 ### E. Three small isolated items, each with a fixture, done first
 
 **E1. R00014 p1: the journal name in the article's own citation line is
@@ -918,7 +926,7 @@ six more non-table controls drawn from pages the gate has not been tuned on.
 5. **Tokens kept at least 0.95 on every table** whose source layer holds
    its glyphs; the source-glyph losses (R00373, York minus signs) are
    reported, not excused silently.
-6. **No audit page worse than v0.1.15**: the 17 v0.1.14 regression pages,
+6. **(Replaced at stop 2: no page loses text, no page gains a wrong grid.)** Formerly: no audit page worse than v0.1.15: the 17 v0.1.14 regression pages,
    the 13 B-KNOWN structure pages, the 6 B-KNOWN content-loss pages and
    the 27 false-marker pages, judged visually against v0.1.15 output.
 7. The 77-entry golden audit runs; every hash change is explained by a

@@ -135,6 +135,18 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
 - **Equation detection uses glyphs + placement, not just font names**, so
   Symbol+Times equations are caught. Equations are NOT converted to LaTeX;
   `--flag-math` crops them for a vision pass, `--apply-math` splices results.
+- **A wrong grid is worse than no grid.** Table acceptance (owner ruling,
+  block 2 stop 2): no page loses text, and no page gains a wrong grid. A
+  correct grid that becomes marked prose is an acceptable, listed cost.
+  The table-confidence gate (markerlite/gate.py) applies this: a grid
+  without rule or column evidence, under two rows or columns, over a
+  curve, mostly sentences (>= 0.40), not holding its source words
+  (> 0.05 off) or with continuation rows (>= 0.15) is kept as prose. Its
+  thresholds were checked on held-out documents; do not loosen them on
+  the labels they were measured on. Kept-grid precision (share of
+  emitted grids that are correct, on >= 50 held-out kept grids labelled
+  from rendered pages with an independent second check) is the standing
+  table metric.
 - **Token preservation ≠ structural correctness.** A table can keep every
   word and still be unusable if words land in the wrong cells. Word ratios
   (the 0.9 guards, conservation) catch loss; only per-cell token identity

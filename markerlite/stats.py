@@ -62,6 +62,7 @@ class ConversionStats(TypedDict):
     resource_limits: list[dict]
     table_candidates_released: int
     reocr_pages: list[dict]
+    tables_gated: list[dict]
     fragment_pages: list[FragmentPage]
 
 
@@ -241,6 +242,11 @@ def build_stats(
     ]
     if reocr:
         stats["reocr_pages"] = reocr
+    # Grids the table-confidence gate kept as prose, with the tests they
+    # failed and the measures (markerlite/gate.py). Only when non-empty.
+    gated = [e for p in pages for e in p.gate_events if e["failed"]]
+    if gated:
+        stats["tables_gated"] = gated
     return stats
 
 

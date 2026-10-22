@@ -299,6 +299,36 @@ def check_fallback_prose(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     return 0
 
 
+def check_table_gate(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
+    """table_gate: the control table stays a grid; the sentence box is kept
+    as marked prose by the prose test, with every source word."""
+    from collections import Counter
+
+    import pymupdf
+
+    directory = workdir / "table-gate"
+    directory.mkdir(exist_ok=True)
+    output, info = markerlite.convert(pdf, directory)
+    text = output.read_text(encoding="utf-8")
+    gated = info["stats"].get("tables_gated", [])
+    with pymupdf.open(pdf) as doc:
+        source = Counter(w for page in doc for w in page.get_text().split())
+    missing = source - Counter(text.replace("**", " ").replace("|", " ").split())
+    ok = (
+        "| Banking | 42 |" in text
+        and [(g["page"], g["failed"]) for g in gated] == [(2, ["prose"])]
+        and "<!-- table p. 2: reconstruction failed; text kept as prose -->" in text
+        and not missing
+    )
+    if not ok:
+        print(f"FAIL  table-gate: gated {gated}, {sum(missing.values())} words missing")
+        return 1
+    print(
+        "ok    table-gate       control stays a grid; prose box kept as prose, all words"
+    )
+    return 0
+
+
 def check_sideways_scan(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     """sideways_scan: the fragment text layer is replaced by an upright OCR
     of the page; the fragment warning is gone and the table's words read."""
@@ -763,6 +793,8 @@ def main(argv=None) -> int:
                 failures += check_journal_front_matter(pdf, workdir)
             if stem == "tall_cell":
                 failures += check_fallback_prose(pdf, workdir)
+            if stem == "table_gate":
+                failures += check_table_gate(pdf, workdir)
             if stem == "sideways_scan":
                 failures += check_sideways_scan(pdf, workdir)
             if stem == "fragment_text":

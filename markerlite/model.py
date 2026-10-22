@@ -391,6 +391,10 @@ class Page:
     # Failed candidates without table evidence, returned to the page as text
     # (tables._looks_like_a_table); reported only when non-zero.
     table_candidates_released: int = 0
+    # Table-confidence gate (markerlite/gate.py): the page's rules and curve
+    # boxes, read once in detect_tables, and one record per grid judged.
+    gate_graphics: Optional[dict] = None
+    gate_events: List[dict] = field(default_factory=list)
     # text-only table proposals: accepted, and rejected because the grid lost words
     proposals_emitted: int = 0
     proposals_kept_prose: int = 0

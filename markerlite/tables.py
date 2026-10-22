@@ -13,6 +13,7 @@ from typing import List, Tuple
 
 import pymupdf
 
+from . import gate
 from .extraction import _bbox_of
 from .model import *
 from .render import _TableParser
@@ -676,6 +677,7 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
     parameterizations and picking a winner with a deterministic judge.
     """
     page_area = max(pmpage.rect.width * pmpage.rect.height, 1.0)
+    page.gate_graphics = gate.page_graphics(pmpage)
     found = []
     seen_bboxes = []
     # Candidates of the second pass: horizontal rules only, columns from
@@ -848,6 +850,19 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
                 html, fell_back = fallback, True
         if not html:
             continue
+        if not fell_back:
+            # The table-confidence gate: a grid without table evidence, or
+            # whose cells do not hold the source's words, is kept as prose.
+            judged = gate.evaluate(
+                page.gate_graphics,
+                region,
+                gate.rows_x_of(_tokens_for_recon(members, region)),
+                [ln.text for m in members for ln in m.lines],
+                html,
+            )
+            gate.record(page, "find_tables", region, judged)
+            if not judged["passed"]:
+                fell_back = True
         if (
             fell_back
             and not rejected
@@ -989,6 +1004,18 @@ def propose_tables_from_text(pages: List[Page], min_score=PROPOSAL_MIN_SCORE) ->
                 src_words
                 and _html_word_count(html) < TABLE_FALLBACK_MIN_KEEP * src_words
             ):
+                page.proposals_kept_prose += 1
+                continue
+            judged = gate.evaluate(
+                page.gate_graphics or {"h": [], "v": [], "curves": []},
+                blk.bbox,
+                gate.rows_x_of(lines),
+                [ln.text for ln in blk.lines],
+                html,
+                path="proposal",
+            )
+            gate.record(page, "proposal", blk.bbox, judged)
+            if not judged["passed"]:
                 page.proposals_kept_prose += 1
                 continue
             page.tables_emitted += 1

@@ -2978,6 +2978,91 @@ def make_sideways_scan():
     pdf.out("sideways_scan.pdf")
 
 
+def make_table_gate():
+    """The table-confidence gate on one control and one stop.
+
+    Page 1: a booktabs table whose third column wraps onto lower-case
+    continuation lines. The reconstruction is right, every gate test
+    passes, and it must stay a grid.
+
+    Page 2: a ruled box of label/sentence pairs (the shape of SBTi p. 42
+    or a "lessons" box): find_tables makes a 4x2 grid of it, but two
+    thirds of its lines end a sentence, so the gate's prose test keeps it
+    as marked prose with every word.
+    """
+    pdf = Doc()
+    pdf.add_page()
+    pdf.text_at(72, 60, "Table 2 Practices by sector", style="B", size=11)
+    y = 84
+    pdf.line(72, y, 540, y)
+    for x, h in zip([72, 220, 300], ["Sector", "Firms", "Practice"]):
+        pdf.text_at(x, y + 4, h, style="B", size=10)
+    y += 22
+    pdf.line(72, y, 540, y)
+    y += 4
+    rows = [
+        (
+            "Banking",
+            "42",
+            ["shared reporting of risk", "exposure across all", "regional units"],
+        ),
+        ("Energy", "17", ["emission targets set", "by the board each year"]),
+        ("Retail", "33", ["supplier audits with", "independent review panels"]),
+        ("Health", "25", ["patient outcome dashboards", "published every quarter"]),
+    ]
+    for name, n, lines in rows:
+        pdf.text_at(72, y, name, size=10)
+        pdf.text_at(220, y, n, size=10)
+        for i, ln in enumerate(lines):
+            pdf.text_at(300, y + 12.5 * i, ln, size=10)
+        y += 12.5 * len(lines) + 6
+    pdf.line(72, y, 540, y)
+    pdf.text_at(72, y + 8, "Note: counts are firms in the fixture sample.", size=9)
+
+    pdf.add_page()
+    pdf.text_at(72, 60, "Box 1 Lessons from the fixture study", style="B", size=11)
+    items = [
+        (
+            "Scope",
+            [
+                "Reporting covered every unit in the group.",
+                "Exclusions were explained in the annex.",
+            ],
+        ),
+        (
+            "Timing",
+            [
+                "Targets were set before the base year closed.",
+                "Progress was reviewed each spring.",
+            ],
+        ),
+        (
+            "Review",
+            [
+                "An outside panel checked the method.",
+                "Its findings were published in full.",
+            ],
+        ),
+        (
+            "Use",
+            [
+                "Managers used the results in planning.",
+                "Staff saw them in the annual report.",
+            ],
+        ),
+    ]
+    y = 84
+    for label, sents in items:
+        h = 14 * len(sents) + 6
+        pdf.rect(72, y, 120, h)
+        pdf.rect(192, y, 348, h)
+        pdf.text_at(78, y + 3, label, size=10)
+        for i, sent in enumerate(sents):
+            pdf.text_at(198, y + 3 + 14 * i, sent, size=10)
+        y += h
+    pdf.out("table_gate.pdf")
+
+
 def make_sectioned_running_heads():
     """Three repeated section heads are content; an alternating pair is not."""
     pdf = Doc()
@@ -3079,6 +3164,7 @@ MAKERS = {
     "digit_breaks": make_digit_breaks,
     "fragment_text": make_fragment_text,
     "sideways_scan": make_sideways_scan,
+    "table_gate": make_table_gate,
     "journal_front_matter": make_journal_front_matter,
     "continued_table_header": make_continued_table_header,
     "figure_source_labels": make_figure_source_labels,
