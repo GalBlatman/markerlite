@@ -204,3 +204,64 @@ def cancel_pressed(running: bool) -> tuple:
     if not running:
         return (False, None, None)
     return (True, CANCELLING, "disabled")
+
+
+MENU_ITEMS = (
+    "Open Markdown",
+    "Open PDF",
+    "Show in folder",
+    "Copy Markdown",
+    "Show warnings",
+    "Re-convert",
+    "Remove from list",
+)
+
+
+def menu_state(
+    pdf_exists: bool, md_exists: bool, converted: bool, running: bool
+) -> dict:
+    """Which right-click entries apply to a file row. Re-convert and Remove
+    wait for the running batch; nothing here deletes or renames a file."""
+    return {
+        "Open Markdown": md_exists,
+        "Open PDF": pdf_exists,
+        "Show in folder": md_exists or pdf_exists,
+        "Copy Markdown": md_exists,
+        "Show warnings": converted,
+        "Re-convert": pdf_exists and not running,
+        "Remove from list": not running,
+    }
+
+
+def warning_details(stats: dict) -> list:
+    """The "Show warnings" window: one line per finding in a file's stats,
+    or "No warnings"."""
+    out = []
+    for d in stats.get("lossy_pages") or []:
+        out.append(
+            f"Lossy page {d['page']}: {d['emitted']} of {d['source']} source words emitted"
+        )
+    for d in stats.get("fragment_pages") or []:
+        out.append(
+            f"Fragment page {d['page']}: {d['short_share']:.0%} of "
+            f"{d['letter_tokens']} words are one or two letters"
+        )
+    if stats.get("tables_fallback"):
+        n, m = stats["tables_fallback"], stats.get("tables", stats["tables_fallback"])
+        out.append(f"Tables kept as prose: {n} of {m}")
+    for d in stats.get("resource_limits") or []:
+        out.append(
+            f"Resource limit {d.get('limit')} on page {d.get('page')}: "
+            f"{d.get('observed')} over {d.get('cap')}; {d.get('action')}"
+        )
+    return [safe_display(line) for line in out] or ["No warnings"]
+
+
+def reveal_command(path: pathlib.Path, platform_name: str = sys.platform) -> list:
+    """argv that shows ``path`` selected in the file manager. Always a list
+    for subprocess without a shell; the path is one argument."""
+    if platform_name == "win32":
+        return ["explorer", f"/select,{path}"]
+    if platform_name == "darwin":
+        return ["open", "-R", str(path)]
+    return ["xdg-open", str(pathlib.Path(path).parent)]

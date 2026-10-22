@@ -24,17 +24,21 @@ from tkinter import filedialog, ttk
 from markerlite.display import safe_display
 from markerlite.extraction import discover_tesseract, tesseract_version
 from markerlite.gui_logic import (
+    MENU_ITEMS,
     ConversionOptions,
     bug_report_line,
     busy_status,
     cancel_pressed,
     finish_status,
+    menu_state,
     output_directory,
     provenance_comments,
+    reveal_command,
     run_batch,
     snapshot_options,
     summary_text,
     version_label,
+    warning_details,
     warning_lines,
     window_title,
     windows_build,
@@ -350,6 +354,7 @@ class App:
         self.tree.bind("<<TreeviewSelect>>", self.on_select)
         self.tree.bind("<Motion>", self._tree_motion)
         self.tree.bind("<Leave>", lambda _e: self._hide_tip())
+        self.tree.bind("<Button-3>", self._row_menu)
         self._tip = None
         self._tip_row = None
 
@@ -376,6 +381,7 @@ class App:
         self.preview.configure(yscrollcommand=pvsb.set)
         self.preview.pack(side="left", fill="both", expand=True)
         pvsb.pack(side="right", fill="y")
+        self.preview.bind("<Button-3>", self._preview_menu)
 
         # ---- options ----------------------------------------------------
 
@@ -552,9 +558,10 @@ class App:
         return output_directory(pdf, self.out_mode.get(), self.out_dir.get())
 
     # ------------------------------------------------------------ conversion
-    def start(self):
-        if self.running or not self.files:
-            if not self.files:
+    def start(self, only=None):
+        files = list(only) if only else list(self.files)
+        if self.running or not files:
+            if not files:
                 self.status.configure(text="Add some PDFs first")
             return
         self._check_tesseract()
@@ -568,7 +575,7 @@ class App:
         self.bar.pack(
             side="bottom", fill="x", padx=PAD, pady=(0, 6), before=self._opts_ref[0]
         )
-        self.bar.configure(maximum=len(self.files), value=0)
+        self.bar.configure(maximum=len(files), value=0)
         # Tk variables belong to the main thread: read them here, once, and
         # hand the worker a plain snapshot. Reading them from the worker is a
         # data race, and it also let a mid-run checkbox change alter the batch.
@@ -581,7 +588,7 @@ class App:
         )
         threading.Thread(
             target=self._worker,
-            args=(list(self.files), opts, self.cancel_token),
+            args=(files, opts, self.cancel_token),
             daemon=True,
         ).start()
 
@@ -808,6 +815,140 @@ class App:
                 pass
             self._tip = None
         self._tip_row = None
+
+    # ------------------------------------------------------------ row menu
+    def _row_state(self, src: str) -> dict:
+        res = self.results.get(src, {})
+        md = res.get("md")
+        return menu_state(
+            pdf_exists=pathlib.Path(src).is_file(),
+            md_exists=bool(md) and pathlib.Path(md).is_file(),
+            converted="stats" in res,
+            running=self.running,
+        )
+
+    def _row_menu(self, event):
+        row = self.tree.identify_row(event.y)
+        if not row:
+            return
+        self.tree.selection_set(row)
+        self._hide_tip()
+        state = self._row_state(row)
+        actions = {
+            "Open Markdown": lambda: self._reveal(
+                pathlib.Path(self.results[row]["md"])
+            ),
+            "Open PDF": lambda: self._reveal(pathlib.Path(row)),
+            "Show in folder": lambda: self._show_in_folder(row),
+            "Copy Markdown": lambda: self._copy_markdown(row),
+            "Show warnings": lambda: self._show_warnings(row),
+            "Re-convert": lambda: self._reconvert(row),
+            "Remove from list": lambda: self._remove(row),
+        }
+        menu = tk.Menu(self.root, tearoff=0)
+        for label in MENU_ITEMS:
+            if label in ("Show warnings", "Remove from list"):
+                menu.add_separator()
+            menu.add_command(
+                label=label,
+                command=actions[label],
+                state="normal" if state[label] else "disabled",
+            )
+        try:
+            menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            menu.grab_release()
+
+    def _show_in_folder(self, src: str):
+        """Select the Markdown (or, before conversion, the PDF) in the file
+        manager. The path is one argument; no shell is involved."""
+        md = self.results.get(src, {}).get("md")
+        target = (
+            pathlib.Path(md) if md and pathlib.Path(md).is_file() else pathlib.Path(src)
+        )
+        try:
+            subprocess.Popen(reveal_command(target))  # noqa: S603
+        except Exception as exc:
+            self.status.configure(text=f"Could not show folder: {safe_display(exc)}")
+
+    def _copy_markdown(self, src: str):
+        try:
+            text = pathlib.Path(self.results[src]["md"]).read_text(encoding="utf-8")
+        except Exception as exc:
+            self.status.configure(text=f"Could not read output: {safe_display(exc)}")
+            return
+        self.root.clipboard_clear()
+        self.root.clipboard_append(text)
+        self.status.configure(
+            text=f"Copied Markdown of {safe_display(pathlib.Path(src).name)}"
+        )
+
+    def _show_warnings(self, src: str):
+        lines = warning_details(self.results.get(src, {}).get("stats", {}))
+        win = tk.Toplevel(self.root)
+        win.title(f"Warnings — {safe_display(pathlib.Path(src).name)}")
+        win.transient(self.root)
+        text = tk.Text(
+            win,
+            wrap="word",
+            width=80,
+            height=min(20, len(lines) + 2),
+            font=("Segoe UI", 9),
+            padx=10,
+            pady=8,
+            bg=CARD,
+            fg=INK,
+        )
+        text.insert("1.0", "\n".join(lines))
+        text.configure(state="disabled")  # read-only
+        text.pack(fill="both", expand=True)
+        ttk.Button(win, text="Close", command=win.destroy).pack(pady=(0, 8))
+        win.bind("<Escape>", lambda _e: win.destroy())
+
+    def _reconvert(self, src: str):
+        """Convert just this file again with the current settings."""
+        if self.running:
+            return
+        self.start(only=[pathlib.Path(src)])
+
+    def _remove(self, src: str):
+        """Take the row off the list. Never touches the disk."""
+        if self.running:
+            return
+        path = pathlib.Path(src)
+        if path in self.files:
+            self.files.remove(path)
+        self.results.pop(src, None)
+        if self.tree.exists(src):
+            self.tree.delete(src)
+        self._set_preview("")
+        self.status.configure(text=f"{len(self.files)} file(s) ready")
+
+    def _preview_menu(self, event):
+        menu = tk.Menu(self.root, tearoff=0)
+        has_sel = bool(self.preview.tag_ranges("sel"))
+        menu.add_command(
+            label="Copy",
+            command=self._preview_copy,
+            state="normal" if has_sel else "disabled",
+        )
+        menu.add_command(label="Select all", command=self._preview_select_all)
+        try:
+            menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            menu.grab_release()
+
+    def _preview_copy(self):
+        try:
+            text = self.preview.get("sel.first", "sel.last")
+        except tk.TclError:
+            return
+        self.root.clipboard_clear()
+        self.root.clipboard_append(text)
+
+    def _preview_select_all(self):
+        self.preview.tag_add("sel", "1.0", "end-1c")
+        self.preview.focus_set()
 
     # --------------------------------------------------------------- preview
     def on_select(self, _event=None):
