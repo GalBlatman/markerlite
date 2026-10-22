@@ -26,10 +26,13 @@ from markerlite.extraction import discover_tesseract, tesseract_version
 from markerlite.gui_logic import (
     MENU_ITEMS,
     ConversionOptions,
+    app_log,
     bug_report_line,
     busy_status,
     cancel_pressed,
     finish_status,
+    handoff_plan,
+    launch_paths,
     menu_state,
     output_directory,
     provenance_comments,
@@ -91,11 +94,14 @@ BAD = "#b3402f"
 
 
 class App:
-    def __init__(self, root: tk.Tk):
+    def __init__(self, root: tk.Tk, events=None, initial=None):
         self.root = root
         self.files: list[pathlib.Path] = []
         self.results: dict[str, dict] = {}
-        self.events: "queue.Queue[tuple]" = queue.Queue()
+        # Worker progress and hand-offs from later launches both arrive
+        # here and are taken off on the Tk thread by _drain (after()).
+        self.events: "queue.Queue[tuple]" = events or queue.Queue()
+        self.pending: list[pathlib.Path] = []
         self.running = False
         self.cancel_token = None
         self.outcome: dict = {}
@@ -116,6 +122,14 @@ class App:
         # Esc does what the Cancel button does; outside a batch it does nothing.
         root.bind("<Escape>", lambda _e: self.cancel())
         self.root.after(80, self._drain)
+        if initial:
+            # Files from the command line (Explorer's Send to): after the
+            # window is up, add them and convert with the current settings.
+            self.root.after(200, lambda: self._receive(list(initial)))
+        if self.sendto_var is not None and self.sendto_var.get():
+            # Repair the Send to shortcut only when the option is on, in the
+            # background, after the window has appeared.
+            self.root.after(1500, self._sendto_repair)
 
     def _work_area(self):
         """(x, y, w, h) of the usable desktop - the screen minus the taskbar -
@@ -434,6 +448,29 @@ class App:
         ttk.Checkbutton(
             right_opts, text="Insert <!-- page N --> markers", variable=self.opt_pages
         ).pack(anchor="w")
+        # Explorer's Send to entry: Windows app only (it points at this exe).
+        self.sendto_var = None
+        self.sendto_error = None
+        if sys.platform == "win32" and getattr(sys, "frozen", False):
+            from markerlite import sendto
+
+            self.sendto_var = tk.BooleanVar(value=sendto.link_path().is_file())
+            ttk.Checkbutton(
+                right_opts,
+                text="Add markerlite to Explorer's Send to menu",
+                variable=self.sendto_var,
+                command=self._sendto_toggle,
+            ).pack(anchor="w")
+            self.sendto_error = tk.Label(
+                right_opts,
+                text="",
+                fg=BAD,
+                bg=BG,
+                font=("Segoe UI", 8),
+                wraplength=320,
+                justify="left",
+            )
+            self.sendto_error.pack(anchor="w")
         self._sync_out()
 
         # ---- action bar --------------------------------------------------
@@ -506,7 +543,7 @@ class App:
         if d:
             self.add([d])
 
-    def add(self, raw):
+    def add(self, raw) -> list:
         found: list[pathlib.Path] = []
         for r in raw:
             p = pathlib.Path(str(r).strip("{}"))
@@ -534,6 +571,73 @@ class App:
         if not found and raw:
             msg = "Nothing added — those weren't PDFs"
         self.status.configure(text=msg)
+        return found
+
+    # ------------------------------------------------------- Send to / launch
+    def _receive(self, raw: list):
+        """Files from a launch argument or a hand-off (Tk thread only): add
+        the PDFs and convert them now, or queue them behind the running
+        batch. Anything else is skipped with one app-log line."""
+        take, skip = launch_paths([str(r) for r in raw])
+        for p in skip:
+            app_log(f"skipped (not a PDF): {p}")
+        new = self.add(take) if take else []
+        self._raise_window()
+        if skip and not new:
+            self.status.configure(text=f"Skipped {len(skip)} file(s) that are not PDFs")
+        if not new:
+            return
+        now, self.pending = handoff_plan(new, self.running, self.pending)
+        if now:
+            self.start(only=now)
+        else:
+            self.status.configure(
+                text=f"{len(self.pending)} file(s) queued behind the current batch"
+            )
+
+    def _raise_window(self):
+        try:
+            self.root.deiconify()
+            self.root.lift()
+            self.root.attributes("-topmost", True)
+            self.root.after(300, lambda: self.root.attributes("-topmost", False))
+            self.root.focus_force()
+        except tk.TclError:
+            pass
+
+    def _sendto_toggle(self):
+        from markerlite import sendto
+
+        want = bool(self.sendto_var.get())
+        exe = pathlib.Path(sys.executable)
+        self.sendto_error.configure(text="")
+
+        def work():
+            try:
+                if want:
+                    sendto.create(exe)
+                else:
+                    sendto.remove()
+                self.events.put(("sendto", want, None))
+            except sendto.SendToError as exc:
+                self.events.put(("sendto", want, str(exc)))
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _sendto_repair(self):
+        from markerlite import sendto
+
+        exe = pathlib.Path(sys.executable)
+
+        def work():
+            try:
+                old = sendto.repair(exe)
+                if old:
+                    self.events.put(("sendto-repaired", old, None))
+            except sendto.SendToError as exc:
+                self.events.put(("sendto-repaired", None, str(exc)))
+
+        threading.Thread(target=work, daemon=True).start()
 
     def clear(self):
         if self.running:
@@ -709,6 +813,35 @@ class App:
                         "regex and numpy are installed for this Python."
                     )
                     self._finish()
+                elif kind == "handoff":
+                    app_log(f"received {len(ev[1])} file(s) from another launch")
+                    self._receive(ev[1])
+                elif kind == "sendto":
+                    _, want, err = ev
+                    if err:
+                        self.sendto_var.set(not want)
+                        self.sendto_error.configure(text=f"Send to unavailable: {err}")
+                        verb = "enable" if want else "disable"
+                        app_log(f"Send to {verb} failed: {err}")
+                    else:
+                        app_log(f"Send to entry {'added' if want else 'removed'}")
+                        self.status.configure(
+                            text="Added to Explorer's Send to menu"
+                            if want
+                            else "Removed from Explorer's Send to menu"
+                        )
+                elif kind == "sendto-repaired":
+                    _, old, err = ev
+                    if err:
+                        self.sendto_error.configure(text=f"Send to unavailable: {err}")
+                        app_log(f"Send to check failed: {err}")
+                    else:
+                        app_log(
+                            f"Send to shortcut repointed from {old} to {sys.executable}"
+                        )
+                        self.status.configure(
+                            text="Send to entry updated to this markerlite folder"
+                        )
                 elif kind == "finished":
                     self.log_paths = list(ev[1]) if len(ev) > 1 else []
                     self.outcome = ev[2] if len(ev) > 2 else {}
@@ -755,6 +888,10 @@ class App:
             self.log_btn.configure(state="normal")
         if any(r.get("eqs") for r in self.results.values()):
             self.math_btn.configure(state="normal")
+        if self.pending:
+            # Files sent while this batch ran: their batch starts now.
+            queued, self.pending = self.pending, []
+            self.root.after(100, lambda: self.start(only=queued))
 
     # ---------------------------------------------------------------- results
     @staticmethod
@@ -1099,8 +1236,35 @@ def main():
         except Exception:
             pass
         return
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    events: "queue.Queue[tuple]" = queue.Queue()
+    if sys.platform == "win32":
+        from markerlite import instance
+
+        single = instance.SingleInstance()
+        if not single.primary:
+            # A window is open: give it the files and exit. If it does not
+            # answer within ~5 s, open a window here with them instead.
+            if instance.hand_off(args):
+                return
+            app_log("hand-off failed; opening a second window with the files")
+        else:
+            try:
+                listener = instance.listen()
+            except OSError as exc:
+                app_log(f"single-instance listener unavailable: {exc}")
+            else:
+                threading.Thread(
+                    target=instance.serve,
+                    args=(
+                        listener,
+                        lambda paths: events.put(("handoff", paths)),
+                        app_log,
+                    ),
+                    daemon=True,
+                ).start()
     root = TkinterDnD.Tk() if HAVE_DND else tk.Tk()
-    App(root)
+    App(root, events=events, initial=args)
     root.mainloop()
 
 

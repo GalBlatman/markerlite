@@ -196,6 +196,17 @@ do what they say. When a batch finishes, the status line reports it as
 the window title and at the right of the status bar; click it to copy the
 markerlite, Tesseract and Windows versions for a bug report.
 
+**Send to.** In the Windows app, tick *Add markerlite to Explorer's Send to
+menu*. Then select PDFs in Explorer, right-click, *Send to* → *markerlite*:
+they are added to the list and converted with the current settings. If
+markerlite is already open they go to that window (queued behind a batch
+that is running); anything that is not a PDF is skipped and noted in
+`%LOCALAPPDATA%\markerlite\markerlite-app.log`. The option is a shortcut in
+your own Send to folder, nothing else: no registry change, no administrator
+rights. If you move the markerlite folder, the next start points the
+shortcut at the new place. **Untick the option before deleting the
+markerlite folder**, or the menu keeps an entry that leads nowhere.
+
 ### The command line
 
 ```bash

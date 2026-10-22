@@ -265,3 +265,55 @@ def reveal_command(path: pathlib.Path, platform_name: str = sys.platform) -> lis
     if platform_name == "darwin":
         return ["open", "-R", str(path)]
     return ["xdg-open", str(pathlib.Path(path).parent)]
+
+
+def launch_paths(args: list) -> tuple:
+    """Split file arguments (from Explorer's Send to, or a second launch)
+    into what the window takes - PDFs and folders, whose PDFs are added as
+    on a drop - and the rest, which are skipped with one log line each."""
+    take, skip = [], []
+    for raw in args:
+        if not raw or str(raw).startswith("--"):
+            continue
+        p = pathlib.Path(raw)
+        if p.suffix.lower() == ".pdf" or p.is_dir():
+            take.append(p)
+        else:
+            skip.append(p)
+    return take, skip
+
+
+def app_log_path() -> pathlib.Path:
+    """markerlite-app.log for events that belong to no output folder
+    (Send to changes, hand-offs, skipped launch arguments)."""
+    import os
+
+    base = os.environ.get("LOCALAPPDATA") or str(pathlib.Path.home())
+    return pathlib.Path(base) / "markerlite" / "markerlite-app.log"
+
+
+def app_log(line: str, path: pathlib.Path | None = None) -> None:
+    import datetime as _dt
+
+    path = path or app_log_path()
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "a", encoding="utf-8") as fh:
+            stamp = _dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            fh.write(f"{stamp} {safe_display(line)}\n")
+    except OSError:
+        pass
+
+
+def handoff_plan(new: list, running: bool, pending: list) -> tuple:
+    """Files arriving from Send to or a second launch: convert them now, or
+    queue them behind the batch that is running. Returns (start_now,
+    pending). Nothing is dropped and a file already queued is not added
+    twice."""
+    if not running:
+        return list(new), list(pending)
+    queued = list(pending)
+    for p in new:
+        if p not in queued:
+            queued.append(p)
+    return [], queued
