@@ -18,7 +18,11 @@ its own source words:
 5. token identity: the grid's tokens equal the members' tokens as a
    multiset, within GATE_IDENTITY_MAX;
 6. no continuation rows: fewer than 15% of body rows have an empty first
-   cell and lower-case continuation text (wrapped lines emitted as rows).
+   cell and lower-case continuation text (wrapped lines emitted as rows);
+7. not drawn boxes: three or more stroked boxes inside the region, none
+   sharing an edge with another, are a diagram's boxes (a flow chart or
+   model figure), not cells. A table drawn cell by cell has boxes that
+   touch; a single frame round a table is one box.
 
 Thresholds: owner ruling at block 2 stop 2. Prose 0.40 and two-row grids
 held up on held-out documents; looser continuation and proposal-identity
@@ -47,6 +51,9 @@ GATE_PROSE_MAX = 0.40
 GATE_IDENTITY_MAX = 0.05
 GATE_CONTINUATION_MAX = 0.15
 GATE_COLUMN_TOL = 4.0
+GATE_BOXES_MIN = 3
+GATE_BOX_EDGE_TOL = 1.5
+GATE_BOX_MAX_WIDTH = 0.9  # a box this wide is a frame or a row band
 
 _SENTENCE_END = re.compile(r"[A-Za-z]{2,}[.!?][\"'”’)\]]*$")
 
@@ -54,7 +61,7 @@ _SENTENCE_END = re.compile(r"[A-Za-z]{2,}[.!?][\"'”’)\]]*$")
 def page_graphics(pmpage) -> dict:
     """Rules and curve boxes of a page, read once for every candidate on it.
     Horizontal: (y, x0, x1); vertical: (x, y0, y1); curves: rect tuples."""
-    out = {"h": [], "v": [], "curves": []}
+    out = {"h": [], "v": [], "curves": [], "boxes": []}
     try:
         drawings = pmpage.get_drawings()
     except Exception:
@@ -81,6 +88,8 @@ def page_graphics(pmpage) -> dict:
                 elif r.width <= 1.6 and r.height > 2:
                     out["v"].append(((r.x0 + r.x1) / 2, r.y0, r.y1))
                 elif r.width > 2 and r.height > 2:
+                    if d.get("color") is not None:
+                        out["boxes"].append((r.x0, r.y0, r.x1, r.y1))
                     # a box: its edges are rules of a ruled table
                     out["h"] += [(r.y0, r.x0, r.x1), (r.y1, r.x0, r.x1)]
                     out["v"] += [(r.x0, r.y0, r.y1), (r.x1, r.y0, r.y1)]
@@ -183,6 +192,18 @@ def evaluate(
         and not r[0].strip()
         and any(c.strip()[:1].islower() for c in r[1:] if c.strip())
     ) / max(1, len(body))
+    boxes = [
+        b
+        for b in graphics.get("boxes", [])
+        if b[0] >= x0 - pad
+        and b[2] <= x1 + pad
+        and b[1] >= y0 - pad
+        and b[3] <= y1 + pad
+        and b[2] - b[0] < GATE_BOX_MAX_WIDTH * w
+    ]
+    touching = sum(
+        1 for i, a in enumerate(boxes) for b in boxes[i + 1 :] if _boxes_touch(a, b)
+    )
     measures = {
         "hrules": hr_levels,
         "vrules": len(vr),
@@ -193,6 +214,8 @@ def evaluate(
         "prose": round(prose, 3),
         "identity": round(identity, 3),
         "continuation": round(cont, 3),
+        "boxes": len(boxes),
+        "boxes_touching": touching,
         "hrules_joined": len({round(r[0]) for r in mh}),
         "vrules_joined": len(mv),
     }
@@ -209,6 +232,8 @@ def evaluate(
         failed.append("identity")
     if cont >= GATE_CONTINUATION_MAX:
         failed.append("continuation")
+    if len(boxes) >= GATE_BOXES_MIN and not touching:
+        failed.append("boxes")
     return {"passed": not failed, "failed": failed, "measures": measures}
 
 
@@ -219,6 +244,15 @@ def evidence_kind(measures: dict) -> str:
     h = max(measures.get("hrules", 0), measures.get("hrules_joined", 0))
     v = max(measures.get("vrules", 0), measures.get("vrules_joined", 0))
     return "rules" if h >= GATE_HRULES_MIN or v else "text"
+
+
+def _boxes_touch(a, b, tol: float = GATE_BOX_EDGE_TOL) -> bool:
+    """Whether two boxes share part of an edge (cells of one grid do)."""
+    xs = min(a[2], b[2]) - max(a[0], b[0])
+    ys = min(a[3], b[3]) - max(a[1], b[1])
+    if xs > tol and any(abs(p - q) <= tol for p in a[1::2] for q in b[1::2]):
+        return True
+    return ys > tol and any(abs(p - q) <= tol for p in a[0::2] for q in b[0::2])
 
 
 def _merge(segments, tol: float = 1.5) -> list:

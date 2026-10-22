@@ -106,3 +106,13 @@ def test_cell_edges_join_into_rules():
         (140.0, 72.0, 100.0),
     ]
     assert gate._merge(edges) == [(100.0, 72.0, 282.0), (140.0, 72.0, 100.0)]
+
+
+def test_separate_boxes_do_not_touch_cells_do():
+    figure = [(136, 308, 219, 411), (246, 308, 336, 411), (357, 308, 491, 411)]
+    assert not any(
+        gate._boxes_touch(a, b) for i, a in enumerate(figure) for b in figure[i + 1 :]
+    )
+    assert gate._boxes_touch((90, 96, 210, 116), (210, 96, 330, 116))  # side by side
+    assert gate._boxes_touch((90, 96, 210, 116), (90, 116, 210, 136))  # stacked
+    assert not gate._boxes_touch((90, 96, 210, 116), (210, 140, 330, 160))  # corner gap

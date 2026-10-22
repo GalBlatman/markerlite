@@ -314,6 +314,31 @@ def check_mixed_body_sizes(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     return 0
 
 
+def check_drawn_boxes(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
+    """drawn_boxes: a figure of separate boxes is stopped by the gate's box
+    test alone and kept as prose with every word; a table drawn cell by
+    cell (boxes sharing edges) stays a grid."""
+    directory = workdir / "drawn-boxes"
+    directory.mkdir(exist_ok=True)
+    output, info = markerlite.convert(pdf, directory)
+    text = output.read_text(encoding="utf-8")
+    gated = [(g["page"], g["failed"]) for g in info["stats"].get("tables_gated", [])]
+    ok = (
+        gated == [(1, ["boxes"])]
+        and "| North | Routines | 14 |" in text
+        and "<!-- table p. 1" in text
+        and "sensemaking" in text
+        and text.count("<!-- table p. 2: grid from ruling lines -->") == 1
+    )
+    if not ok:
+        print(f"FAIL  drawn-boxes: gated {gated}")
+        return 1
+    print(
+        "ok    drawn-boxes      box figure kept as prose; cell-boxed table stays a grid"
+    )
+    return 0
+
+
 def check_table_gate(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     """table_gate: the control table stays a grid; the sentence box is kept
     as marked prose by the prose test, with every source word."""
@@ -819,6 +844,8 @@ def main(argv=None) -> int:
                 failures += check_fallback_prose(pdf, workdir)
             if stem == "mixed_body_sizes":
                 failures += check_mixed_body_sizes(pdf, workdir)
+            if stem == "drawn_boxes":
+                failures += check_drawn_boxes(pdf, workdir)
             if stem == "table_gate":
                 failures += check_table_gate(pdf, workdir)
             if stem == "sideways_scan":

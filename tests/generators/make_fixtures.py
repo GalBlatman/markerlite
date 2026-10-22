@@ -3116,6 +3116,134 @@ def make_mixed_body_sizes():
     pdf.out("mixed_body_sizes.pdf")
 
 
+def make_drawn_boxes():
+    """A model figure drawn as separate boxes, and a table drawn cell by cell.
+
+    Page 1: the geometry of a real article's model figure (R00860 p. 60,
+    text synthetic): a shaded frame, eight stroked boxes that never touch,
+    connector lines and arrowheads. find_tables reads the box edges as a
+    ruled grid; the gate's drawn-box test keeps it as prose.
+
+    Page 2 (control): a table whose every cell is its own stroked box. The
+    boxes share edges, so the same test leaves it a grid.
+    """
+    pdf = Doc()
+    pdf.add_page()
+    pdf.text_at(90, 72, "Stages of the fixture study", style="B", size=11)
+    pdf.set_fill_color(235, 235, 235)
+    pdf.rect(90, 99, 437, 328, style="F")
+    pdf.set_fill_color(255, 255, 255)
+    boxes = [
+        (274, 119, 86, 58, ["Initial", "conditions"]),
+        (102, 198, 83, 76, ["Prior", "experience"]),
+        (202, 198, 217, 59, ["Joint", "sensemaking"]),
+        (436, 198, 86, 76, ["External", "pressure"]),
+        (136, 308, 83, 103, ["Local", "routines"]),
+        (246, 308, 90, 103, ["Shared", "frames"]),
+        (357, 308, 134, 103, ["Collective", "action"]),
+        (360, 394, 107, 14, ["Outcome"]),
+    ]
+    for x, y, w, h, words in boxes:
+        pdf.rect(x, y, w, h, style="DF")
+    # Text line boxes at the source's positions (x0, top, size); words
+    # synthetic. Short "Pn" labels sit on the connectors.
+    lines = [
+        (289, 124, 10.9, "Initial state"),
+        (286, 137, 10.9, "of the units"),
+        (288, 150, 10.9, "before the"),
+        (291, 163, 10.9, "change"),
+        (105, 205, 10.9, "Prior experience"),
+        (113, 218, 10.9, "with change"),
+        (115, 232, 10.9, "programmes"),
+        (132, 245, 10.9, "and"),
+        (117, 258, 10.9, "past results"),
+        (229, 202, 10.9, "Joint sensemaking among managers"),
+        (213, 216, 10.3, "comparing accounts across all the units"),
+        (213, 230, 10.3, "agreeing what the change requires"),
+        (213, 244, 10.3, "naming the risks of each option"),
+        (443, 205, 10.9, "External pressure"),
+        (455, 218, 10.9, "from the"),
+        (447, 232, 10.9, "regulator and"),
+        (457, 245, 10.9, "the parent"),
+        (444, 258, 10.9, "company each year"),
+        (141, 311, 8.4, "Local routines"),
+        (253, 311, 8.4, "Shared frames"),
+        (377, 311, 8.4, "Collective"),
+        (151, 331, 8.4, "daily practice in"),
+        (154, 341, 8.4, "each unit and"),
+        (159, 351, 8.4, "its habits"),
+        (265, 327, 8.4, "common language"),
+        (273, 337, 8.4, "and goals"),
+        (369, 332, 8.4, "joint plans"),
+        (365, 343, 8.4, "and shared"),
+        (374, 353, 8.4, "tasks"),
+        (366, 363, 8.4, "across units"),
+        (432, 327, 8.4, "reviewed every"),
+        (431, 338, 8.4, "quarter by the"),
+        (428, 348, 8.4, "steering group"),
+        (431, 358, 8.4, "with the units"),
+        (442, 368, 8.4, "staff"),
+        (258, 367, 8.4, "frames that hold up"),
+        (262, 382, 8.4, "under pressure"),
+        (258, 399, 8.4, "and are retained"),
+        (151, 382, 8.4, "routines that are"),
+        (149, 392, 8.4, "kept and adapted"),
+        (366, 398, 8.4, "Outcome for the units"),
+        (93, 299, 10.9, "Stage"),
+        (93, 312, 10.9, "two"),
+        (96, 134, 10.9, "Stage"),
+        (96, 147, 10.9, "one"),
+    ]
+    for x, top, size, text in lines:
+        pdf.text_at(x, top, text, size=size)
+    for x, top in [
+        (205, 282),
+        (314, 282),
+        (354, 282),
+        (407, 282),
+        (433, 282),
+        (113, 350),
+        (227, 347),
+        (303, 350),
+        (406, 350),
+        (227, 388),
+        (337, 375),
+        (385, 378),
+        (497, 316),
+    ]:
+        pdf.text_at(x, top, "P" + str(1 + (x + top) % 9), size=10.9)
+    for x0, y0, x1, y1 in [
+        (317, 177, 317, 198),
+        (185, 236, 202, 236),
+        (419, 236, 436, 236),
+        (202, 270, 425, 270),
+        (319, 257, 319, 270),
+        (425, 270, 425, 308),
+        (129, 260, 129, 387),
+        (129, 387, 136, 387),
+    ]:
+        pdf.line(x0, y0, x1, y1)
+    pdf.text_at(90, 440, "The boxes are stages; arrows show the order.", size=10)
+
+    pdf.add_page()
+    pdf.text_at(90, 72, "Table 4 Stages by site", style="B", size=11)
+    xs, widths = [90, 210, 330], [120, 120, 120]
+    data = [
+        ["Site", "Stage", "Months"],
+        ["North", "Routines", "14"],
+        ["South", "Frames", "9"],
+        ["East", "Action", "21"],
+        ["West", "Outcome", "6"],
+    ]
+    y = 96
+    for r, row in enumerate(data):
+        for x, w, cell in zip(xs, widths, row):
+            pdf.rect(x, y, w, 20)
+            pdf.text_at(x + 4, y + 4, cell, style="B" if r == 0 else "", size=10)
+        y += 20
+    pdf.out("drawn_boxes.pdf")
+
+
 def make_sectioned_running_heads():
     """Three repeated section heads are content; an alternating pair is not."""
     pdf = Doc()
@@ -3219,6 +3347,7 @@ MAKERS = {
     "sideways_scan": make_sideways_scan,
     "table_gate": make_table_gate,
     "mixed_body_sizes": make_mixed_body_sizes,
+    "drawn_boxes": make_drawn_boxes,
     "journal_front_matter": make_journal_front_matter,
     "continued_table_header": make_continued_table_header,
     "figure_source_labels": make_figure_source_labels,
