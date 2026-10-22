@@ -127,3 +127,13 @@ def test_cancel_token_is_not_swallowed_by_except_exception():
         CancelToken().run(
             [sys.executable, "-c", "import time; time.sleep(5)"], timeout=0.2
         )
+
+
+def test_cancel_feedback_is_immediate_and_sticky():
+    from markerlite.gui_logic import CANCELLING, busy_status, cancel_pressed
+
+    assert cancel_pressed(True) == (True, CANCELLING, "disabled")
+    assert cancel_pressed(False) == (False, None, None)
+    # a progress event that arrives after the press does not overwrite it
+    assert busy_status("a.pdf", cancelling=True) == CANCELLING
+    assert busy_status("a.pdf", cancelling=False) == "Converting a.pdf"

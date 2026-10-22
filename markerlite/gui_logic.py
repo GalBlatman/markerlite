@@ -185,3 +185,22 @@ def finish_status(outcome: dict, summary: str) -> str:
             parts.append(f"{len(outcome['skipped'])} skipped")
         return " · ".join(parts)
     return summary
+
+
+CANCELLING = "Cancelling\u2026"
+
+
+def busy_status(name: str, cancelling: bool) -> str:
+    """Status-bar text when a file starts. Once Cancel or Esc was pressed
+    the bar keeps saying "Cancelling…" until the batch is idle, even if a
+    progress event queued before the press arrives after it."""
+    return CANCELLING if cancelling else f"Converting {safe_display(name)}"
+
+
+def cancel_pressed(running: bool) -> tuple:
+    """What a Cancel/Esc press does to the window, decided at once on the
+    Tk thread: (cancel the token, status text, Convert/Cancel button state).
+    Outside a batch it does nothing."""
+    if not running:
+        return (False, None, None)
+    return (True, CANCELLING, "disabled")

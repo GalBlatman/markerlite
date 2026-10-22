@@ -548,3 +548,29 @@ root `markerlite.py` is movement into owned modules, not deletion.
 This document is the complete Phase 0 deliverable. Implementation, file
 moves, deletions, formatting, dependency changes, and CI edits wait for review
 and explicit approval of the next phase.
+
+## Backlog: conversion worker process (designed, not built)
+
+Owner decision (2026-10-21): v0.1.17 ships the cooperative cancel
+(markerlite/cancel.py). Measured cancel latency, cancel to idle, on every
+tests/real document at 10/30/50/70/90% of its conversion, with and
+without OCR: worst 6.63 s (Target-Validation-Protocol, OCR), 3.72 s
+(R02027), 3.48 s (Kitchener); 20 of 24 runs under 0.6 s. The long cases
+are whole-document stages that check the token only before and after.
+
+Design, when built:
+
+- One long-lived worker process per batch (multiprocessing, spawn;
+  `freeze_support()` for the PyInstaller exe), reused across the batch's
+  documents and restarted only after a cancel or a time limit, so the
+  1-2 s import cost (PyMuPDF, scikit-learn) is paid once per batch, not
+  per document.
+- Cancel = terminate the worker, then delete that document's `.part`
+  outputs (their names are deterministic, markerlite/output.py).
+- Per-document time limit = the parent's wait timeout; on expiry the
+  worker is terminated and the document reported with a warning.
+- Results (stats, Markdown path) come back over a pipe as JSON, never
+  pickle. Output is unchanged: the golden audit must stay identical.
+
+Trigger for building it: the Unknown Knowns pipeline moves to a newer
+markerlite, or a repeated latency run shows a cancel above 10 s.

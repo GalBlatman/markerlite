@@ -26,6 +26,8 @@ from markerlite.extraction import discover_tesseract, tesseract_version
 from markerlite.gui_logic import (
     ConversionOptions,
     bug_report_line,
+    busy_status,
+    cancel_pressed,
     finish_status,
     output_directory,
     provenance_comments,
@@ -586,11 +588,15 @@ class App:
     def cancel(self):
         """Cancel the running batch: the current file is abandoned between
         pages (a running Tesseract is killed), the rest are skipped."""
-        if not self.running or self.cancel_token is None:
+        act, text, state = cancel_pressed(
+            self.running and self.cancel_token is not None
+        )
+        if not act:
             return
+        # Feedback first, on this (Tk) thread, before the worker notices.
+        self.status.configure(text=text)
+        self.go.configure(state=state)
         self.cancel_token.cancel()
-        self.go.configure(state="disabled")
-        self.status.configure(text="Cancelling…")
 
     def _worker(self, files: list[pathlib.Path], opts: ConversionOptions, token):
         try:
@@ -637,7 +643,11 @@ class App:
                     )
                     self.tree.see(ev[1])
                     self.status.configure(
-                        text=f"Converting {safe_display(pathlib.Path(ev[1]).name)}"
+                        text=busy_status(
+                            pathlib.Path(ev[1]).name,
+                            self.cancel_token is not None
+                            and self.cancel_token.is_set(),
+                        )
                     )
                 elif kind == "done":
                     _, src, md, stats = ev
