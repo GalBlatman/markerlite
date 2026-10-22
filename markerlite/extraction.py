@@ -147,6 +147,101 @@ def readable_ratio(text: str) -> Tuple[int, float]:
     return len(tokens), hits / len(tokens)
 
 
+_LETTER_RUN = re.compile(r"[^\W\d_]+")
+
+
+def fragment_share(text: str) -> Tuple[int, float]:
+    """(letter tokens, share of them at most FRAGMENT_MAX_LETTERS long).
+    The same measure stats.fragment_pages applies to a page's output."""
+    runs = _LETTER_RUN.findall(text)
+    if not runs:
+        return 0, 0.0
+    return len(runs), sum(1 for r in runs if len(r) <= FRAGMENT_MAX_LETTERS) / len(runs)
+
+
+def is_fragments(text: str) -> bool:
+    letters, share = fragment_share(text)
+    return letters >= FRAGMENT_MIN_LETTER_TOKENS and share >= FRAGMENT_SHORT_SHARE
+
+
+def ocr_orientation(page: pymupdf.Page, cancel=None) -> Optional[Tuple[int, float]]:
+    """Tesseract's orientation detection (--psm 0) on the rendered page:
+    (degrees to turn the page clockwise to make it upright, confidence),
+    or None when Tesseract or its orientation data is unavailable."""
+    import tempfile
+
+    executable = discover_tesseract()
+    if executable is None:
+        return None
+    try:
+        dpi, _pixels = ocr_dpi(page, OCR_DPI)
+        with tempfile.TemporaryDirectory() as td:
+            img = pathlib.Path(td) / "page.png"
+            page.get_pixmap(dpi=dpi).save(img)
+            out = pathlib.Path(td) / "osd.txt"
+            args = [executable, str(img), "stdout", "--psm", "0"]
+            with open(out, "wb") as fh:
+                if cancel is not None:
+                    code = cancel.run(
+                        args,
+                        stdout=fh,
+                        stderr=subprocess.DEVNULL,
+                        timeout=OCR_TIMEOUT_SECONDS,
+                    )
+                else:
+                    code = subprocess.run(
+                        args,
+                        stdout=fh,
+                        stderr=subprocess.DEVNULL,
+                        timeout=OCR_TIMEOUT_SECONDS,
+                    ).returncode
+            text = out.read_bytes()[:4096].decode("utf-8", "replace")
+        if code != 0:
+            return None
+    except Exception:
+        return None
+    rotate = re.search(r"^Rotate:\s*(\d+)", text, re.M)
+    conf = re.search(r"^Orientation confidence:\s*([\d.]+)", text, re.M)
+    if not rotate or not conf:
+        return None
+    return int(rotate.group(1)) % 360, float(conf.group(1))
+
+
+def _reocr_fragments(page: pymupdf.Page, page_idx: int, cancel=None):
+    """A raster-covered page whose text layer reads as fragments: a sideways
+    scan whose hidden OCR layer was made without orientation. Turn it the
+    way Tesseract's orientation detection says and OCR it. The result is
+    kept only if it is no longer fragments; otherwise the page is turned
+    back and its own layer stays (with the fragment warning). Returns
+    (OCR'd Page or None, the page object to continue with)."""
+    found = ocr_orientation(page, cancel)
+    if not found:
+        return None, page
+    rotate, confidence = found
+    if rotate == 0 or confidence < OSD_MIN_CONFIDENCE:
+        return None, page
+    # The attempt runs on a one-page copy, so the document is only turned
+    # when the result is kept: nothing ever has to be turned back.
+    trial = pymupdf.open()
+    trial.insert_pdf(page.parent, from_page=page.number, to_page=page.number)
+    tpage = trial[0]
+    tpage.set_rotation(rotate)
+    tpage.remove_rotation()
+    try:
+        ocr_page = _ocr_page(trial[0], page_idx, cancel=cancel)
+    finally:
+        trial.close()
+    if ocr_page is None:
+        return None, page
+    if is_fragments(" ".join(b.text for b in ocr_page.blocks)):
+        return None, page
+    doc, number = page.parent, page.number
+    page.set_rotation(rotate)
+    page.remove_rotation()
+    ocr_page.reocr_rotation = rotate
+    return ocr_page, doc[number]
+
+
 def _normalise_rotation(page: pymupdf.Page) -> Tuple[pymupdf.Page, bool]:
     """Return the page with its text upright, and whether it was turned.
 
@@ -610,6 +705,15 @@ def extract_page(
             ocr_page.image_only = image_only
             ocr_page.raster_covered = raster_covered
             ocr_page.derotated = derotated
+            return ocr_page
+    elif ocr_if_empty and raster_covered and is_fragments(page.get_text()):
+        ocr_page, page = _reocr_fragments(page, page_idx, cancel=cancel)
+        if ocr_page is not None:
+            ocr_page.garbled = garbled
+            ocr_page.readable = readable
+            ocr_page.image_only = image_only
+            ocr_page.raster_covered = raster_covered
+            ocr_page.derotated = True
             return ocr_page
 
     counter = 0

@@ -2890,6 +2890,94 @@ def make_fragment_text():
     pdf.out("fragment_text.pdf")
 
 
+def make_sideways_scan():
+    """A portrait scan whose content is printed sideways, with a hidden OCR
+    layer made without turning the page: one- and two-character pieces.
+    Geometry from R00443 pp. 14/16 and R02027 pp. 30/31/36 (text synthetic):
+    a landscape table set on a portrait page, scanned, and OCR'd as is by
+    the aggregator.
+
+    Bug: the hidden layer was read as the page's text; every word came out
+    in pieces and only the fragment warning said so. Tesseract's
+    orientation detection says "Rotate: 90"; the page is turned, OCR'd and
+    reads as words (needs Tesseract 5.5.0 with osd.traineddata).
+    """
+    src = Doc(fmt=(LETTER_H, LETTER_W))  # landscape: the printed table
+    src.add_page()
+    src.text_at(
+        72, 60, "TABLE 2 Regression Results for Fixture Adoption", style="B", size=14
+    )
+    heads = ["Variable", "Model 1", "Model 2", "Model 3", "Model 4"]
+    rows = [
+        ["Firm size", "0.42", "0.39", "0.41", "0.37"],
+        ["Board independence", "0.18", "0.21", "0.16", "0.22"],
+        ["Industry growth", "0.05", "0.07", "0.04", "0.06"],
+        ["Prior adoption", "1.12", "1.08", "1.15", "1.10"],
+        ["Regional density", "0.33", "0.29", "0.35", "0.31"],
+    ]
+    y = 100
+    for row in [heads] + rows:
+        for k, cell in enumerate(row):
+            src.text_at(72 + (0 if k == 0 else 180 + 110 * (k - 1)), y, cell, size=13)
+        y += 28
+    src.text_at(
+        72,
+        y + 20,
+        "Note: Standard errors are reported in the appendix tables.",
+        size=11,
+    )
+    buf = io.BytesIO(bytes(src.output()))
+    sdoc = pymupdf.open("pdf", buf.read())
+    page = sdoc[0]
+    page.set_rotation(90)  # the scan lies on its side on the portrait page
+    pix = page.get_pixmap(dpi=200, colorspace=pymupdf.csGRAY, alpha=False)
+    png = pix.tobytes("png")
+    sdoc.close()
+
+    pdf = Doc()
+    pdf.add_page()
+    pdf.image(io.BytesIO(png), x=0, y=0, w=LETTER_W, h=LETTER_H)
+    # The aggregator's hidden OCR layer, made without orientation: pieces.
+    pieces = [
+        "o",
+        "0",
+        "t",
+        "I",
+        "in",
+        "00",
+        "C",
+        "m",
+        "ur",
+        "b",
+        "N",
+        "e",
+        "Q",
+        "Io",
+        "5",
+        "a",
+        "O",
+        "n",
+        "on",
+        "z",
+        "H",
+        "0)",
+        "c",
+        "r",
+        "1f",
+        "s",
+        "w",
+        "C1",
+    ]
+    pdf.text_mode = "INVISIBLE"
+    yy = 72.0
+    for row in range(24):
+        line = " ".join(pieces[(row * 5 + k * 3) % len(pieces)] for k in range(8))
+        pdf.text_at(80, yy, line, size=9)
+        yy += 26
+    pdf.text_mode = "FILL"
+    pdf.out("sideways_scan.pdf")
+
+
 def make_sectioned_running_heads():
     """Three repeated section heads are content; an alternating pair is not."""
     pdf = Doc()
@@ -2990,6 +3078,7 @@ MAKERS = {
     "no_table_marker": make_no_table_marker,
     "digit_breaks": make_digit_breaks,
     "fragment_text": make_fragment_text,
+    "sideways_scan": make_sideways_scan,
     "journal_front_matter": make_journal_front_matter,
     "continued_table_header": make_continued_table_header,
     "figure_source_labels": make_figure_source_labels,

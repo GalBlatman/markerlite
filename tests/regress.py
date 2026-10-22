@@ -47,6 +47,7 @@ NEEDS_TESSERACT = {
     "justified_scan",
     "ebsco_notice_scan",
     "garbled_font",
+    "sideways_scan",
 }
 
 
@@ -295,6 +296,29 @@ def check_fallback_prose(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     print(
         "ok    fallback-prose   lossy/unavailable reconstruction: tokens, order, marker, stats"
     )
+    return 0
+
+
+def check_sideways_scan(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
+    """sideways_scan: the fragment text layer is replaced by an upright OCR
+    of the page; the fragment warning is gone and the table's words read."""
+    directory = workdir / "sideways-scan"
+    directory.mkdir(exist_ok=True)
+    output, info = markerlite.convert(pdf, directory)
+    text = output.read_text(encoding="utf-8")
+    stats = info["stats"]
+    words = ("Regression", "Fixture", "Adoption", "Board", "independence", "Regional")
+    if (
+        not stats.get("reocr_pages")
+        or stats.get("fragment_pages")
+        or not all(w in text for w in words)
+    ):
+        print(
+            f"FAIL  sideways-scan: reocr {stats.get('reocr_pages')}, "
+            f"fragments {stats.get('fragment_pages')}"
+        )
+        return 1
+    print("ok    sideways-scan    turned upright and re-OCR'd; reads as words")
     return 0
 
 
@@ -739,6 +763,8 @@ def main(argv=None) -> int:
                 failures += check_journal_front_matter(pdf, workdir)
             if stem == "tall_cell":
                 failures += check_fallback_prose(pdf, workdir)
+            if stem == "sideways_scan":
+                failures += check_sideways_scan(pdf, workdir)
             if stem == "fragment_text":
                 failures += check_fragment_pages(pdf, workdir)
             if stem == "no_table_marker":

@@ -61,6 +61,7 @@ class ConversionStats(TypedDict):
     section_heads_emitted: list[dict]
     resource_limits: list[dict]
     table_candidates_released: int
+    reocr_pages: list[dict]
     fragment_pages: list[FragmentPage]
 
 
@@ -231,6 +232,15 @@ def build_stats(
     # Flag only: the text stays as emitted. Present only when a page trips.
     if fragments:
         stats["fragment_pages"] = fragments
+    # Sideways scans whose fragment text layer was replaced by an upright
+    # OCR (extraction._reocr_fragments). Present only when one was.
+    reocr = [
+        {"page": p.page_idx + 1, "rotation": p.reocr_rotation}
+        for p in pages
+        if p.reocr_rotation
+    ]
+    if reocr:
+        stats["reocr_pages"] = reocr
     return stats
 
 

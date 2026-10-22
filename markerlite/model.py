@@ -402,6 +402,9 @@ class Page:
     raster_covered: bool = False
     # The page was stored rotated or printed sideways and was turned upright.
     derotated: bool = False
+    # Degrees the page was turned for a re-OCR because its text layer was
+    # fragments (extraction._reocr_fragments); 0 when not re-OCR'd.
+    reocr_rotation: int = 0
     # The native layer extracts as nonsense (readable share under GARBLE_MIN).
     garbled: bool = False
     readable: float = 1.0

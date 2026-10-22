@@ -39,6 +39,12 @@ CONSERVATION_MIN_SOURCE = 20
 FRAGMENT_MIN_LETTER_TOKENS = 30
 FRAGMENT_MAX_LETTERS = 2
 FRAGMENT_SHORT_SHARE = 0.7
+# A raster-covered page whose text layer is fragments is a sideways scan
+# OCR'd without orientation (R00443 pp. 14, 16; R02027 pp. 30, 31, 36).
+# Tesseract's orientation detection (--psm 0) is asked; it answered
+# "Rotate: 90" on all five with confidence 4.04-19.56. Below this
+# confidence the page is left as it is.
+OSD_MIN_CONFIDENCE = 2.0
 
 # Pi-font/drop-cap evidence: pi_minus and dropcap fixtures.
 PI_FONT_MIN_GLYPHS = 5
