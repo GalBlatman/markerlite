@@ -450,7 +450,16 @@ def check_proposal_guard(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
         (workdir / sub).mkdir(parents=True, exist_ok=True)
     out, _ = markerlite.convert(pdf, workdir / "guard", page_markers=True)
     with_guard = per_page(out.read_text(encoding="utf-8"))
-    with patch.object(markerlite_tables, "TABLE_FALLBACK_MIN_KEEP", 0.0):
+    # The table-confidence gate stops the same lossy proposal by token
+    # identity, so it is switched off too to show what the guards prevent.
+    from markerlite import gate as _gate
+
+    passed = {"passed": True, "failed": [], "measures": {}}
+    with (
+        patch.object(markerlite_tables, "TABLE_FALLBACK_MIN_KEEP", 0.0),
+        patch.object(_gate, "evaluate", lambda *a, **k: passed),
+        patch.object(_gate, "record", lambda *a, **k: None),
+    ):
         out2, _ = markerlite.convert(pdf, workdir / "noguard", page_markers=True)
     without = per_page(out2.read_text(encoding="utf-8"))
     ok = (

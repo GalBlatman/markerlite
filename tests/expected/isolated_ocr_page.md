@@ -12,6 +12,8 @@ Copyright of the Example Research Society. Readers may print this notice for ind
 
 Scanned inventory
 
+<!-- table p. 4: grid from aligned text; verify before use -->
+
 | Product | Quantity | Location |
 | --- | --- | --- |
 | Apples | 120 | North |

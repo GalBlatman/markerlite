@@ -2,6 +2,8 @@
 
 ## TABLE 2 Regression Results for Fixture Adoption
 
+<!-- table p. 1: grid from aligned text; verify before use -->
+
 | Variable | Model 1 |
 | --- | --- |
 | Firm size | 0.42 |

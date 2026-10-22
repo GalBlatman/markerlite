@@ -40,6 +40,8 @@ The remaining processors are direct ports and are documented against the source 
 
 <!-- ocr page 2 -->
 
+<!-- table p. 2: grid from aligned text; verify before use -->
+
 | Feature | Precision | Recall | N |
 | --- | --- | --- | --- |
 | Two columns | 0.98 | 0.97 | 12 |

@@ -24,6 +24,8 @@ Expected outputs are committed beside the fixtures and compared byte for byte. A
 
 Where the original relied on a learned layout model, a font-size rule stands in for it. The rule is coarse, but it is inspectable, and a wrong answer can be traced to a number in the source. Reviewers asked whether the approach generalises beyond journal articles; we make no such claim. Books, slides and forms have layouts these heuristics were never shown and would misread. The scope is deliberately narrow: articles with a text layer, converted for reading by a language model.
 
+<!-- table p. 2: grid from aligned text; verify before use -->
+
 | Condition | N | Mean | SD |
 | --- | --- | --- | --- |
 | Baseline | 120 | 41.2 | 3.4 |
