@@ -258,6 +258,11 @@ The downstream bump protocol consumes these field names; keep them stable.
 
 ## Workflow rules
 
+- Commit every training and held-out labelling record as data under
+  `tests/labels/` before using it: document ID, page, region, label and
+  labeller agreement; never document text. Preserve the records for later
+  exclusion checks.
+
 - After editing CLAUDE.md, run python tools/sync_agents.py and commit AGENTS.md
   with it. Never edit AGENTS.md directly.
 - `markerlite/VERSION` is the one version source. Packaging and
@@ -523,7 +528,9 @@ parentheses fails if the fix is undone):
   WRONG 18 -> 15, controls FALSE-GRID 5 -> 2. Stop 3 (row/header/column
   association, aligned-column text proposals, and a measured
   prose-by-default option with grids behind an opt-in --grids flag / GUI
-  option) is planned there and not started. The rule-only fallback is
+  option) is blocked at fresh sampling: B1 diagnosis is recorded in
+  tests/REPORT-block2-stop3.md; no untouched grid-producing documents remain
+  in the available inventory. B3–B5 have not started. The rule-only fallback is
   ruled out: ruled grids measured no more reliable (11/36 vs 5/13).
 - Table work follows tests/PLAN-tables.md; items 0, 1, 7, 8, 11b done;
   fallback-to-prose done; item 5 not needed after fallback-to-prose (no evidence
