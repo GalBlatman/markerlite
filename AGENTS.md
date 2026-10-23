@@ -267,6 +267,10 @@ The downstream bump protocol consumes these field names; keep them stable.
   anchor — two methods were deleted that way. Cut to the next `def`.
 - Two bugs came from having two copies of a file and copying the wrong way.
   There is ONE copy now: this repo. Do not work from a scratch copy.
+- Background waits must exit when their job finishes or after a timeout,
+  must not match their own command line (no bare pgrep -f on a pattern the
+  waiter itself contains), and no background task may be left running when
+  you report and stop.
 
 ## Test fixtures and regression
 
