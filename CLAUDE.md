@@ -14,12 +14,12 @@ use. A blog post about it is planned; the README is written for that audience
 and its claims have been deliberately made honest — do not inflate them.
 
 Public repo: github.com/GalBlatman/markerlite · Apache-2.0 · current release
-v0.1.18 (`/releases/latest` is the download link the README and blog use;
-release notes are the tag's CHANGELOG.md section). The golden baseline is
-tests/golden/v0.2.0.json for the untagged v0.2.0 release candidate
-(both grid modes; cmr_review.pdf excluded). VERSION is 0.2.0; the published
-latest release remains v0.1.18 until the owner tags. Earlier manifests stay
-for history; the standing archived audit also compares v0.1.18.json.
+v0.2.0 (`/releases/latest` is the download link the README and blog use;
+release notes are the tag's CHANGELOG.md section). Published from verified
+00514b4; release checks are in tests/REPORT-v0.2.0-release.md. The golden
+baseline is tests/golden/v0.2.0.json (both grid modes; cmr_review.pdf excluded).
+VERSION is 0.2.0. Earlier manifests stay for history; the standing archived
+audit also compares v0.1.18.json.
 
 ## Layout
 
@@ -519,6 +519,11 @@ parentheses fails if the fix is undone):
   spanned-line shares could not separate them (tests/REPORT-batchC-block1.md).
 
 ## Open items
+
+- CI skips 16 OCR golden entries because runner Tesseract versions differ
+  from the recorded 5.5.0. Options for future work: pin Tesseract in CI, or
+  maintain per-version OCR baselines. Neither is implemented. Matching-engine
+  WSL verification covers all OCR entries without skips.
 
 - Dehyphenation needs a bundled word list; document evidence and character
   shape alone cannot distinguish compounds from split names or OCR fragments.
