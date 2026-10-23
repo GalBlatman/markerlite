@@ -304,3 +304,28 @@ conversion. There is no replacement of unreadable or failed PDFs. If these
 be drawn from the remaining eligible hashes. Converted text and rendered
 review images stay outside the repository. Labels must be committed before
 they support any measurement; held-out labels are never tuning inputs.
+
+### B2 review completed and frozen
+
+All 80 drawn documents opened and converted successfully; 219 emitted grids.
+No replacement draw or second batch was made. A uniform sample of 60 grids
+from the complete 219-grid population uses random.Random(2026102203).sample
+after sorting by document hash prefix, page and region. The selected region
+locators and all 80 conversion outcomes are committed in
+tests/labels/b2-zotero-grid-sample.json.
+
+Two independent agents each visually reviewed all 60 original full pages and
+crops and checked all emitted cells, headers and table extents against them.
+Both completed the full pass before reconciliation, never reading each other's
+labels. Agreement: 60/60; unresolved uncertainties: zero. Both individual
+passes and the reconciled records are committed in
+tests/labels/b2-zotero-labels.json, containing only hash-prefix identities,
+region locators, generic structural reason codes and review/agreement metadata.
+No source words, titles, file names or PDFs enter the repository.
+
+These records are committed before computing baseline precision or beginning
+B3 implementation. The held-out cases are reserved for baseline/final evaluation;
+only the earlier gold set and training evidence may inform B3 changes.
+
+The seeded-selection commit 9dec1f6 passes the full archived audit: 89/89
+Markdown/stats hashes match v0.1.18, zero OCR skips, exit status 0.

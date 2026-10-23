@@ -528,9 +528,10 @@ parentheses fails if the fix is undone):
   WRONG 18 -> 15, controls FALSE-GRID 5 -> 2. Stop 3 (row/header/column
   association, aligned-column text proposals, and a measured
   prose-by-default option with grids behind an opt-in --grids flag / GUI
-  option) is blocked at fresh sampling: B1 diagnosis is recorded in
-  tests/REPORT-block2-stop3.md; no untouched grid-producing documents remain
-  in the available inventory. B3–B5 have not started. The rule-only fallback is
+  option) has completed B1 and B2: tests/REPORT-block2-stop3.md records the
+  diagnosis and a fresh Zotero held-out sample, with two independent rendered-page
+  reviews committed under tests/labels/b2-zotero-*.json. This sample is never
+  used for tuning. B3–B5 have not started. The rule-only fallback is
   ruled out: ruled grids measured no more reliable (11/36 vs 5/13).
 - Table work follows tests/PLAN-tables.md; items 0, 1, 7, 8, 11b done;
   fallback-to-prose done; item 5 not needed after fallback-to-prose (no evidence

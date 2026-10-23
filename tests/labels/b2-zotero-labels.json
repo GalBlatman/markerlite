@@ -1,0 +1,2332 @@
+{
+  "schema": 1,
+  "baseline_commit": "388fabd9130c55f90064bffb36da6b59a4e69166",
+  "document_seed": 2026102202,
+  "grid_seed": 2026102203,
+  "purpose": "Frozen held-out evaluation only; never tuning",
+  "method": "Two independent agents each reviewed original rendered full pages and crops before comparing every emitted cell; neither accessed the other labels.",
+  "reviewer_a": [
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 43,
+      "region": 4,
+      "label": "WRONG",
+      "reason_codes": [
+        "HEADER_ASSOCIATION",
+        "ROW_MERGE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 47,
+      "region": 6,
+      "label": "WRONG",
+      "reason_codes": [
+        "HEADER_ASSOCIATION",
+        "INCOMPLETE_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 2,
+      "region": 4,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 79,
+      "region": 25,
+      "label": "WRONG",
+      "reason_codes": [
+        "HEADER_MISSING",
+        "ROW_MERGE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 55,
+      "region": 14,
+      "label": "WRONG",
+      "reason_codes": [
+        "HEADER_ASSOCIATION",
+        "ROW_MERGE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 46,
+      "region": 4,
+      "label": "WRONG",
+      "reason_codes": [
+        "INCOMPLETE_TABLE",
+        "HEADER_MISSING"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "c26138c9b0b40ce2",
+      "page": 11,
+      "region": 1,
+      "label": "WRONG",
+      "reason_codes": [
+        "CELL_TEXT"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 47,
+      "region": 8,
+      "label": "WRONG",
+      "reason_codes": [
+        "HEADER_ASSOCIATION",
+        "ROW_MERGE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 42,
+      "region": 3,
+      "label": "WRONG",
+      "reason_codes": [
+        "COLUMN_MERGE",
+        "HEADER_ASSOCIATION"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7a4e4cf17647aefb",
+      "page": 14,
+      "region": 3,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 71,
+      "region": 18,
+      "label": "WRONG",
+      "reason_codes": [
+        "HEADER_ASSOCIATION",
+        "ROW_MERGE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "6015badde545e05c",
+      "page": 46,
+      "region": 4,
+      "label": "WRONG",
+      "reason_codes": [
+        "COLUMN_MERGE",
+        "CELL_ASSOCIATION"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "01589db43f1b6b8d",
+      "page": 12,
+      "region": 2,
+      "label": "WRONG",
+      "reason_codes": [
+        "COLUMN_MERGE",
+        "HEADER_MISSING"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 46,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "ca69ef9aa3325fcb",
+      "page": 8,
+      "region": 1,
+      "label": "WRONG",
+      "reason_codes": [
+        "ROW_MERGE",
+        "HEADER_MISSING"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "page": 8,
+      "region": 2,
+      "label": "WRONG",
+      "reason_codes": [
+        "CELL_TEXT",
+        "CAPTION_INCLUDED",
+        "HEADER_MISSING"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 57,
+      "region": 16,
+      "label": "WRONG",
+      "reason_codes": [
+        "COLUMN_MERGE",
+        "HEADER_ASSOCIATION"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "a4838319b9653edc",
+      "page": 16,
+      "region": 4,
+      "label": "WRONG",
+      "reason_codes": [
+        "INCOMPLETE_TABLE",
+        "HEADER_MISSING"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 13,
+      "region": 32,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "b9123d16f4d1166a",
+      "page": 53,
+      "region": 9,
+      "label": "WRONG",
+      "reason_codes": [
+        "COLUMN_MERGE",
+        "HEADER_ASSOCIATION"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "page": 9,
+      "region": 3,
+      "label": "WRONG",
+      "reason_codes": [
+        "CELL_TEXT",
+        "CAPTION_INCLUDED",
+        "HEADER_MISSING"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "page": 10,
+      "region": 4,
+      "label": "WRONG",
+      "reason_codes": [
+        "ROW_MERGE",
+        "CAPTION_INCLUDED",
+        "CELL_TEXT"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 45,
+      "region": 6,
+      "label": "WRONG",
+      "reason_codes": [
+        "ROW_MERGE",
+        "HEADER_ASSOCIATION"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 49,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7f7737940b6e1734",
+      "page": 12,
+      "region": 3,
+      "label": "WRONG",
+      "reason_codes": [
+        "INCOMPLETE_TABLE",
+        "HEADER_SPLIT"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 47,
+      "region": 8,
+      "label": "WRONG",
+      "reason_codes": [
+        "INCOMPLETE_TABLE",
+        "HEADER_MISSING"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "be9efc6c5580bb25",
+      "page": 6,
+      "region": 2,
+      "label": "WRONG",
+      "reason_codes": [
+        "INCOMPLETE_TABLE",
+        "ROW_MERGE",
+        "HEADER_MISSING"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 12,
+      "region": 30,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7f7737940b6e1734",
+      "page": 12,
+      "region": 4,
+      "label": "WRONG",
+      "reason_codes": [
+        "HEADER_MISSING",
+        "INCOMPLETE_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 50,
+      "region": 10,
+      "label": "WRONG",
+      "reason_codes": [
+        "ROW_MERGE",
+        "HEADER_ASSOCIATION"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 44,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 1,
+      "region": 2,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 44,
+      "region": 2,
+      "label": "WRONG",
+      "reason_codes": [
+        "INCOMPLETE_TABLE",
+        "HEADER_MISSING"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 41,
+      "region": 2,
+      "label": "WRONG",
+      "reason_codes": [
+        "COLUMN_MERGE",
+        "HEADER_ASSOCIATION"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 11,
+      "region": 28,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 51,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "349b7d589d0f5d4e",
+      "page": 12,
+      "region": 8,
+      "label": "WRONG",
+      "reason_codes": [
+        "HEADER_ASSOCIATION"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "3b99b3406a08f142",
+      "page": 9,
+      "region": 2,
+      "label": "CORRECT",
+      "reason_codes": [],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 17,
+      "region": 37,
+      "label": "WRONG",
+      "reason_codes": [
+        "HEADER_ASSOCIATION",
+        "ROW_MERGE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "8577518ba20d635e",
+      "page": 18,
+      "region": 4,
+      "label": "WRONG",
+      "reason_codes": [
+        "CAPTION_INCLUDED",
+        "NOTES_INCLUDED",
+        "ROW_MERGE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "8c5e55abfc1c77aa",
+      "page": 10,
+      "region": 1,
+      "label": "WRONG",
+      "reason_codes": [
+        "COLUMN_MERGE",
+        "HEADER_MISSING",
+        "CELL_TEXT"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "b1ee17e559234146",
+      "page": 14,
+      "region": 1,
+      "label": "CORRECT",
+      "reason_codes": [],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 7,
+      "region": 15,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 43,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 44,
+      "region": 5,
+      "label": "WRONG",
+      "reason_codes": [
+        "HEADER_ASSOCIATION",
+        "ROW_MERGE",
+        "COLUMN_MERGE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "28dde631e0092025",
+      "page": 42,
+      "region": 5,
+      "label": "WRONG",
+      "reason_codes": [
+        "ROW_MERGE",
+        "HEADER_ASSOCIATION"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "c26138c9b0b40ce2",
+      "page": 24,
+      "region": 8,
+      "label": "WRONG",
+      "reason_codes": [
+        "CELL_TEXT",
+        "ROW_LABEL_SPLIT"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "b4f17030e5d723d5",
+      "page": 5,
+      "region": 3,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "71003d9259481056",
+      "page": 12,
+      "region": 2,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE",
+        "INCOMPLETE_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "9726d15395a2b0b6",
+      "page": 15,
+      "region": 1,
+      "label": "WRONG",
+      "reason_codes": [
+        "INCOMPLETE_TABLE",
+        "COLUMN_MERGE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "3390b58a6331f9dd",
+      "page": 4,
+      "region": 2,
+      "label": "WRONG",
+      "reason_codes": [
+        "HEADER_MISSING",
+        "CELL_TEXT"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 48,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "b1ee17e559234146",
+      "page": 20,
+      "region": 5,
+      "label": "WRONG",
+      "reason_codes": [
+        "HEADER_ASSOCIATION",
+        "ROW_MERGE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 46,
+      "region": 7,
+      "label": "WRONG",
+      "reason_codes": [
+        "HEADER_ASSOCIATION",
+        "ROW_MERGE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 77,
+      "region": 23,
+      "label": "WRONG",
+      "reason_codes": [
+        "HEADER_ASSOCIATION",
+        "ROW_MERGE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "be9efc6c5580bb25",
+      "page": 6,
+      "region": 1,
+      "label": "WRONG",
+      "reason_codes": [
+        "HEADER_MISSING",
+        "INCOMPLETE_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 7,
+      "region": 18,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "eaa365788a0cea90",
+      "page": 20,
+      "region": 1,
+      "label": "WRONG",
+      "reason_codes": [
+        "COLUMN_MERGE",
+        "HEADER_MISSING",
+        "ROW_LABEL_MISSING"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 76,
+      "region": 22,
+      "label": "WRONG",
+      "reason_codes": [
+        "HEADER_ASSOCIATION"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 3,
+      "region": 9,
+      "label": "WRONG",
+      "reason_codes": [
+        "NOT_TABLE"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    }
+  ],
+  "reviewer_b": [
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 43,
+      "region": 4,
+      "label": "WRONG",
+      "reason_codes": [
+        "header_body_merge",
+        "row_merge"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 47,
+      "region": 6,
+      "label": "WRONG",
+      "reason_codes": [
+        "missing_header",
+        "incomplete_table"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 2,
+      "region": 4,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_prose"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 79,
+      "region": 25,
+      "label": "WRONG",
+      "reason_codes": [
+        "missing_header",
+        "row_merge"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 55,
+      "region": 14,
+      "label": "WRONG",
+      "reason_codes": [
+        "header_body_merge",
+        "row_merge"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 46,
+      "region": 4,
+      "label": "WRONG",
+      "reason_codes": [
+        "incomplete_table",
+        "missing_header"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "c26138c9b0b40ce2",
+      "page": 11,
+      "region": 1,
+      "label": "WRONG",
+      "reason_codes": [
+        "cell_text_corruption"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 47,
+      "region": 8,
+      "label": "WRONG",
+      "reason_codes": [
+        "header_body_merge",
+        "row_merge"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 42,
+      "region": 3,
+      "label": "WRONG",
+      "reason_codes": [
+        "column_merge",
+        "header_misalignment"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7a4e4cf17647aefb",
+      "page": 14,
+      "region": 3,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_prose"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 71,
+      "region": 18,
+      "label": "WRONG",
+      "reason_codes": [
+        "header_body_merge",
+        "row_merge"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "6015badde545e05c",
+      "page": 46,
+      "region": 4,
+      "label": "WRONG",
+      "reason_codes": [
+        "column_merge",
+        "cell_misalignment",
+        "row_split"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "01589db43f1b6b8d",
+      "page": 12,
+      "region": 2,
+      "label": "WRONG",
+      "reason_codes": [
+        "column_merge",
+        "missing_header"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 46,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_prose"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "ca69ef9aa3325fcb",
+      "page": 8,
+      "region": 1,
+      "label": "WRONG",
+      "reason_codes": [
+        "row_merge",
+        "missing_header",
+        "cell_text_corruption"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "page": 8,
+      "region": 2,
+      "label": "WRONG",
+      "reason_codes": [
+        "caption_in_cells",
+        "missing_header",
+        "cell_text_corruption"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 57,
+      "region": 16,
+      "label": "WRONG",
+      "reason_codes": [
+        "column_merge",
+        "header_misalignment",
+        "row_split"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "a4838319b9653edc",
+      "page": 16,
+      "region": 4,
+      "label": "WRONG",
+      "reason_codes": [
+        "incomplete_table",
+        "missing_header"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 13,
+      "region": 32,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_prose"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "b9123d16f4d1166a",
+      "page": 53,
+      "region": 9,
+      "label": "WRONG",
+      "reason_codes": [
+        "column_merge",
+        "header_misalignment"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "page": 9,
+      "region": 3,
+      "label": "WRONG",
+      "reason_codes": [
+        "caption_in_cells",
+        "missing_header",
+        "cell_text_corruption"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "page": 10,
+      "region": 4,
+      "label": "WRONG",
+      "reason_codes": [
+        "caption_in_cells",
+        "row_merge",
+        "cell_text_corruption"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 45,
+      "region": 6,
+      "label": "WRONG",
+      "reason_codes": [
+        "header_body_merge",
+        "row_merge"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 49,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_prose"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7f7737940b6e1734",
+      "page": 12,
+      "region": 3,
+      "label": "WRONG",
+      "reason_codes": [
+        "incomplete_table",
+        "header_fragment"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 47,
+      "region": 8,
+      "label": "WRONG",
+      "reason_codes": [
+        "incomplete_table",
+        "missing_header"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "be9efc6c5580bb25",
+      "page": 6,
+      "region": 2,
+      "label": "WRONG",
+      "reason_codes": [
+        "incomplete_table",
+        "row_merge",
+        "missing_header"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 12,
+      "region": 30,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_prose"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7f7737940b6e1734",
+      "page": 12,
+      "region": 4,
+      "label": "WRONG",
+      "reason_codes": [
+        "missing_header",
+        "incomplete_table"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 50,
+      "region": 10,
+      "label": "WRONG",
+      "reason_codes": [
+        "header_body_merge",
+        "row_merge",
+        "missing_header"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 44,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_prose"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 1,
+      "region": 2,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_prose"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 44,
+      "region": 2,
+      "label": "WRONG",
+      "reason_codes": [
+        "incomplete_table",
+        "missing_header",
+        "missing_row_labels"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 41,
+      "region": 2,
+      "label": "WRONG",
+      "reason_codes": [
+        "column_merge",
+        "header_misalignment"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 11,
+      "region": 28,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_prose"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 51,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_prose"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "349b7d589d0f5d4e",
+      "page": 12,
+      "region": 8,
+      "label": "WRONG",
+      "reason_codes": [
+        "header_misalignment",
+        "header_row_merge"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "3b99b3406a08f142",
+      "page": 9,
+      "region": 2,
+      "label": "CORRECT",
+      "reason_codes": [],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 17,
+      "region": 37,
+      "label": "WRONG",
+      "reason_codes": [
+        "header_body_merge",
+        "row_merge",
+        "row_split"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "8577518ba20d635e",
+      "page": 18,
+      "region": 4,
+      "label": "WRONG",
+      "reason_codes": [
+        "caption_in_cells",
+        "notes_in_cells",
+        "row_merge",
+        "cell_text_corruption"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "8c5e55abfc1c77aa",
+      "page": 10,
+      "region": 1,
+      "label": "WRONG",
+      "reason_codes": [
+        "column_merge",
+        "missing_header",
+        "cell_text_corruption"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "b1ee17e559234146",
+      "page": 14,
+      "region": 1,
+      "label": "CORRECT",
+      "reason_codes": [],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 7,
+      "region": 15,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_prose"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 43,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_prose"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 44,
+      "region": 5,
+      "label": "WRONG",
+      "reason_codes": [
+        "header_body_merge",
+        "row_merge",
+        "column_merge",
+        "row_split"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "28dde631e0092025",
+      "page": 42,
+      "region": 5,
+      "label": "WRONG",
+      "reason_codes": [
+        "header_body_merge",
+        "row_merge"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "c26138c9b0b40ce2",
+      "page": 24,
+      "region": 8,
+      "label": "WRONG",
+      "reason_codes": [
+        "cell_text_corruption",
+        "row_split"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "b4f17030e5d723d5",
+      "page": 5,
+      "region": 3,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_contents"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "71003d9259481056",
+      "page": 12,
+      "region": 2,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_prose",
+        "mixed_content"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "9726d15395a2b0b6",
+      "page": 15,
+      "region": 1,
+      "label": "WRONG",
+      "reason_codes": [
+        "header_fragment",
+        "column_merge",
+        "incomplete_table"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "3390b58a6331f9dd",
+      "page": 4,
+      "region": 2,
+      "label": "WRONG",
+      "reason_codes": [
+        "missing_header",
+        "cell_text_corruption"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 48,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_prose"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "b1ee17e559234146",
+      "page": 20,
+      "region": 5,
+      "label": "WRONG",
+      "reason_codes": [
+        "header_body_merge",
+        "row_merge",
+        "cell_text_corruption"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 46,
+      "region": 7,
+      "label": "WRONG",
+      "reason_codes": [
+        "header_body_merge",
+        "row_merge"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 77,
+      "region": 23,
+      "label": "WRONG",
+      "reason_codes": [
+        "header_body_merge",
+        "row_merge"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "be9efc6c5580bb25",
+      "page": 6,
+      "region": 1,
+      "label": "WRONG",
+      "reason_codes": [
+        "incomplete_table",
+        "missing_header"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 7,
+      "region": 18,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_prose"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "eaa365788a0cea90",
+      "page": 20,
+      "region": 1,
+      "label": "WRONG",
+      "reason_codes": [
+        "column_merge",
+        "missing_header",
+        "missing_row_labels"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 76,
+      "region": 22,
+      "label": "WRONG",
+      "reason_codes": [
+        "header_misalignment",
+        "header_row_merge"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 3,
+      "region": 9,
+      "label": "WRONG",
+      "reason_codes": [
+        "non_table_prose"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    }
+  ],
+  "records": [
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 44,
+      "region": 2,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 46,
+      "region": 4,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 47,
+      "region": 6,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 47,
+      "region": 8,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "01589db43f1b6b8d",
+      "page": 12,
+      "region": 2,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "28dde631e0092025",
+      "page": 42,
+      "region": 5,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "3390b58a6331f9dd",
+      "page": 4,
+      "region": 2,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "349b7d589d0f5d4e",
+      "page": 12,
+      "region": 8,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "3b99b3406a08f142",
+      "page": 9,
+      "region": 2,
+      "label": "CORRECT",
+      "labeller_agreement": {
+        "reviewer_a": "CORRECT",
+        "reviewer_b": "CORRECT",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "6015badde545e05c",
+      "page": 46,
+      "region": 4,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "71003d9259481056",
+      "page": 12,
+      "region": 2,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7a4e4cf17647aefb",
+      "page": 14,
+      "region": 3,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 1,
+      "region": 2,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 2,
+      "region": 4,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 3,
+      "region": 9,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 7,
+      "region": 15,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 7,
+      "region": 18,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 11,
+      "region": 28,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 12,
+      "region": 30,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 13,
+      "region": 32,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 17,
+      "region": 37,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 43,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 44,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 46,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 48,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 49,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 51,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7f7737940b6e1734",
+      "page": 12,
+      "region": 3,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "7f7737940b6e1734",
+      "page": 12,
+      "region": 4,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "8577518ba20d635e",
+      "page": 18,
+      "region": 4,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "8c5e55abfc1c77aa",
+      "page": 10,
+      "region": 1,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "9726d15395a2b0b6",
+      "page": 15,
+      "region": 1,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "a4838319b9653edc",
+      "page": 16,
+      "region": 4,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "b1ee17e559234146",
+      "page": 14,
+      "region": 1,
+      "label": "CORRECT",
+      "labeller_agreement": {
+        "reviewer_a": "CORRECT",
+        "reviewer_b": "CORRECT",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "b1ee17e559234146",
+      "page": 20,
+      "region": 5,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "b4f17030e5d723d5",
+      "page": 5,
+      "region": 3,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "b9123d16f4d1166a",
+      "page": 53,
+      "region": 9,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "be9efc6c5580bb25",
+      "page": 6,
+      "region": 1,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "be9efc6c5580bb25",
+      "page": 6,
+      "region": 2,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "c26138c9b0b40ce2",
+      "page": 11,
+      "region": 1,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "c26138c9b0b40ce2",
+      "page": 24,
+      "region": 8,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "page": 8,
+      "region": 2,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "page": 9,
+      "region": 3,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "page": 10,
+      "region": 4,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "ca69ef9aa3325fcb",
+      "page": 8,
+      "region": 1,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "eaa365788a0cea90",
+      "page": 20,
+      "region": 1,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 41,
+      "region": 2,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 42,
+      "region": 3,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 43,
+      "region": 4,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 44,
+      "region": 5,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 45,
+      "region": 6,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 46,
+      "region": 7,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 47,
+      "region": 8,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 50,
+      "region": 10,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 55,
+      "region": 14,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 57,
+      "region": 16,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 71,
+      "region": 18,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 76,
+      "region": 22,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 77,
+      "region": 23,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 79,
+      "region": 25,
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true
+    }
+  ]
+}

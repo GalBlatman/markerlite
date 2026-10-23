@@ -1,0 +1,1593 @@
+{
+  "schema": 1,
+  "baseline_commit": "388fabd9130c55f90064bffb36da6b59a4e69166",
+  "grid_seed": 2026102203,
+  "population_grids": 219,
+  "drawn_documents": 80,
+  "sample_size": 60,
+  "converted_documents": 80,
+  "document_results": [
+    {
+      "document_id": "007897b4ec9e3f16",
+      "status": "converted",
+      "pages": 51,
+      "fallbacks": 0,
+      "grid_count": 10
+    },
+    {
+      "document_id": "00da577e6dc4986f",
+      "status": "converted",
+      "pages": 24,
+      "fallbacks": 0,
+      "grid_count": 1
+    },
+    {
+      "document_id": "01589db43f1b6b8d",
+      "status": "converted",
+      "pages": 21,
+      "fallbacks": 2,
+      "grid_count": 3
+    },
+    {
+      "document_id": "03f63ba1d6e9553f",
+      "status": "converted",
+      "pages": 9,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "0ded9116482bbe71",
+      "status": "converted",
+      "pages": 31,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "190124136e4aeb0c",
+      "status": "converted",
+      "pages": 26,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "1eb7180e6cce7bf0",
+      "status": "converted",
+      "pages": 83,
+      "fallbacks": 19,
+      "grid_count": 2
+    },
+    {
+      "document_id": "22647eae57d31786",
+      "status": "converted",
+      "pages": 20,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "28dde631e0092025",
+      "status": "converted",
+      "pages": 44,
+      "fallbacks": 3,
+      "grid_count": 4
+    },
+    {
+      "document_id": "2bf180772148e4ef",
+      "status": "converted",
+      "pages": 9,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "2c9467618d71b839",
+      "status": "converted",
+      "pages": 21,
+      "fallbacks": 1,
+      "grid_count": 2
+    },
+    {
+      "document_id": "3390b58a6331f9dd",
+      "status": "converted",
+      "pages": 5,
+      "fallbacks": 0,
+      "grid_count": 2
+    },
+    {
+      "document_id": "349b7d589d0f5d4e",
+      "status": "converted",
+      "pages": 14,
+      "fallbacks": 3,
+      "grid_count": 6
+    },
+    {
+      "document_id": "35bd16025a05ec3c",
+      "status": "converted",
+      "pages": 37,
+      "fallbacks": 3,
+      "grid_count": 0
+    },
+    {
+      "document_id": "3b99b3406a08f142",
+      "status": "converted",
+      "pages": 22,
+      "fallbacks": 3,
+      "grid_count": 3
+    },
+    {
+      "document_id": "3bd8357926a04e76",
+      "status": "converted",
+      "pages": 15,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "3dae75976518f89f",
+      "status": "converted",
+      "pages": 26,
+      "fallbacks": 0,
+      "grid_count": 1
+    },
+    {
+      "document_id": "44c6ad5b6445c902",
+      "status": "converted",
+      "pages": 8,
+      "fallbacks": 0,
+      "grid_count": 3
+    },
+    {
+      "document_id": "44dcd92f803a3224",
+      "status": "converted",
+      "pages": 43,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "48fd0cac25d8dc51",
+      "status": "converted",
+      "pages": 8,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "4c81fa9dd2f06b30",
+      "status": "converted",
+      "pages": 41,
+      "fallbacks": 0,
+      "grid_count": 2
+    },
+    {
+      "document_id": "4cb10d247048a062",
+      "status": "converted",
+      "pages": 28,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "52b6ca37c317c939",
+      "status": "converted",
+      "pages": 20,
+      "fallbacks": 2,
+      "grid_count": 2
+    },
+    {
+      "document_id": "53d5baf58d18088b",
+      "status": "converted",
+      "pages": 9,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "5b8b09fc109a4b20",
+      "status": "converted",
+      "pages": 22,
+      "fallbacks": 0,
+      "grid_count": 1
+    },
+    {
+      "document_id": "5e5830aa0f40ecb8",
+      "status": "converted",
+      "pages": 24,
+      "fallbacks": 0,
+      "grid_count": 1
+    },
+    {
+      "document_id": "6015badde545e05c",
+      "status": "converted",
+      "pages": 77,
+      "fallbacks": 1,
+      "grid_count": 6
+    },
+    {
+      "document_id": "611747645d58d134",
+      "status": "converted",
+      "pages": 18,
+      "fallbacks": 1,
+      "grid_count": 3
+    },
+    {
+      "document_id": "616dc23f289e8442",
+      "status": "converted",
+      "pages": 12,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "62138a243843517e",
+      "status": "converted",
+      "pages": 22,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "6a8070d94855a12c",
+      "status": "converted",
+      "pages": 73,
+      "fallbacks": 0,
+      "grid_count": 1
+    },
+    {
+      "document_id": "6e03ea248eebd354",
+      "status": "converted",
+      "pages": 28,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "6f8c474c21655b0d",
+      "status": "converted",
+      "pages": 13,
+      "fallbacks": 2,
+      "grid_count": 0
+    },
+    {
+      "document_id": "71003d9259481056",
+      "status": "converted",
+      "pages": 23,
+      "fallbacks": 0,
+      "grid_count": 3
+    },
+    {
+      "document_id": "794f1741d31bd12f",
+      "status": "converted",
+      "pages": 36,
+      "fallbacks": 0,
+      "grid_count": 2
+    },
+    {
+      "document_id": "7a4e4cf17647aefb",
+      "status": "converted",
+      "pages": 20,
+      "fallbacks": 0,
+      "grid_count": 3
+    },
+    {
+      "document_id": "7de62ce83a13764d",
+      "status": "converted",
+      "pages": 11,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "status": "converted",
+      "pages": 22,
+      "fallbacks": 4,
+      "grid_count": 50
+    },
+    {
+      "document_id": "7f7737940b6e1734",
+      "status": "converted",
+      "pages": 23,
+      "fallbacks": 0,
+      "grid_count": 5
+    },
+    {
+      "document_id": "8577518ba20d635e",
+      "status": "converted",
+      "pages": 26,
+      "fallbacks": 4,
+      "grid_count": 2
+    },
+    {
+      "document_id": "888d0a6e51b3f6fc",
+      "status": "converted",
+      "pages": 24,
+      "fallbacks": 1,
+      "grid_count": 1
+    },
+    {
+      "document_id": "8c3a3906a8259601",
+      "status": "converted",
+      "pages": 14,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "8c5e55abfc1c77aa",
+      "status": "converted",
+      "pages": 21,
+      "fallbacks": 2,
+      "grid_count": 9
+    },
+    {
+      "document_id": "8e36602b72e54497",
+      "status": "converted",
+      "pages": 21,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "9180b6e5c3a1b51c",
+      "status": "converted",
+      "pages": 17,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "9726d15395a2b0b6",
+      "status": "converted",
+      "pages": 27,
+      "fallbacks": 0,
+      "grid_count": 1
+    },
+    {
+      "document_id": "9886148996415ecf",
+      "status": "converted",
+      "pages": 91,
+      "fallbacks": 4,
+      "grid_count": 2
+    },
+    {
+      "document_id": "9aa8fe198c3c3329",
+      "status": "converted",
+      "pages": 18,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "9fb812b5d73898ed",
+      "status": "converted",
+      "pages": 47,
+      "fallbacks": 9,
+      "grid_count": 5
+    },
+    {
+      "document_id": "a2185a402e7f4694",
+      "status": "converted",
+      "pages": 11,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "a4838319b9653edc",
+      "status": "converted",
+      "pages": 28,
+      "fallbacks": 2,
+      "grid_count": 5
+    },
+    {
+      "document_id": "ab5836b3732901ef",
+      "status": "converted",
+      "pages": 6,
+      "fallbacks": 3,
+      "grid_count": 0
+    },
+    {
+      "document_id": "acf63ddadb56b5d8",
+      "status": "converted",
+      "pages": 18,
+      "fallbacks": 2,
+      "grid_count": 0
+    },
+    {
+      "document_id": "af2bcd87550c6620",
+      "status": "converted",
+      "pages": 24,
+      "fallbacks": 5,
+      "grid_count": 2
+    },
+    {
+      "document_id": "b1ee17e559234146",
+      "status": "converted",
+      "pages": 31,
+      "fallbacks": 2,
+      "grid_count": 6
+    },
+    {
+      "document_id": "b271633fe2ca2fb7",
+      "status": "converted",
+      "pages": 27,
+      "fallbacks": 6,
+      "grid_count": 3
+    },
+    {
+      "document_id": "b322f61c720b3315",
+      "status": "converted",
+      "pages": 22,
+      "fallbacks": 1,
+      "grid_count": 1
+    },
+    {
+      "document_id": "b407eb41454bbcfc",
+      "status": "converted",
+      "pages": 21,
+      "fallbacks": 3,
+      "grid_count": 4
+    },
+    {
+      "document_id": "b4f17030e5d723d5",
+      "status": "converted",
+      "pages": 120,
+      "fallbacks": 10,
+      "grid_count": 8
+    },
+    {
+      "document_id": "b69058e74fdaa3ab",
+      "status": "converted",
+      "pages": 24,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "b9123d16f4d1166a",
+      "status": "converted",
+      "pages": 65,
+      "fallbacks": 5,
+      "grid_count": 6
+    },
+    {
+      "document_id": "bdf30334f9cb9a92",
+      "status": "converted",
+      "pages": 5,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "be9efc6c5580bb25",
+      "status": "converted",
+      "pages": 9,
+      "fallbacks": 0,
+      "grid_count": 2
+    },
+    {
+      "document_id": "c26138c9b0b40ce2",
+      "status": "converted",
+      "pages": 39,
+      "fallbacks": 3,
+      "grid_count": 7
+    },
+    {
+      "document_id": "c52e75d445e073ab",
+      "status": "converted",
+      "pages": 43,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "c8212227e9a23b56",
+      "status": "converted",
+      "pages": 16,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "status": "converted",
+      "pages": 15,
+      "fallbacks": 2,
+      "grid_count": 3
+    },
+    {
+      "document_id": "ca69ef9aa3325fcb",
+      "status": "converted",
+      "pages": 13,
+      "fallbacks": 0,
+      "grid_count": 1
+    },
+    {
+      "document_id": "d294b4488ece39c7",
+      "status": "converted",
+      "pages": 37,
+      "fallbacks": 1,
+      "grid_count": 1
+    },
+    {
+      "document_id": "d6842cf937fb4800",
+      "status": "converted",
+      "pages": 3,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "d96ee733668f6520",
+      "status": "converted",
+      "pages": 18,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "d9ddafd95184c047",
+      "status": "converted",
+      "pages": 21,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "dbba8f443b9e071f",
+      "status": "converted",
+      "pages": 9,
+      "fallbacks": 0,
+      "grid_count": 1
+    },
+    {
+      "document_id": "ddc65e7599d83641",
+      "status": "converted",
+      "pages": 71,
+      "fallbacks": 0,
+      "grid_count": 5
+    },
+    {
+      "document_id": "e62c14790b9c0755",
+      "status": "converted",
+      "pages": 20,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "eaa365788a0cea90",
+      "status": "converted",
+      "pages": 40,
+      "fallbacks": 0,
+      "grid_count": 3
+    },
+    {
+      "document_id": "f1d6e514e380774f",
+      "status": "converted",
+      "pages": 21,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "f9bf8207b6034131",
+      "status": "converted",
+      "pages": 21,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "status": "converted",
+      "pages": 83,
+      "fallbacks": 4,
+      "grid_count": 25
+    },
+    {
+      "document_id": "fabea19cd025f0b1",
+      "status": "converted",
+      "pages": 11,
+      "fallbacks": 1,
+      "grid_count": 0
+    }
+  ],
+  "sample": [
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 43,
+      "region": 4,
+      "bbox": [
+        73.19819641113281,
+        251.76885986328125,
+        457.3682556152344,
+        547.8136749267578
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 47,
+      "region": 6,
+      "bbox": [
+        46.20444107055664,
+        81.00182342529297,
+        619.6314086914062,
+        177.45582580566406
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 2,
+      "region": 4,
+      "bbox": [
+        60.62498474121094,
+        177.3656463623047,
+        502.7852478027344,
+        370.8215026855469
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 79,
+      "region": 25,
+      "bbox": [
+        133.54473876953125,
+        324.9041442871094,
+        423.2399597167969,
+        639.4413146972656
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 55,
+      "region": 14,
+      "bbox": [
+        97.54718017578125,
+        264.65301513671875,
+        490.5204162597656,
+        482.58890533447266
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 46,
+      "region": 4,
+      "bbox": [
+        38.74336242675781,
+        228.6287384033203,
+        622.9358520507812,
+        423.9227294921875
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "c26138c9b0b40ce2",
+      "page": 11,
+      "region": 1,
+      "bbox": [
+        47.62199783325195,
+        57.18994140625,
+        408.3973083496094,
+        187.2429428100586
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 47,
+      "region": 8,
+      "bbox": [
+        73.16621398925781,
+        249.75753784179688,
+        511.1877746582031,
+        617.3946990966797
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 42,
+      "region": 3,
+      "bbox": [
+        73.00040054321289,
+        227.96685791015625,
+        523.1864624023438,
+        591.9993286132812
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7a4e4cf17647aefb",
+      "page": 14,
+      "region": 3,
+      "bbox": [
+        237.12,
+        408.47999999999996,
+        430.8,
+        496.79999999999995
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 71,
+      "region": 18,
+      "bbox": [
+        162.34719848632812,
+        87.72570037841797,
+        673.57568359375,
+        450.76412200927734
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "6015badde545e05c",
+      "page": 46,
+      "region": 4,
+      "bbox": [
+        71.0030740591196,
+        320.78399047851565,
+        528.9969153771034,
+        500.5200080871582
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "01589db43f1b6b8d",
+      "page": 12,
+      "region": 2,
+      "bbox": [
+        59.7599983215332,
+        95.16261291503906,
+        433.4312438964844,
+        275.274658203125
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 46,
+      "bbox": [
+        60.63712692260742,
+        186.5573272705078,
+        502.52825927734375,
+        229.06480407714844
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "ca69ef9aa3325fcb",
+      "page": 8,
+      "region": 1,
+      "bbox": [
+        47.84880065917969,
+        481.702392578125,
+        543.9491577148438,
+        665.5227661132812
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "page": 8,
+      "region": 2,
+      "bbox": [
+        126.22575378417969,
+        59.791015625,
+        438.5962219238281,
+        371.8699951171875
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 57,
+      "region": 16,
+      "bbox": [
+        74.39360046386719,
+        87.72718811035156,
+        739.2018432617188,
+        336.9602584838867
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "a4838319b9653edc",
+      "page": 16,
+      "region": 4,
+      "bbox": [
+        45.0,
+        629.0220947265625,
+        548.5087890625,
+        657.0220947265625
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 13,
+      "region": 32,
+      "bbox": [
+        60.63117980957031,
+        284.84906005859375,
+        502.486083984375,
+        346.81097412109375
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "b9123d16f4d1166a",
+      "page": 53,
+      "region": 9,
+      "bbox": [
+        95.70505269368489,
+        445.99693806966144,
+        515.7456258138021,
+        643.6092732747396
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "page": 9,
+      "region": 3,
+      "bbox": [
+        126.35108947753906,
+        59.791015625,
+        448.2552490234375,
+        379.84100341796875
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "page": 10,
+      "region": 4,
+      "bbox": [
+        127.8111572265625,
+        59.791015625,
+        235.78561401367188,
+        726.3209838867188
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 45,
+      "region": 6,
+      "bbox": [
+        142.20001220703125,
+        234.86973571777344,
+        414.23992919921875,
+        418.88722229003906
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 49,
+      "bbox": [
+        60.63714599609375,
+        316.1030578613281,
+        502.51873779296875,
+        359.1725769042969
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7f7737940b6e1734",
+      "page": 12,
+      "region": 3,
+      "bbox": [
+        169.44000244140625,
+        124.11297607421875,
+        367.6990051269531,
+        154.51806640625
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 47,
+      "region": 8,
+      "bbox": [
+        44.40443801879883,
+        424.9618225097656,
+        575.6597900390625,
+        461.3058166503906
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "be9efc6c5580bb25",
+      "page": 6,
+      "region": 2,
+      "bbox": [
+        43.593780517578125,
+        557.8934326171875,
+        548.1100463867188,
+        675.6690673828125
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 12,
+      "region": 30,
+      "bbox": [
+        60.63706970214844,
+        69.8584976196289,
+        502.74261474609375,
+        346.8243713378906
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7f7737940b6e1734",
+      "page": 12,
+      "region": 4,
+      "bbox": [
+        60.0,
+        158.19296264648438,
+        346.68121337890625,
+        218.11807250976562
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 50,
+      "region": 10,
+      "bbox": [
+        125.83660125732422,
+        102.42565155029297,
+        711.376953125,
+        471.48070526123047
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 44,
+      "bbox": [
+        60.627777099609375,
+        106.52558898925781,
+        502.41595458984375,
+        139.0290985107422
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 1,
+      "region": 2,
+      "bbox": [
+        60.625,
+        547.8701171875,
+        503.0532531738281,
+        645.8151245117188
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 44,
+      "region": 2,
+      "bbox": [
+        417.2322692871094,
+        365.19580078125,
+        496.79510498046875,
+        438.4557800292969
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 41,
+      "region": 2,
+      "bbox": [
+        72.00001525878906,
+        147.6885528564453,
+        519.1918334960938,
+        530.7176513671875
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 11,
+      "region": 28,
+      "bbox": [
+        60.63493347167969,
+        320.8638610839844,
+        502.80316162109375,
+        466.3310241699219
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 51,
+      "bbox": [
+        60.637298583984375,
+        445.6488037109375,
+        502.51885986328125,
+        478.15234375
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "349b7d589d0f5d4e",
+      "page": 12,
+      "region": 8,
+      "bbox": [
+        37.587398529052734,
+        624.5009765625,
+        261.0679016113281,
+        741.1989593505859
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "3b99b3406a08f142",
+      "page": 9,
+      "region": 2,
+      "bbox": [
+        58.25685501098633,
+        134.76200103759766,
+        716.1157836914062,
+        469.6604995727539
+      ],
+      "label": "CORRECT",
+      "labeller_agreement": {
+        "reviewer_a": "CORRECT",
+        "reviewer_b": "CORRECT",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 17,
+      "region": 37,
+      "bbox": [
+        89.99453735351562,
+        80.12899780273438,
+        584.0069580078125,
+        467.1289978027344
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "8577518ba20d635e",
+      "page": 18,
+      "region": 4,
+      "bbox": [
+        221.9992218017578,
+        81.280029296875,
+        491.7327880859375,
+        315.7799987792969
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "8c5e55abfc1c77aa",
+      "page": 10,
+      "region": 1,
+      "bbox": [
+        74.9234619140625,
+        167.5175323486328,
+        612.2897338867188,
+        464.4048156738281
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "b1ee17e559234146",
+      "page": 14,
+      "region": 1,
+      "bbox": [
+        45.919891357421875,
+        97.3988037109375,
+        548.1132202148438,
+        306.5957336425781
+      ],
+      "label": "CORRECT",
+      "labeller_agreement": {
+        "reviewer_a": "CORRECT",
+        "reviewer_b": "CORRECT",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 7,
+      "region": 15,
+      "bbox": [
+        72.625,
+        57.857460021972656,
+        502.53082275390625,
+        107.8182144165039
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 43,
+      "bbox": [
+        60.608970642089844,
+        67.01551818847656,
+        502.69622802734375,
+        109.52299499511719
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 44,
+      "region": 5,
+      "bbox": [
+        113.29679870605469,
+        264.6524658203125,
+        479.40106201171875,
+        449.3229217529297
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "28dde631e0092025",
+      "page": 42,
+      "region": 5,
+      "bbox": [
+        82.80000305175781,
+        120.61997985839844,
+        649.4862060546875,
+        476.25999450683594
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "c26138c9b0b40ce2",
+      "page": 24,
+      "region": 8,
+      "bbox": [
+        33.672786712646484,
+        53.35273742675781,
+        394.5719299316406,
+        157.25245666503906
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "b4f17030e5d723d5",
+      "page": 5,
+      "region": 3,
+      "bbox": [
+        313.0870056152344,
+        89.5064926147461,
+        550.0889892578125,
+        170.64048767089844
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "71003d9259481056",
+      "page": 12,
+      "region": 2,
+      "bbox": [
+        66.2500991821289,
+        59.791015625,
+        554.4229125976562,
+        224.16400146484375
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "9726d15395a2b0b6",
+      "page": 15,
+      "region": 1,
+      "bbox": [
+        40.53499984741211,
+        64.176025390625,
+        444.18902587890625,
+        110.21099853515625
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "3390b58a6331f9dd",
+      "page": 4,
+      "region": 2,
+      "bbox": [
+        48.47999954223633,
+        482.87481689453125,
+        370.69195556640625,
+        553.3604125976562
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 48,
+      "bbox": [
+        72.63442993164062,
+        276.0871887207031,
+        502.3131408691406,
+        308.5907287597656
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "b1ee17e559234146",
+      "page": 20,
+      "region": 5,
+      "bbox": [
+        69.43673706054688,
+        61.398250579833984,
+        646.977294921875,
+        501.2498779296875
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 46,
+      "region": 7,
+      "bbox": [
+        149.2965850830078,
+        234.87033081054688,
+        412.3199462890625,
+        546.1191558837891
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 77,
+      "region": 23,
+      "bbox": [
+        120.96002197265625,
+        317.3267822265625,
+        469.79736328125,
+        566.14208984375
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "be9efc6c5580bb25",
+      "page": 6,
+      "region": 1,
+      "bbox": [
+        43.59379577636719,
+        359.4456481933594,
+        551.7003173828125,
+        521.465576171875
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 7,
+      "region": 18,
+      "bbox": [
+        60.634246826171875,
+        296.86163330078125,
+        502.8547058105469,
+        609.8206176757812
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "eaa365788a0cea90",
+      "page": 20,
+      "region": 1,
+      "bbox": [
+        48.0196533203125,
+        120.78485107421875,
+        455.54339599609375,
+        551.5938720703125
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 76,
+      "region": 22,
+      "bbox": [
+        152.44808959960938,
+        227.99107360839844,
+        646.88720703125,
+        383.23413848876953
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 3,
+      "region": 9,
+      "bbox": [
+        60.625,
+        613.0603637695312,
+        502.47772216796875,
+        681.2225341796875
+      ],
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      }
+    }
+  ]
+}
