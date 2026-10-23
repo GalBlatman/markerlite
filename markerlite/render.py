@@ -268,6 +268,37 @@ def fallback_prose(blk: Block) -> List[str]:
     ]
 
 
+def _joined_caption(caption, columns):
+    text = escape(block_text(caption, plain=True))
+    text = text.replace("&lt;sup&gt;", "<sup>").replace("&lt;/sup&gt;", "</sup>")
+    return f'<tr class="continued-caption"><td colspan="{columns}"><em>{text}</em></td></tr>'
+
+
+def _joined_header(block):
+    parser = _TableParser()
+    parser.feed(block.html or "")
+    return parser.header
+
+
+def _joined_table_html(block):
+    parser = _TableParser()
+    parser.feed(block.html or "")
+    head = "".join(f'<th scope="col">{escape(cell)}</th>' for cell in parser.header)
+    if block.table_join_prev:
+        prefix = f'<tr class="continued-header">{head}</tr>'
+    else:
+        prefix = (
+            f'<table data-markerlite-table="{block.table_join_id}">'
+            f"<thead><tr>{head}</tr></thead><tbody>"
+        )
+    rows = "".join(
+        "<tr>" + "".join(f"<td>{escape(cell)}</td>" for cell in row) + "</tr>"
+        for row in parser.rows
+    )
+    suffix = "" if block.table_join_next else "</tbody></table>"
+    return prefix + rows + suffix
+
+
 def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
     out: List[str] = []
     pending_paragraph = ""
@@ -337,8 +368,11 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
 
             flush()
             if t == "SectionHeader":
-                level = min(max(blk.heading_level or 2, 1), 6)
-                out.append("#" * level + " " + block_text(blk, plain=True))
+                if blk.table_join_caption_columns:
+                    out.append(_joined_caption(blk, blk.table_join_caption_columns))
+                else:
+                    level = min(max(blk.heading_level or 2, 1), 6)
+                    out.append("#" * level + " " + block_text(blk, plain=True))
             elif t == "ListItem":
                 txt = block_text(blk)
                 bullet = "-"
@@ -358,10 +392,18 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                 else:
                     out.append(item)
             elif t == "Table":
-                md = table_html_to_markdown(blk.html or "")
+                md = (
+                    ""
+                    if blk.table_join_prev or blk.table_join_next
+                    else table_html_to_markdown(blk.html or "")
+                )
                 for cap in blk.children:
                     if cap.leads:
-                        out.append("*" + block_text(cap, plain=True) + "*")
+                        out.append(
+                            _joined_caption(cap, len(_joined_header(blk)))
+                            if blk.table_join_prev
+                            else "*" + block_text(cap, plain=True) + "*"
+                        )
                 if blk.fallback_paragraphs:
                     out.append(
                         f"<!-- table p. {page.page_idx + 1}: "
@@ -377,12 +419,24 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                         else f"<!-- table p. {page.page_idx + 1}: "
                         "grid from aligned text; verify before use -->"
                     )
-                    out.append(md or (blk.html or ""))
+                    out.append(
+                        _joined_table_html(blk)
+                        if blk.table_join_prev or blk.table_join_next
+                        else md or (blk.html or "")
+                    )
                 for cap in blk.children:
                     if not cap.leads:
-                        out.append("*" + block_text(cap, plain=True) + "*")
+                        out.append(
+                            _joined_caption(cap, len(_joined_header(blk)))
+                            if blk.table_join_next
+                            else "*" + block_text(cap, plain=True) + "*"
+                        )
             elif t == "Caption":
-                out.append("*" + block_text(blk, plain=True) + "*")
+                out.append(
+                    _joined_caption(blk, blk.table_join_caption_columns)
+                    if blk.table_join_caption_columns
+                    else "*" + block_text(blk, plain=True) + "*"
+                )
             elif t == "TocEntry":
                 item = "- " + block_text(blk, plain=True)
                 if out and out[-1].rsplit("\n", 1)[-1].startswith("- "):

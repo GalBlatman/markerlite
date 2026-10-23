@@ -52,6 +52,7 @@ from .processors import (
 )
 from .render import render
 from .stats import build_stats
+from .table_joins import link_continued_tables
 from .tables import detect_tables, propose_tables_from_text
 
 
@@ -183,6 +184,7 @@ def _convert(path, out, images, do_flag_math, page_markers, do_flag_figures, can
     n_figures -= _route_raster_equations(pages)
     _attach_figure_source_text(pages)
     place_fill_backed_banners(pages)
+    link_continued_tables(pages)
 
     check_cancel(cancel)
     manifest = {}

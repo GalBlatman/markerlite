@@ -310,6 +310,12 @@ class Block:
     # emitted before the table, where the source has it.
     leads: bool = False
     children: List["Block"] = field(default_factory=list)
+    # Explicit same-schema continuations render as one HTML table without
+    # relocating any page's words. The physical regions remain for statistics.
+    table_join_prev: bool = False
+    table_join_next: bool = False
+    table_join_id: Optional[int] = None
+    table_join_caption_columns: int = 0
 
     @property
     def text(self) -> str:

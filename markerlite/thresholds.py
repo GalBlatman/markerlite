@@ -229,3 +229,6 @@ FIGURE_IMAGE_MAX_PIXELS = 240_000_000
 # 1 MB of TSV (23x), above which the recognised text is cut at a line end.
 OCR_MAX_PIXELS = 90_000_000
 OCR_MAX_TSV_BYTES = 1_000_000
+
+# Consecutive continuation grids must share horizontal page-normalized bounds.
+TABLE_CONTINUATION_X_TOL = 0.02

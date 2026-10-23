@@ -511,3 +511,36 @@ the SBTi reference conversion: spanning-label placement, row count/gate
 measurements and Markdown byte counts. Three cumulative entries differ from
 v0.1.18, including the earlier R00077 row repair.
 Full audit output is retained; the released manifest is not rewritten.
+
+
+## B3.4 — conservative cross-page links
+
+Join already-kept vertical fragments only with an explicit same-table
+continuation caption, identical headers, matching normalized horizontal
+bounds (0.02 tolerance), complete boundary records and disjoint first-column
+record keys across the entire chain. No intervening prose is allowed.
+Different-column continuations, missing fragments and ambiguous split rows
+remain separate. This changes neither detection, gate decisions nor source
+cell matrices. The emitted chain is one HTML table; repeated printed headers
+and continuation captions remain on their source pages. Stats still count
+physical regions. Linking is idempotent.
+
+The seven-page cross_page_tables.pdf fixture joins its first three pages.
+It rejects a new table, changed columns, intervening body prose and repeated
+record keys. Rendered pages were checked; each page's standard content-word
+count is unchanged, all source records occur once, and the HTML table balances.
+
+All 42 earlier training documents have byte-identical Markdown, unchanged
+regions/cells and unchanged per-page content words against the column step.
+None meets this conservative link rule. Gold scores and controls are identical
+to B3.3 (2 EXACT, 5 NEAR, 14 WRONG, 8 PROSE; mean association 0.479000).
+The full rendered York pp. 14–15 show a column-wise continuation with different
+headers; this step does not combine those columns. Capital IQ pp. 87–88 show
+a split boundary record and no kept earlier grid; that case also remains
+unresolved. These are checked limitations, not claimed repairs.
+The complete replay metadata is tests/labels/b3-cross-page-audit.json.
+
+Archived column commit 84cf752: 86/89 released hashes match, zero OCR skips.
+The only three differences are the previously itemised R00077, R00112 and
+SBTi changes. This cross-page commit is expected to retain those same three
+cumulative differences; the released manifest is unchanged.

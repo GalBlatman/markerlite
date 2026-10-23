@@ -2263,6 +2263,34 @@ def make_footnote_biglabel():
     make_footnote_repro("footnote_biglabel.pdf", big_label=True)
 
 
+def make_cross_page_tables():
+    """Three matching continuations, an unrelated table and changed columns."""
+    pdf = Doc()
+    for page in range(1, 8):
+        pdf.add_page()
+        if page == 6:
+            pdf.text_at(
+                72, 60, "A separate paragraph interrupts this continuation.", size=10
+            )
+        if page <= 3:
+            caption = "Table 1" + (" (continued)" if page > 1 else ": Shared inventory")
+            names, widths = ["Record", "Review", "Status"], [156, 156, 156]
+        elif page == 4:
+            caption = "Table 2: Independent inventory"
+            names, widths = ["Record", "Review", "Status"], [156, 156, 156]
+        else:
+            caption = "Table 2 (continued)"
+            names, widths = ["Record", "Different column"], [234, 234]
+        pdf.text_at(72, 90, caption, style="B", size=12)
+        rows = [names]
+        for suffix in ("Alpha", "Beta", "Gamma"):
+            record_page = 6 if page == 7 else page
+            values = [f"Page {record_page} {suffix}", "Retain", "Accepted"]
+            rows.append(values[: len(names)])
+        ruled_table(pdf, 72, 145, widths, rows, size=10, row_h=30)
+    pdf.out("cross_page_tables.pdf")
+
+
 def make_spanning_column_labels():
     """Full-width labels over an unequal-width two-column table."""
     pdf = Doc()
@@ -3457,6 +3485,7 @@ MAKERS = {
     "year_column": make_year_column,
     "table_only_footer": make_table_only_footer,
     "isolated_ocr_page": make_isolated_ocr_page,
+    "cross_page_tables": make_cross_page_tables,
     "spanning_column_labels": make_spanning_column_labels,
     "ruled_header_band": make_ruled_header_band,
     "wrapped_record_rows": make_wrapped_record_rows,
