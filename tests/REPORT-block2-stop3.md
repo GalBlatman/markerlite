@@ -544,3 +544,56 @@ Archived column commit 84cf752: 86/89 released hashes match, zero OCR skips.
 The only three differences are the previously itemised R00077, R00112 and
 SBTi changes. This cross-page commit is expected to retain those same three
 cumulative differences; the released manifest is unchanged.
+
+
+## B3.5 — proposal-context trial: BLOCKED, NOT COMMITTED
+
+The trial excludes recognized reference-list blocks, consecutively numbered
+flowing records with wrapped full-width lines and no independent cell intervals,
+and compact scan labels directly above a formal figure caption. The synthetic
+proposal_context.pdf includes notes, references, a scan-like labelled figure
+and two genuine ruled tables. Its rendered pages and focused tests pass.
+
+All 42 earlier training documents completed. Changes against cross-page
+commit 8b743f3 are limited to four documents:
+
+| Document | Pages | Standard content words before → trial | Explanation |
+| --- | --- | ---: | --- |
+| R02055 | 7 | 9,604 → 9,605 | Diagram-label proposal rejected; source token multiset unchanged. The extra counted token is the renderer's `>` block-quote marker, which the standard metric counts. Figure placeholder remains. |
+| S0009 | 17–22 | 21,492 → 21,492 | Numbered bibliography and its continuation pages return to prose. All six rendered pages checked; normalized token multisets identical. |
+| Kitchener | 28 | 13,256 → 13,255 | Two-column bibliography proposal returns to prose. Existing prose dehyphenation joins `Inter-` + `national` to `International`; source words remain. Rendered page checked. |
+| Wry | 37, 47 | 18,440 → 18,439 | Endnotes return to prose; existing dehyphenation joins `empha-` + `sis`. **The real appendix continuation table on p. 47 is also rejected: blocker.** |
+
+The other 38 training documents are byte-identical. No source text is lost,
+but Wry p. 47 loses a genuine table layout. Its rendered original shows the
+continuation of Appendix 1, with journal names and two numeric columns. This
+is part of the existing gold item wry2013-p46-t1 (pp. 46–47), not a new label
+or a permissible non-gold cost. Gold changes GRID-NEAR → GRID-WRONG:
+association 0.990 → 0.495, adjacency F1 0.984 → 0.550.
+
+The cached gold scorer uses the completed actual training conversions,
+not simulated cells: EXACT 2, NEAR 4, WRONG 15, PROSE 8. Both false-grid
+controls and the separate ambiguous bibliography become CLEAN; controls are
+6 CLEAN and 2 FALSE-MARKER. Those improvements do not override the blocker.
+The full fixture regression matches; pytest has 283 passes, three Windows-only
+skips, and the fixture's pre-existing homogeneous-font clustering warning.
+Ruff passes. The fixture, trial code and hash-prefix replay metadata
+(tests/labels/b3-proposal-blocker-audit.json) are left **uncommitted**.
+No further rule adjustment is made.
+
+Work stops under B3's explicit acceptance rule: no exact/near gold table lost.
+B4's prospective reconversion was stopped at 32/80 completed documents, before
+any final sample was drawn, labelled or measured; these partial results have
+not been used to tune. B4 and B5 remain unfinished. All owned trial workers
+were stopped; the cross-page archive audit is complete: 86/89 match, only the same
+three previously approved cumulative differences, zero OCR skips. Its complete
+log is tests/audits/8b743f3-golden.txt. No tag or default change.
+
+
+## Owner ruling, 2026-10-23
+
+B3.1–B3.4 accepted. B3.5 discarded: its uncommitted production code, test,
+generator and fixture were deleted; evidence above is retained, and the idea
+and Wry p. 47 blocker are in PLAN-tables.md's backlog. Grid default is OFF
+for v0.2.0. B4 will re-evaluate only changed grids in the original 60-region
+sample, using the original labels for byte-identical emitted grids.

@@ -535,7 +535,9 @@ parentheses fails if the fix is undone):
   keys), and ruled header bands are done (R02611 p. 18 restored to exact).
   Spanning-label column ownership is done (R00112 p. 17 to near).
   Conservative vertical cross-page linking is done; York column-wise and
-  Capital IQ split-record continuations remain unresolved. Proposal guards follow.
+  Capital IQ split-record continuations remain unresolved. B3.5 was discarded by the owner; its Wry p. 47 blocker and idea are
+  recorded in tests/PLAN-tables.md. B4 follows on current main; v0.2.0
+  grids default OFF by owner ruling (fresh baseline 2/60 correct).
   B4–B5 have not started. The rule-only fallback is
   ruled out: ruled grids measured no more reliable (11/36 vs 5/13).
 - Table work follows tests/PLAN-tables.md; items 0, 1, 7, 8, 11b done;

@@ -979,3 +979,14 @@ change that improves counts by duplication, loses negations/numbers, or regresse
 `paper.pdf` booktabs, `hard.pdf` ruled cells, or Ragins' paragraph flow.
 
 This commit contains the plan only. No implementation starts until review.
+
+
+### Stop 3 backlog: discarded B3.5 proposal-context idea
+
+The owner discarded the uncommitted B3.5 trial. Numbered hanging paragraphs
+and scan labels near figure captions suggested exclusions, but the broad
+reference-context exclusion also rejected Wry PDF p. 47's real Appendix 1
+continuation table. Gold pp. 46–47 regressed NEAR → WRONG (association
+0.990 → 0.495). A future proposal guard must distinguish that data table
+from endnotes/bibliography before it can ship. No trial code is retained.
+See tests/REPORT-block2-stop3.md and the uncommitted-trial audit records.
