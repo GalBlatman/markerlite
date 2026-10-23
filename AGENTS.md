@@ -17,8 +17,10 @@ and its claims have been deliberately made honest — do not inflate them.
 Public repo: github.com/GalBlatman/markerlite · Apache-2.0 · current release
 v0.1.18 (`/releases/latest` is the download link the README and blog use;
 release notes are the tag's CHANGELOG.md section). The golden baseline is
-tests/golden/v0.1.18.json (cmr_review.pdf excluded); v0.1.16.json stays
-for history.
+tests/golden/v0.2.0.json for the untagged v0.2.0 release candidate
+(both grid modes; cmr_review.pdf excluded). VERSION is 0.2.0; the published
+latest release remains v0.1.18 until the owner tags. Earlier manifests stay
+for history; the standing archived audit also compares v0.1.18.json.
 
 ## Layout
 

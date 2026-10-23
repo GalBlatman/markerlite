@@ -45,28 +45,24 @@ the failure modes are quiet ones.
 
 ## What is partial
 
-**Tables.** Most emitted grids are wrong somewhere. On a held-out sample of
-journal articles, about one emitted grid in three (16 of 49; 95% interval
-21-47%) matched the printed table; the rest put some values in the wrong
-row or column, which shifts them silently. Tall multi-line cells are the
-usual cause. A confidence gate keeps a grid only when the page and the grid
-show it is a table and its cells hold the source's words. Most of what it
-removes are non-tables and broken grids, and some correct tables are lost
-to it. Every grid is labelled just before it:
-`<!-- table p. N: grid from ruling lines; verify before use -->` when
-drawn rules support it, or
-`<!-- table p. N: grid from aligned text; verify before use -->` when only
-the alignment of the text does. The label states what the grid stands on,
-not how reliable it is: in that sample, ruled grids were correct in 11 of
-36 cases and aligned-text grids in 5 of 13, so both carry the same
-caution. When reconstruction fails or the gate stops a grid, the
-region's text is kept as ordered prose with a `<!-- table p. N:
-reconstruction failed; text kept as prose -->` marker. The text is
-preserved and the layout is lost. The marker appears only where the region
-looks like a table (ruling lines, or columns that recur from row to row);
-body prose, a reference list or a figure the detector matched comes out as
-ordinary text with no marker. **Verify any table you intend to read as
-data.**
+**Tables.** Grids are **off by default**. Detected table regions are kept
+as ordered source prose under a `<!-- table p. N: grids disabled; text kept
+as prose -->` marker. The text is retained; the layout is lost. A marker
+means the detector found a candidate, not proof that it is a table.
+
+Use `--grids` (or `convert(..., grids=True)`) to opt into grids. In a frozen
+held-out sample from the author's own Zotero library, only **2 of 60 emitted
+grids were correct** (3.3%; 95% interval 0.9–11.4%), both before and after
+the targeted repairs. Most wrong grids had row, column, header or extent
+errors, or were not tables. This measurement describes that library, not a
+universal benchmark. Details: [the release-candidate report](tests/REPORT-v0.2.0-rc.md).
+
+Opt-in grids carry a comment naming their evidence (ruling lines or aligned
+text), with "verify before use". The label is evidence, not confidence.
+If reconstruction or the guard fails, the region stays prose under its
+"reconstruction failed" marker. **Verify any table you intend to read as
+data.** The GUI has a per-run Table grids option and a saved Preferences
+default; both start off for new or migrated settings.
 
 **Figures.** markerlite does not read figures; it hands them to something that
 can. Every figure it finds leaves a placeholder at its position in the text,
@@ -221,6 +217,11 @@ converted stay, and the rest are skipped; the run log says which. Cancel
 takes effect between pages, usually within a second; a long whole-document
 step can hold it for a few seconds (the worst measured was 6.6 s).
 
+File provides Open PDFs (Ctrl+O), Open folder and recent files. Tools →
+Preferences holds output, OCR, Explorer, appearance and table-grid defaults;
+Options holds per-batch choices. Help → Check for updates runs only when
+you request it.
+
 Right-click a file for Open Markdown, Open PDF, Show in folder, Copy
 Markdown, Show warnings (that file's lossy pages, fragment pages, tables
 kept as prose and resource limits), Re-convert and Remove from list. Entries
@@ -232,9 +233,10 @@ Output is written whole or not at all: each file is written under a
 failed or cancelled conversion never replaces a good earlier result with
 half a file. The same holds on the command line, where Ctrl+C cancels.
 
-**Send to.** In the Windows app, tick *Add markerlite to Explorer's Send to
-menu*. Then select PDFs in Explorer, right-click, *Send to* → *markerlite*:
-they are added to the list and converted with the current settings. If
+**Send to.** In Tools → Preferences → Explorer integration, tick
+*Add markerlite to Explorer's Send to menu*. Then select PDFs in Explorer, right-click, *Send to* → *markerlite*:
+they are added to the list and, by default, converted with the current settings.
+Preferences can turn automatic conversion off. If
 markerlite is already open they go to that window (queued behind a batch
 that is running); anything that is not a PDF is skipped and noted in
 `%LOCALAPPDATA%\markerlite\markerlite-app.log`. The option is a shortcut in
@@ -271,6 +273,7 @@ python3 markerlite.py --apply-figures md_out/paper_figures.json -o md_out
 | `--apply-math J` | splice transcribed LaTeX from a filled manifest into the `.md` |
 | `--flag-figures` | crop every figure at 200 dpi to `<stem>_figures/` and write `<stem>_figures.json` |
 | `--apply-figures J` | put the descriptions from a filled figure manifest under their placeholders |
+| `--grids` / `--no-grids` | opt into table grids / keep source prose (default); verify grids before use |
 | `--page-markers` | emit `<!-- page N -->` at each page boundary |
 
 Page markers cost almost nothing in context and let you ask an LLM where in the
@@ -302,9 +305,10 @@ import sys, pathlib
 sys.path.insert(0, "/path/to/markerlite")   # it does `from table_recon import ...`
 from markerlite import convert, summarize
 
+pathlib.Path("outdir").mkdir(exist_ok=True)
 out_path, info = convert(pathlib.Path("in.pdf"), pathlib.Path("outdir"),
                          images=False, do_flag_math=False, page_markers=False,
-                         do_flag_figures=False)
+                         do_flag_figures=False, grids=False)
 print(summarize(info["stats"]))
 # 17 pages → 76 KB Markdown · 3 figures · 2 equation crops
 ```

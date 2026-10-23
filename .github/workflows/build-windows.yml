@@ -114,7 +114,7 @@ jobs:
       - name: Check the build launches
         run: |
           if (!(Test-Path dist\markerlite\markerlite.exe)) { throw "exe missing" }
-          $diag = Start-Process -FilePath dist\markerlite\markerlite.exe -ArgumentList "--diag" -Wait -PassThru
+          $diag = Start-Process -FilePath dist\markerlite\markerlite.exe -ArgumentList "--diag" -WindowStyle Hidden -Wait -PassThru
           if ($diag.ExitCode -ne 0) { throw "diagnostics exited $($diag.ExitCode)" }
           if (!(Test-Path dist\markerlite\markerlite-diag.txt)) { throw "diagnostics missing" }
           Select-String -Path dist\markerlite\markerlite-diag.txt -Pattern "frozen=True", "TkinterDnD.Tk\(\)  OK"
@@ -129,6 +129,9 @@ jobs:
           # The diagnostics file describes this runner, not the user's
           # machine: it must not ship in the zip.
           Remove-Item dist\markerlite\markerlite-diag.txt
+
+      - name: Check frozen window title
+        run: python tools/check_exe_window.py dist\markerlite\markerlite.exe
 
       - name: Check embedded icon resources
         run: python tools/check_exe_icon.py dist\markerlite\markerlite.exe assets\icon.ico

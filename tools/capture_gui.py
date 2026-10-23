@@ -169,6 +169,7 @@ def main():
                 pump(root)
                 if not app.opts_open:
                     app._toggle_options()
+                pump(root)
                 filename = f"{theme}-table-options.png"
                 capture(root, out / filename)
                 records.append(

@@ -11,12 +11,15 @@ The package follows the conversion order:
    font problems, decides whether OCR is needed, and records provenance.
 2. `tables.py` finds table regions and uses the vendored root
    `table_recon.py`; `table_wrap.py` conservatively reattaches wrapped cells.
+   `table_headers.py` and `table_columns.py` repair supported header/spanning
+   associations; `table_joins.py` links explicit compatible continuations.
 3. `classification.py` labels blocks without changing their stream order.
 4. `processors.py` applies reflow, furniture, footnote, heading, continuation,
    list, equation, and caption rules in the order called by `api.py`.
 5. `figures.py` locates figures and raster equations and owns the crop/apply
    hand-offs.
-6. `render.py` emits Markdown. `stats.py` builds the stable reporting schema.
+6. `render.py` emits Markdown. Tables default to ordered source prose;
+   `grids=True` opts into grids without changing detection/protection. `stats.py` builds the stable reporting schema.
 7. `output.py` stages every output as `<name>.part` and renames it into place
    only when the whole conversion succeeds (CLI, GUI and API alike).
 
@@ -25,8 +28,8 @@ The package follows the conversion order:
 a behavior change: verify its fixture and motivating real document rather than
 folding it into refactoring.
 
-The safety boundary is `tests/golden/v0.1.16.json`, recorded from the
-archived v0.1.16 tag (`v0.1.14.json` is kept for history). It hashes Markdown,
+The safety boundary is `tests/golden/v0.2.0.json`, recorded in both grid modes
+for the release candidate. Earlier released manifests remain for history. It hashes Markdown,
 canonical stats, hand-off manifests, and crops for generated fixtures, local
 reference PDFs, and the external Packet corpus. OCR hashes compare only when
 the Tesseract version matches. `tests/regress.py` retains readable Markdown

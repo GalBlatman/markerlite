@@ -5,26 +5,38 @@ audit (tests/golden.py) lists which reference documents changed and why.
 
 ## v0.2.0 (unreleased)
 
-### What's new in 0.2.0
+### Windows app
 
-![The refreshed window after a batch](docs/images/markerlite-window.png)
+- Sun Valley light/dark interface in the logo's blue, monitor-aware sizing,
+  a large empty drop zone, per-file pages/status/time and conversion progress,
+  warning details, Preview and Log tabs, and collapsible Options.
+- Native File, Edit, View, Tools and Help menus with keyboard shortcuts and
+  shared handlers. Recent files, About, diagnostics and Check OCR.
+- Preferences for output, Explorer integration, OCR override, theme and the
+  startup Table grids choice. Older settings migrate with grids off.
+- Check for updates is user-initiated only: one GitHub release request,
+  ten-second timeout, graceful offline handling; no startup polling.
 
-- **A refreshed Windows app.** The Sun Valley (Windows 11) look, light or
-  dark as Windows is set, in the logo's blue. A large drop zone while the
-  list is empty; the list shows each file's pages, status and time, with
-  a live percentage while it converts. Click "Done with N warnings" to
-  read them. Preview and Log are tabs; options fold away.
-- Nothing about conversion has changed: every reference document converts
-  to the same Markdown as in v0.1.18.
+### Tables
 
-### App
+- **Grids are now opt-in.** Default CLI/API/GUI output keeps table source
+  lines as ordered prose under a marker. --grids, convert(..., grids=True),
+  or Options → Table grids enables grids; Preferences saves the GUI default.
+  The fresh held-out baseline from the author's own Zotero library was only
+  2/60 correct (95% interval 0.9–11.4%). The frozen-sample final measurement
+  and reason-code breakdown are in tests/REPORT-v0.2.0-rc.md.
+- Wrapped record rows, ruled multiline headers, spanning-label column
+  ownership, and conservative explicit same-schema vertical continuations.
+  York's column-wise and Capital IQ's split-record continuations remain
+  unresolved. The proposed B3.5 prose guard was discarded after regressing
+  Wry's genuine continuation table; its idea is in the backlog.
+- Grid-off source prose recovers some printed tokens grids dropped; every
+  count increase is checked against rendered pages and recorded by token
+  class, without source text. No metric change or threshold relaxation.
+- The new v0.2.0 golden manifest covers both modes, excludes confidential
+  files, and records PyMuPDF/Tesseract versions. Earlier manifests remain.
 
-- Theme: sv-ttk 2.6.1 (MIT), bundled and pinned. `MARKERLITE_THEME=light`
-  or `dark` overrides the Windows setting. `--diag` reports the theme that
-  loaded.
-- The window sizes its text and spacing for the monitor it opens on (it
-  used the primary monitor's scaling before).
-- The Words, OCR and Tables columns moved into each row's tooltip.
+![The refreshed window](docs/images/markerlite-window.png)
 
 ## v0.1.18
 
