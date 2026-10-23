@@ -2,7 +2,7 @@
 
 ## Threat model
 
-- markerlite is a local tool for one user. It runs no server and makes no network connection at runtime.
+- markerlite is a local tool for one user. The app’s only network request is the user-initiated **Help → Check for updates**: one HTTPS GET to GitHub’s latest-release API, with a 10-second timeout, no retries or redirects, and no document data. There are no automatic or startup checks. Help links open the default browser through the OS. Conversion runs offline.
 - Its input is untrusted: a PDF may be malformed or crafted to exhaust time, memory or disk.
 - A figure or math manifest filled in by a person or a model is untrusted input too.
 - It writes only Markdown, images and manifests into the output folder the user chooses, and runs Tesseract as a local subprocess.

@@ -10,7 +10,9 @@
 for five of its stages. markerlite is a reimplementation of the parts that
 don't, plus weight-free substitutes for the parts that do.
 
-It runs offline, on CPU, with no model downloads.
+Conversion runs offline, on CPU, with no model downloads.
+
+The app’s only network request is the user-initiated **Help → Check for updates**: one HTTPS GET to GitHub’s latest-release API with a 10-second timeout. There are no automatic or startup checks, polling, or document uploads. Help links open your default browser through the OS.
 
 **Windows:** download `markerlite-windows.zip` from the
 [latest release](https://github.com/GalBlatman/markerlite/releases/latest),

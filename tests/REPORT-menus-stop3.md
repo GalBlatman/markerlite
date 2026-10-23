@@ -24,3 +24,14 @@ for updates are extended under A3 and A2 respectively.
 Validation: actual Tk App construction and menu refresh passed;
 check_gui.py passed; existing GUI logic/status/menu tests passed (47).
 The full archived-commit golden log is recorded after each commit.
+
+## A2 — user-initiated update check
+
+Help → Check for updates makes one HTTPS GET to the GitHub latest-release
+endpoint, with a ten-second timeout and no redirect, retry or polling.
+The worker returns through the existing Tk event queue; closing the app
+waits for it. Numeric version comparison distinguishes 0.1.10 from 0.1.9.
+An update offers its tag page; failures offer Releases. Invalid replies,
+HTTP errors and offline/timeout paths are tested using injected transports.
+No network requests occur in tests. SECURITY.md and README describe this
+single optional request and browser hand-off.

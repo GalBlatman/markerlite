@@ -427,6 +427,8 @@ class App:
         if self.running:
             self.cancel()
             self.root.after(100, self._exit)
+        elif getattr(self, "update_thread", None) and self.update_thread.is_alive():
+            self.root.after(100, self._exit)
         else:
             self.root.destroy()
 
@@ -495,7 +497,34 @@ class App:
         win.bind("<Escape>", lambda _e: win.destroy())
 
     def check_updates(self):
-        self.open_link("https://github.com/GalBlatman/markerlite/releases/latest")
+        if getattr(self, "update_thread", None) and self.update_thread.is_alive():
+            return
+        self.status.configure(text="Checking for updates…")
+
+        def check():
+            from markerlite.gui_updates import check_for_updates
+
+            self.events.put(("update-result", check_for_updates()))
+
+        self.update_thread = threading.Thread(target=check, daemon=True)
+        self.update_thread.start()
+
+    def show_update(self, result):
+        win = tk.Toplevel(self.root)
+        win.title("Check for updates")
+        win.transient(self.root)
+        ttk.Label(win, text=result.message, padding=self.g(2)).pack()
+        if result.url:
+            ttk.Button(
+                win,
+                text="Open release page"
+                if "available" in result.message
+                else "Open Releases",
+                command=lambda: self.open_link(result.url),
+            ).pack(pady=self.g(1))
+        ttk.Button(win, text="Close", command=win.destroy).pack(pady=self.g(1))
+        win.bind("<Escape>", lambda _e: win.destroy())
+        self.status.configure(text=result.message)
 
     def check_ocr(self):
         self._check_tesseract()
@@ -1290,7 +1319,9 @@ class App:
             while True:
                 ev = self.events.get_nowait()
                 kind = ev[0]
-                if kind == "busy":
+                if kind == "update-result":
+                    self.show_update(ev[1])
+                elif kind == "busy":
                     src = ev[1]
                     self.current_src = src
                     self.rows.setdefault(src, {})["t0"] = time.monotonic()
