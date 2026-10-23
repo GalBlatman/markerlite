@@ -525,3 +525,21 @@ def row_details(stats: dict) -> str:
             + (f" ({fell} kept as prose)" if fell else "")
         )
     return " · ".join(parts)
+
+
+def main_menu_state(
+    running: bool, row_states: list[dict], has_output: bool, has_log: bool
+) -> dict:
+    """Main menu commands use the same per-row decisions as the context menu."""
+    return {
+        "Convert": bool(row_states) and not running,
+        "Cancel": running,
+        "Copy Markdown": any(row.get("Copy Markdown", False) for row in row_states),
+        "Show warnings": any(row.get("Show warnings", False) for row in row_states),
+        "Remove from list": bool(row_states) and not running,
+        "Clear finished": has_output and not running,
+        "Clear list": bool(row_states) and not running,
+        "Select all": bool(row_states),
+        "Open output folder": has_output,
+        "Log": has_log,
+    }

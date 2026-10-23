@@ -70,3 +70,18 @@ def test_reveal_passes_the_path_as_one_argument():
     cmd = reveal_command(p, "win32")
     assert cmd == ["explorer", f"/select,{p}"] and len(cmd) == 2
     assert reveal_command(p, "darwin") == ["open", "-R", str(p)]
+
+
+def test_main_menu_reuses_row_enablement():
+    from markerlite.gui_logic import main_menu_state
+
+    empty = main_menu_state(False, [], False, False)
+    assert not any(empty.values())
+    row = menu_state(True, True, True, False)
+    ready = main_menu_state(False, [row], True, True)
+    assert ready["Convert"] and ready["Copy Markdown"] and ready["Clear finished"]
+    busy = main_menu_state(True, [menu_state(True, True, True, True)], True, True)
+    assert busy["Cancel"] and busy["Copy Markdown"]
+    assert (
+        not busy["Convert"] and not busy["Remove from list"] and not busy["Clear list"]
+    )

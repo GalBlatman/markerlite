@@ -21,8 +21,10 @@ import time
 import tkinter as tk
 import tkinter.font as tkfont
 import traceback
-from tkinter import filedialog, ttk
+import webbrowser
+from tkinter import filedialog, messagebox, ttk
 
+from markerlite import __version__
 from markerlite.display import safe_display
 from markerlite.extraction import discover_tesseract, tesseract_version
 from markerlite.gui_logic import (
@@ -39,6 +41,7 @@ from markerlite.gui_logic import (
     finish_status,
     handoff_plan,
     launch_paths,
+    main_menu_state,
     menu_state,
     output_directory,
     overall_progress,
@@ -57,6 +60,7 @@ from markerlite.gui_logic import (
     windows_apps_use_light,
     windows_build,
 )
+from markerlite.gui_settings import load_settings, recent_files, save_settings
 
 # Crisp text on high-DPI Windows displays; harmless elsewhere.
 #
@@ -181,6 +185,8 @@ def load_theme(root: tk.Tk, theme: str) -> str:
 class App:
     def __init__(self, root: tk.Tk, events=None, initial=None):
         self.root = root
+        self.settings = load_settings(log=app_log)
+        self.preview_size = BASE_SIZE
         self.files: list[pathlib.Path] = []
         self.results: dict[str, dict] = {}
         # Per-row display state behind the Pages, Status and Time columns.
@@ -203,7 +209,8 @@ class App:
         self.tess_version: str | None = None
         # Light or dark follows the Windows app setting, read once here.
         self.theme = theme_for(
-            windows_apps_use_light(), os.environ.get("MARKERLITE_THEME")
+            windows_apps_use_light(),
+            os.environ.get("MARKERLITE_THEME") or self.settings["theme"],
         )
         self.c = PALETTES[self.theme]
         self._match_monitor_dpi()
@@ -211,6 +218,7 @@ class App:
 
         self._style()
         self._build()
+        self._build_menus()
         self._set_icon()
         self._enable_drop()
         self._fit_to_screen()
@@ -226,6 +234,293 @@ class App:
             # Repair the Send to shortcut only when the option is on, in the
             # background, after the window has appeared.
             self.root.after(1500, self._sendto_repair)
+
+    def _save_settings(self):
+        try:
+            save_settings(self.settings)
+        except OSError as exc:
+            app_log(f"Could not save settings: {exc}")
+            self.status.configure(text=f"Could not save settings: {safe_display(exc)}")
+
+    def _build_menus(self):
+        self.menu_bar = tk.Menu(self.root)
+        self.menus = {}
+        self.menu_entries = {}
+        for name in ("File", "Edit", "View", "Tools", "Help"):
+            menu = tk.Menu(
+                self.menu_bar, tearoff=False, postcommand=self._refresh_menus
+            )
+            self.menu_bar.add_cascade(label=name, underline=0, menu=menu)
+            self.menus[name] = menu
+        self.root.configure(menu=self.menu_bar)
+
+        def entry(group, label, command, shortcut="", key=None):
+            menu = self.menus[group]
+            menu.add_command(
+                label=label, underline=0, command=command, accelerator=shortcut
+            )
+            self.menu_entries[label] = (menu, menu.index("end"))
+            if key:
+
+                def invoke(event):
+                    self._refresh_menus()
+                    if menu.entrycget(label, "state") != "disabled":
+                        command()
+                    return "break"
+
+                self.root.bind(key, invoke)
+
+        entry("File", "Open PDFs…", self.browse, "Ctrl+O", "<Control-o>")
+        entry("File", "Open folder…", self.browse_folder)
+        self.recent_menu = tk.Menu(self.menus["File"], tearoff=False)
+        self.menus["File"].add_cascade(
+            label="Recent files", underline=0, menu=self.recent_menu
+        )
+        self.menus["File"].add_separator()
+        entry("File", "Convert", self.start, "F5", "<F5>")
+        entry("File", "Cancel", self.cancel, "Esc", "<Escape>")
+        entry("File", "Open output folder", self.open_out)
+        entry("File", "Exit", self._exit)
+        self.root.protocol("WM_DELETE_WINDOW", self._exit)
+        entry(
+            "Edit",
+            "Copy Markdown",
+            lambda: self._selected_action("Copy Markdown"),
+            "Ctrl+Shift+C",
+            "<Control-Shift-C>",
+        )
+        entry(
+            "Edit",
+            "Remove from list",
+            lambda: self._selected_action("Remove from list"),
+            "Del",
+            "<Delete>",
+        )
+        entry("Edit", "Clear finished", self.clear_finished)
+        entry("Edit", "Clear list", self.clear)
+        entry("Edit", "Select all", self.select_all, "Ctrl+A", "<Control-a>")
+        entry("View", "Preview", lambda: self.tabs.select(0))
+        entry("View", "Log", lambda: self.tabs.select(1))
+        entry("View", "Show warnings", lambda: self._selected_action("Show warnings"))
+        self.theme_choice = tk.StringVar(value=self.settings["theme"])
+        themes = tk.Menu(self.menus["View"], tearoff=False)
+        self.menus["View"].add_cascade(label="Theme", underline=0, menu=themes)
+        for label in ("System", "Light", "Dark"):
+            themes.add_radiobutton(
+                label=label,
+                underline=0,
+                variable=self.theme_choice,
+                value=label.lower(),
+                command=self.change_theme,
+            )
+        entry(
+            "View",
+            "Larger preview text",
+            lambda: self.resize_preview(1),
+            "Ctrl+=",
+            "<Control-equal>",
+        )
+        entry(
+            "View",
+            "Smaller preview text",
+            lambda: self.resize_preview(-1),
+            "Ctrl+-",
+            "<Control-minus>",
+        )
+        entry("Tools", "Preferences…", self.preferences, "Ctrl+,", "<Control-comma>")
+        entry("Tools", "Check OCR", self.check_ocr)
+        entry("Tools", "Save diagnostics file", self.save_diagnostics)
+        entry(
+            "Help",
+            "User guide",
+            lambda: self.open_link(
+                "https://github.com/GalBlatman/markerlite/blob/main/README.md"
+            ),
+        )
+        entry(
+            "Help",
+            "What's new",
+            lambda: self.open_link(
+                "https://github.com/GalBlatman/markerlite/releases/latest"
+            ),
+        )
+        entry("Help", "Report a problem", self.report_problem)
+        entry("Help", "Check for updates", self.check_updates)
+        entry("Help", "About markerlite", self.about)
+        self._refresh_menus()
+
+    def _refresh_menus(self):
+        states = [self._row_state(str(p)) for p in self.files]
+        state = main_menu_state(
+            self.running,
+            states,
+            any("md" in r for r in self.results.values()),
+            bool(self.log_paths),
+        )
+        selected = list(self.tree.selection())
+        for label in ("Copy Markdown", "Show warnings", "Remove from list"):
+            state[label] = any(
+                self._row_state(src).get(label, False) for src in selected
+            )
+        for label, enabled in state.items():
+            menu, index = self.menu_entries[label]
+            menu.entryconfigure(index, state="normal" if enabled else "disabled")
+        self.recent_menu.delete(0, "end")
+        for path in self.settings["recent_files"]:
+            self.recent_menu.add_command(
+                label=safe_display(path),
+                command=lambda p=path: self.add([p]),
+                state="normal" if pathlib.Path(path).is_file() else "disabled",
+            )
+        if not self.settings["recent_files"]:
+            self.recent_menu.add_command(label="No recent files", state="disabled")
+
+    def _selected_action(self, label):
+        actions = {
+            "Copy Markdown": self._copy_markdown,
+            "Show warnings": self._show_warnings,
+            "Remove from list": self._remove,
+        }
+        for src in list(self.tree.selection()):
+            if self._row_state(src).get(label, False):
+                actions[label](src)
+                if label != "Remove from list":
+                    break
+
+    def select_all(self):
+        self.tree.selection_set(self.tree.get_children())
+
+    def clear_finished(self):
+        for src in list(self.results):
+            if "md" in self.results[src]:
+                self._remove(src)
+
+    def resize_preview(self, delta):
+        self.preview_size = max(6, min(32, self.preview_size + delta))
+        self.preview.configure(font=(self.font_mono[0], self.preview_size))
+
+    def change_theme(self):
+        self.settings["theme"] = self.theme_choice.get()
+        self._save_settings()
+        self.theme = theme_for(
+            windows_apps_use_light(),
+            os.environ.get("MARKERLITE_THEME") or self.settings["theme"],
+        )
+        self.c = PALETTES[self.theme]
+        self._style()
+        for widget in (self.preview, self.log_text):
+            widget.configure(
+                bg=self.c["card"],
+                fg=self.c["ink"],
+                insertbackground=self.c["ink"],
+                selectbackground=self.c["sel_bg"],
+                selectforeground=self.c["sel_fg"],
+                inactiveselectbackground=self.c["sel_bg"],
+                highlightbackground=self.c["line"],
+                highlightcolor=self.c["focus"],
+            )
+        self.resize_preview(0)
+        for src in self.rows:
+            self._set_row(src)
+
+    def _exit(self):
+        if self.running:
+            self.cancel()
+            self.root.after(100, self._exit)
+        else:
+            self.root.destroy()
+
+    def open_link(self, url):
+        try:
+            if sys.platform == "win32":
+                os.startfile(url)
+            else:
+                webbrowser.open(url)
+        except OSError as exc:
+            self.status.configure(text=f"Could not open browser: {safe_display(exc)}")
+
+    def report_problem(self):
+        self.copy_version()
+        self.open_link("https://github.com/GalBlatman/markerlite/issues/new")
+
+    def save_diagnostics(self):
+        destination = filedialog.asksaveasfilename(
+            title="Save diagnostics file",
+            initialfile="markerlite-diag.txt",
+            defaultextension=".txt",
+            filetypes=[("Text", "*.txt")],
+        )
+        if destination:
+            try:
+                source = write_diagnostics()
+                pathlib.Path(destination).write_bytes(source.read_bytes())
+                self.status.configure(text=f"Diagnostics saved to {destination}")
+            except OSError as exc:
+                messagebox.showerror("Diagnostics", str(exc), parent=self.root)
+
+    def about(self):
+        win = tk.Toplevel(self.root)
+        win.title("About markerlite")
+        win.transient(self.root)
+        ttk.Label(
+            win, text=f"markerlite {__version__}\nApache-2.0", padding=self.g(2)
+        ).pack()
+        credits = (
+            (
+                "markerlite — Apache-2.0",
+                "https://github.com/GalBlatman/markerlite/blob/main/LICENSE",
+            ),
+            (
+                "Marker — Apache-2.0",
+                "https://github.com/datalab-to/marker/blob/master/LICENSE",
+            ),
+            (
+                "PyMuPDF — AGPL-3.0 / commercial",
+                "https://pymupdf.readthedocs.io/en/latest/about.html#license-and-copyright",
+            ),
+            (
+                "Tesseract — Apache-2.0",
+                "https://github.com/tesseract-ocr/tesseract/blob/main/LICENSE",
+            ),
+            (
+                "sv-ttk — MIT",
+                "https://github.com/rdbende/Sun-Valley-ttk-theme/blob/main/LICENSE",
+            ),
+        )
+        for label, url in credits:
+            ttk.Button(win, text=label, command=lambda u=url: self.open_link(u)).pack(
+                fill="x", padx=self.g(2), pady=self.g(0.5)
+            )
+        ttk.Button(win, text="Close", command=win.destroy).pack(pady=self.g(2))
+        win.bind("<Escape>", lambda _e: win.destroy())
+
+    def check_updates(self):
+        self.open_link("https://github.com/GalBlatman/markerlite/releases/latest")
+
+    def check_ocr(self):
+        self._check_tesseract()
+        executable = discover_tesseract()
+        messagebox.showinfo(
+            "Check OCR",
+            f"Tesseract: {self.tess_version or 'not found'}\nPath: {executable or 'not found'}\nInstall Tesseract or set TESSERACT_CMD to its executable.",
+            parent=self.root,
+        )
+
+    def preferences(self):
+        win = tk.Toplevel(self.root)
+        win.title("Preferences")
+        win.transient(self.root)
+        ttk.Label(win, text="Appearance", padding=self.g(2)).pack(anchor="w")
+        for label in ("System", "Light", "Dark"):
+            ttk.Radiobutton(
+                win,
+                text=label,
+                variable=self.theme_choice,
+                value=label.lower(),
+                command=self.change_theme,
+            ).pack(anchor="w", padx=self.g(2))
+        ttk.Button(win, text="Close", command=win.destroy).pack(pady=self.g(2))
+        win.bind("<Escape>", lambda _e: win.destroy())
 
     def _match_monitor_dpi(self):
         """Size fonts and spacing for the monitor the window opens on.
@@ -515,7 +810,7 @@ class App:
             left,
             columns=("pages", "status", "time"),
             show="tree headings",
-            selectmode="browse",
+            selectmode="extended",
             height=6,
         )
         self.tree.heading("#0", text="File", anchor="w")
@@ -786,6 +1081,10 @@ class App:
             self.tree.insert("", "end", iid=str(p), text=" " + safe_display(p.name))
             self._set_row(str(p), "queued")
             added += 1
+            self.settings["recent_files"] = recent_files(
+                self.settings["recent_files"], [p]
+            )
+        self._save_settings()
         self._show_body()
         skipped = len(found) - added
         msg = f"{len(self.files)} file(s) ready"
