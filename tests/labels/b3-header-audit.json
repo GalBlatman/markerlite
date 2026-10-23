@@ -1,0 +1,418 @@
+{
+  "schema": 1,
+  "purpose": "Header comparison on all 42 sources behind the 245 earlier training labels; no held-out cases used.",
+  "documents": [
+    {
+      "document_id": "34e6a42100e81609",
+      "before_content_words": 20613,
+      "after_content_words": 20613,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "bf3cbe26f00aaa10",
+      "before_content_words": 17007,
+      "after_content_words": 17007,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "512b0afad093cd21",
+      "before_content_words": 21301,
+      "after_content_words": 21301,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "367d798fedec9dc1",
+      "before_content_words": 29749,
+      "after_content_words": 29749,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "b9f378fbad10e6e7",
+      "before_content_words": 19014,
+      "after_content_words": 19014,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "cb62223fc2ad4477",
+      "before_content_words": 21235,
+      "after_content_words": 21235,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "b4796e1f0af9c69a",
+      "before_content_words": 20315,
+      "after_content_words": 20315,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "babc753eceee5086",
+      "before_content_words": 23598,
+      "after_content_words": 23598,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "4ce34d702d67f749",
+      "before_content_words": 26854,
+      "after_content_words": 26854,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "bea8ef82c5a4640d",
+      "before_content_words": 17482,
+      "after_content_words": 17482,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "f430af0ec0b3cf60",
+      "before_content_words": 16473,
+      "after_content_words": 16473,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "dc2c99b6cf2e820d",
+      "before_content_words": 17683,
+      "after_content_words": 17683,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "2ba83f9a048ae5f0",
+      "before_content_words": 13743,
+      "after_content_words": 13743,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "42b1839db982ed1a",
+      "before_content_words": 13011,
+      "after_content_words": 13011,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "46d92d1352dfc920",
+      "before_content_words": 17063,
+      "after_content_words": 17063,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "abaeb0626537da24",
+      "before_content_words": 14943,
+      "after_content_words": 14943,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "7d47edeb07aef084",
+      "before_content_words": 14871,
+      "after_content_words": 14871,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "8c2c63736960fc13",
+      "before_content_words": 18125,
+      "after_content_words": 18125,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "e8a323d2f75dec38",
+      "before_content_words": 14567,
+      "after_content_words": 14567,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "54dd48602308b0c3",
+      "before_content_words": 14664,
+      "after_content_words": 14664,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "734b5339941af5f3",
+      "before_content_words": 23063,
+      "after_content_words": 23063,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "1f7d75b329a42e4f",
+      "before_content_words": 18045,
+      "after_content_words": 18045,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "cd748e8a9c5a6412",
+      "before_content_words": 9604,
+      "after_content_words": 9604,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "3a3b51b01a810f79",
+      "before_content_words": 10495,
+      "after_content_words": 10495,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "2d699443c2e26946",
+      "before_content_words": 15224,
+      "after_content_words": 15224,
+      "markdown_identical": false,
+      "every_page_content_words_equal": true,
+      "changed_regions": [
+        {
+          "page": 18,
+          "region": 2,
+          "bbox": [
+            41.968017578125,
+            78.74742126464844,
+            348.0308837890625,
+            160.88839721679688
+          ],
+          "before_kind": "fallback",
+          "after_kind": "grid",
+          "after_rows": 4,
+          "after_columns": 5,
+          "source_tokens_conserved": true
+        }
+      ]
+    },
+    {
+      "document_id": "ecf2db7acb3613ce",
+      "before_content_words": 19495,
+      "after_content_words": 19495,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "2ab3710b4420bbfa",
+      "before_content_words": 14482,
+      "after_content_words": 14482,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "4d4b75f41f80e45e",
+      "before_content_words": 15519,
+      "after_content_words": 15519,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "983a57d954c1545b",
+      "before_content_words": 9196,
+      "after_content_words": 9196,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "3b39b639e3bed688",
+      "before_content_words": 6621,
+      "after_content_words": 6621,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "d9eecbbb73fe0a0c",
+      "before_content_words": 18827,
+      "after_content_words": 18827,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "873f27e5eb1b840d",
+      "before_content_words": 19970,
+      "after_content_words": 19970,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "7153a849e2fb9d50",
+      "before_content_words": 21492,
+      "after_content_words": 21492,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "92d00018d8810a2e",
+      "before_content_words": 18483,
+      "after_content_words": 18483,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "27779df7a3fe3d86",
+      "before_content_words": 56754,
+      "after_content_words": 56754,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "f20005988876764f",
+      "before_content_words": 14771,
+      "after_content_words": 14771,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "9f67fc9f723f0d84",
+      "before_content_words": 16379,
+      "after_content_words": 16379,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "7718eb41b75c9a13",
+      "before_content_words": 13256,
+      "after_content_words": 13256,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "6eb357debb9dd84e",
+      "before_content_words": 11294,
+      "after_content_words": 11294,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "478057b4a8d87896",
+      "before_content_words": 11998,
+      "after_content_words": 11998,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "7573a2f19517a778",
+      "before_content_words": 18440,
+      "after_content_words": 18440,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    },
+    {
+      "document_id": "904e590a395f91b7",
+      "before_content_words": 19391,
+      "after_content_words": 19391,
+      "markdown_identical": true,
+      "every_page_content_words_equal": true,
+      "changed_regions": []
+    }
+  ],
+  "changed_regions": [
+    {
+      "document_id": "2d699443c2e26946",
+      "page": 18,
+      "region": 2,
+      "bbox": [
+        41.968017578125,
+        78.74742126464844,
+        348.0308837890625,
+        160.88839721679688
+      ],
+      "before_kind": "fallback",
+      "after_kind": "grid",
+      "after_rows": 4,
+      "after_columns": 5,
+      "source_tokens_conserved": true
+    }
+  ],
+  "gold_metrics": {
+    "before": {
+      "tables": {
+        "PROSE": 9,
+        "GRID-WRONG": 15,
+        "EXACT": 1,
+        "GRID-NEAR": 4
+      },
+      "controls": {
+        "CLEAN": 4,
+        "FALSE-MARKER": 2,
+        "FALSE-GRID": 2
+      },
+      "mean_cell_association": 0.44293103448275856,
+      "mean_adjacency_f1": 0.33637931034482754
+    },
+    "after": {
+      "tables": {
+        "PROSE": 8,
+        "GRID-WRONG": 15,
+        "EXACT": 2,
+        "GRID-NEAR": 4
+      },
+      "controls": {
+        "CLEAN": 4,
+        "FALSE-MARKER": 2,
+        "FALSE-GRID": 2
+      },
+      "mean_cell_association": 0.4774137931034482,
+      "mean_adjacency_f1": 0.3708620689655172
+    }
+  },
+  "visual_checks": [
+    {
+      "document_id": "2d699443c2e26946",
+      "page": 18,
+      "region": 2,
+      "label": "EXACT",
+      "labeller_agreement": "single training-page review by root plus existing independently checked gold",
+      "rendered_page_reviewed": true
+    }
+  ]
+}

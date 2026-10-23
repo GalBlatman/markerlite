@@ -2263,6 +2263,57 @@ def make_footnote_biglabel():
     make_footnote_repro("footnote_biglabel.pdf", big_label=True)
 
 
+def make_ruled_header_band():
+    """Wrapped leaf labels and a spanning level above ruled numeric bodies."""
+    pdf = Doc()
+
+    def centered(cx, y, text, style=""):
+        pdf.set_font("Times", style, 9)
+        pdf.text_at(cx - pdf.get_string_width(text) / 2, y, text, style=style, size=9)
+
+    for spanning in (False, True):
+        pdf.add_page()
+        pdf.text_at(
+            72,
+            90,
+            "Header band: " + ("spanning" if spanning else "wrapped"),
+            style="B",
+            size=14,
+        )
+        divider = 200 if spanning else 210
+        for y in (145, divider, 286):
+            pdf.line(72, y, 540, y)
+        if spanning:
+            pdf.text_at(72, 160, "Record", style="B", size=9)
+            centered(380, 160, "Outcome", "B")
+            for cx, text in ((300, "North"), (460, "South")):
+                centered(cx, 180, text, "B")
+        else:
+            pdf.text_at(72, 192, "Variable", style="B", size=9)
+            for cx, label, count in (
+                (250, "Private", 12),
+                (370, "Public", 13),
+                (490, "Community", 14),
+            ):
+                centered(cx, 160, label, "B")
+                centered(cx, 176, "service", "B")
+                centered(cx, 192, f"(N={count})", "B")
+        for i, label in enumerate(("Alpha", "Beta", "Gamma")):
+            y = 224 + i * 20
+            pdf.text_at(72, y, label, size=9)
+            if spanning:
+                centered(300, y, str(12 + i))
+                centered(460, y, str(24 + i))
+            else:
+                for j, cx in enumerate((250, 370, 490)):
+                    value = 2 + i + j
+                    centered(cx, y, f"{value}.1 [{value}.0, {value}.2]")
+        pdf.text_at(
+            72, 340, "An ordinary paragraph follows the completed table.", size=10
+        )
+    pdf.out("ruled_header_band.pdf")
+
+
 def make_wrapped_record_rows():
     """Booktabs keys wrap while their continuations fill every column."""
     pdf = Doc()
@@ -3381,6 +3432,7 @@ MAKERS = {
     "year_column": make_year_column,
     "table_only_footer": make_table_only_footer,
     "isolated_ocr_page": make_isolated_ocr_page,
+    "ruled_header_band": make_ruled_header_band,
     "wrapped_record_rows": make_wrapped_record_rows,
     "all_text_wrapped": make_all_text_wrapped,
     "sectioned_running_heads": make_sectioned_running_heads,

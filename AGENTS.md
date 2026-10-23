@@ -533,7 +533,8 @@ parentheses fails if the fix is undone):
   diagnosis and a fresh Zotero held-out sample, with two independent rendered-page
   reviews committed under tests/labels/b2-zotero-*.json. This sample is never
   used for tuning. B3 row repair is done (R00077 p. 8; wrapped hyphen-ended
-  keys); headers, columns, cross-page joining and proposals follow in order.
+  keys), and ruled header bands are done (R02611 p. 18 restored to exact).
+  Columns, cross-page joining and proposals follow in order.
   B4–B5 have not started. The rule-only fallback is
   ruled out: ruled grids measured no more reliable (11/36 vs 5/13).
 - Table work follows tests/PLAN-tables.md; items 0, 1, 7, 8, 11b done;

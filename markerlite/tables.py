@@ -17,6 +17,7 @@ from . import gate
 from .extraction import _bbox_of
 from .model import *
 from .render import _TableParser
+from .table_headers import recover_ruled_header
 from .table_wrap import recover_wrapped_lines
 
 try:
@@ -813,6 +814,7 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
             else:
                 try:
                     res = reconstruct_table_html(lines)
+                    res = recover_ruled_header(lines, res, _rules_in(rules, region))
                     res = recover_wrapped_lines(lines, res, tbl)
                 except Exception:
                     res = None

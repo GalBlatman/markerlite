@@ -396,3 +396,58 @@ count, with all content words conserved. The new synthetic fixture is
 covered by its expected Markdown and focused test; the released v0.1.18
 manifest is retained for archived comparisons rather than rewritten.
 The full archived-commit output is retained after this commit as required.
+
+
+## B3.2 — ruled header bands
+
+R02611 PDF p. 18, checked against the rendered page and independently checked
+existing gold: the three header lines were treated as a header plus body rows.
+An empty first cell alongside lower-case wrapped labels tripped the unchanged
+continuation guard. The table stayed prose even though all source words survived.
+
+The owned header repair requires three spanning rules (top, header divider,
+bottom), a multi-line band above the divider, and source lines within that frame.
+It infers columns from the body and uses intervals between body-cell centres
+for centred labels: a span-x0 winner's cuts separate start anchors and are not
+physical column edges. Wrapped leaf labels remain one header; supported spanning
+levels are kept as separate rows with empty covered cells. Ambiguous overlapping
+levels, missing columns and incomplete token conservation keep the original.
+The winning score, gate thresholds and vendored code remain unchanged.
+
+The synthetic ruled_header_band.pdf covers wrapped labels with sample sizes
+and a spanning parent header with two subordinate labels. Both full pages and
+a detailed spanning-header crop were rendered and inspected. Focused tests
+pass (9); every fixture matches, including paper.pdf and hard.pdf; full unit
+suite: 275 passed, three Windows-only skips. Ruff check/format pass.
+
+| Gold metric | After rows | After headers |
+| --- | ---: | ---: |
+| EXACT | 1 | 2 |
+| GRID-NEAR | 4 | 4 |
+| GRID-WRONG | 15 | 15 |
+| PROSE | 9 | 8 |
+| Mean cell association | 0.442931 | 0.477414 |
+| Mean adjacency F1 | 0.336379 | 0.370862 |
+| Controls: false grids / false markers / clean | 2 / 2 / 4 | 2 / 2 / 4 |
+
+The ambiguous item is unchanged and separate. R02611 p. 18 is the only changed
+gold item: PROSE → EXACT, 4 × 5, association/adjacency both 1.000. Every earlier
+exact/near table and every other complete gold score record is unchanged.
+
+All 42 earlier training documents were replayed. The sole changed region is
+R02611 p. 18, document region 2: same box and source lines, fallback prose →
+exact grid. The grid equals its source-token multiset. Every page keeps its
+standard content-word count; R02611 remains 15,224 words. The complete counts
+and provenance are in tests/labels/b3-header-audit.json. The other 41 documents
+and every other region in R02611 are byte-identical to the row-step baseline.
+No held-out case was used for this change. The other header-labelled training
+failures remain: this repair does not claim to solve fragmented scan proposals.
+
+Archived label commit f672892 matches 89/89 released golden entries, zero OCR
+skips. Archived row commit f0eceec differs on exactly one entry:
+packet:autonomous/run-002/pdf/R00077.pdf (Markdown and stats hashes), the intended
+row/byte-count change described above; the other 88 match and no OCR entries
+skip. Complete audit output is committed under tests/audits/. R02611 is not an entry in the released 89-entry manifest; its change is
+verified separately by the gold scorer and all-training replay above. The
+archived header commit is therefore expected to retain the row step's one
+released-manifest difference. The manifest itself remains unchanged.
