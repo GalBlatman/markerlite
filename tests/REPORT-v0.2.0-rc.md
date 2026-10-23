@@ -1,6 +1,6 @@
 # v0.2.0 release-candidate verification
 
-Status: candidate prepared; post-push verification follows below. No tag.
+Status: candidate verified; awaiting owner tag decision. No tag.
 Grid default OFF by owner ruling.
 
 ## Accepted table work
@@ -74,7 +74,7 @@ hash-only records are labels/b5-prose-recoveries.json.
 
 ## Pre-tag checks
 
-- WSL pytest: 283 passed, 3 Windows-only skips; one existing homogeneous-font
+- WSL pytest: 284 passed, 3 Windows-only skips; one existing homogeneous-font
   clustering warning in the synthetic continuation fixture.
 - All readable structural fixture regressions pass with explicit grids on.
 - Ruff and check_gui.py pass (85 methods; 56 self-calls resolve).
@@ -84,10 +84,29 @@ hash-only records are labels/b5-prose-recoveries.json.
   and reports one table kept as prose (grids off).
 - New golden manifest recorded: 186 entries (93 specifications in both
   grid modes), exclude list respected; PyMuPDF 1.28.2, Tesseract 5.5.0.
-  Archived verification of this new manifest follows the candidate commit.
-- Windows build, real frozen window title, --diag first line, icon resources,
-  source GUI screenshots and Ubuntu CI on final main: pending.
-- No tag. Final worker/process audit: pending.
+  Archived 009948d verification: all 186 entries match, zero OCR skips.
+- Candidate production commit 009948d: Windows CI succeeded
+  ([run 40007342653](https://github.com/GalBlatman/markerlite/actions/runs/40007342653)),
+  285 unit passes / 2 skips. Ubuntu CI succeeded
+  ([run 40007342705](https://github.com/GalBlatman/markerlite/actions/runs/40007342705)),
+  283 unit passes / 4 skips. Both compare all 96 native fixture entries.
+  Their 16 OCR entries skip explicitly: Windows Tesseract v5.5.3.20260724
+  and Ubuntu 5.3.4 differ from the recorded 5.5.0. Matching-engine WSL
+  verification covers OCR without skips.
+- The real built exe launches with title **markerlite 0.2.0**, remains alive
+  through the startup check, and is then stopped. CI asserts --diag first
+  line **markerlite 0.2.0**, frozen=True, TkinterDnD and the recoloured theme.
+  All seven embedded icon payloads match the supplied icon.
+- All 18 real source-App screenshots are available on the Windows run.
+  The light/dark Options and Preferences captures were visually reviewed:
+  table-grid controls are visible and unchecked, all controls fit, and the
+  main window/header show 0.2.0. Only hard.pdf and isolated settings were used;
+  no research document, fake dialog or substituted screenshot.
+- Candidate zip: markerlite-windows artifact on that Windows run. No release
+  or tag was published.
+- No tag. Conversion/review workers have finished. The documentation-only final
+  commit receives its standing archived audit and CI before handoff; no owned
+  worker is left running at handoff.
 
 
 ## Verification-tool correction
@@ -103,3 +122,19 @@ corrected archived verification follows the fix commit.
 
 Corrected local fixture verification: all 112 entries match in both modes,
 zero OCR skips (Tesseract 5.5.0). The three golden-tool regression tests pass.
+
+## Archived corpus verification
+
+Full output is retained under tests/audits/: e8c398e, 10fd073 and 009948d
+against the historical v0.1.18 manifest each match 86/89 entries, zero OCR
+skips. The only differences are the three accepted B3 repairs: SBTi,
+R00077 and R00112. The new v0.2.0 manifest verifies 186/186 at 009948d,
+zero OCR skips, covering both grid modes on the complete local corpus.
+The aborted 10fd073 new-manifest run is retained as invalid verifier evidence,
+not counted as a conversion failure or successful verification.
+
+Commit sequence after the accepted B3 repairs: 2e68698 discards B3.5;
+13d991b commits B4 labels before metrics; e8c398e implements B5;
+10fd073 prepares the candidate/docs/baseline; 009948d fixes mode forwarding
+in the golden verifier, without changing production output or any baseline.
+The final report/log commit changes no production code or golden input.
