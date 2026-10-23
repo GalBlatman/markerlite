@@ -451,3 +451,63 @@ skip. Complete audit output is committed under tests/audits/. R02611 is not an e
 verified separately by the gold scorer and all-training replay above. The
 archived header commit is therefore expected to retain the row step's one
 released-manifest difference. The manifest itself remains unchanged.
+
+
+## B3.3 — spanning-label column ownership
+
+R00112 PDF p. 17, verified on its rendered original: the main full-width label
+was put in the right column and the internal full-width label was appended to
+the preceding body cell. Recover only labels that stand alone between two
+full-width rules, centred on the ruled frame, with no internal vertical divider.
+The text must have one unique complete occurrence at a cell boundary; duplicate
+or embedded occurrences remain untouched. Move the label to its own row's
+leftmost cell, preserving the ordinary cells and the complete word multiset.
+This is restricted to grids already kept by the existing gate; the repaired
+grid must pass that same gate again. No new table is admitted, and no threshold
+or vendor code changes.
+
+The spanning_column_labels.pdf fixture reproduces both misplacements over an
+unequal-width table. Its printed table was rendered and checked. Negative
+controls protect a duplicated label and an individually divided cell. Focused
+table tests: 12 pass; all fixture regressions match, including paper.pdf and
+hard.pdf; full suite: 278 pass, three Windows-only skips. Ruff passes.
+
+Gold totals: 2 EXACT, 5 GRID-NEAR, 14 GRID-WRONG, 8 PROSE. Every earlier
+exact/near item is retained, and all other gold records are unchanged.
+R00112 p. 17 alone moves GRID-WRONG → GRID-NEAR, adjacency F1 0.900.
+Mean association 0.477414 → 0.479000;
+mean adjacency F1 0.370862 → 0.377345.
+Controls stay 2 false grids, 2 false markers and 4 clean; the ambiguous item
+stays separate and unchanged. R00112 p. 14's fallback is deliberately unchanged:
+this repair does not reconstruct its missing column/row structure.
+
+All 42 training documents were replayed. Two regions change:
+
+- R00112 PDF p. 17: the same grid box and source lines, 11 × 2 → 12 × 2.
+- SBTi PDF p. 30, region 27: 13 × 2 → 14 × 2. The rendered page shows a
+  full-width section heading between the preceding continuation row and the
+  next criterion. The old grid had appended its three words to the preceding
+  header cell. They now occupy their own spanning row in the correct order.
+  Ordinary cells remain in their previous columns; the pre-existing
+  two-column reconstruction of the printed three-column body remains wrong.
+  This is a partial heading repair, not a claim that the whole grid is correct.
+  The lower spanning heading remains untouched because its old row also
+  contains another nonempty cell and that relocation is ambiguous.
+
+Both boxes, table decisions, source lines and normalized cell-token multisets
+are unchanged. Every page retains its standard content-word count. R00112
+stays at 20,315 words; SBTi stays at 18,483.
+The other 40 documents and every other region in these two are unchanged.
+The late-finishing SBTi comparison was reviewed against its rendered page
+before this commit was pushed; the earlier progress statement identifying
+only R00112 was premature and is superseded by this complete result.
+Complete hash-prefix records and review provenance:
+tests/labels/b3-column-audit.json. No held-out defects supplied this rule.
+
+Archived header commit b27aae7 differs from v0.1.18 on only the already listed
+R00077 packet entry (88/89 match, zero OCR skips). For this column commit,
+the additional intended manifest changes are R00112's packet conversion and
+the SBTi reference conversion: spanning-label placement, row count/gate
+measurements and Markdown byte counts. Three cumulative entries differ from
+v0.1.18, including the earlier R00077 row repair.
+Full audit output is retained; the released manifest is not rewritten.

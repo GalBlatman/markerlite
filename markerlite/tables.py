@@ -17,6 +17,7 @@ from . import gate
 from .extraction import _bbox_of
 from .model import *
 from .render import _TableParser
+from .table_columns import recover_spanning_columns
 from .table_headers import recover_ruled_header
 from .table_wrap import recover_wrapped_lines
 
@@ -863,6 +864,20 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
                 [ln.text for m in members for ln in m.lines],
                 html,
             )
+            if judged["passed"]:
+                repaired = recover_spanning_columns(
+                    _tokens_for_recon(members, region), html, page.gate_graphics, region
+                )
+                if repaired != html and _table_sane(repaired):
+                    verified = gate.evaluate(
+                        page.gate_graphics,
+                        region,
+                        gate.rows_x_of(_tokens_for_recon(members, region)),
+                        [ln.text for m in members for ln in m.lines],
+                        repaired,
+                    )
+                    if verified["passed"]:
+                        html, judged = repaired, verified
             gate.record(page, "find_tables", region, judged)
             evidence = gate.evidence_kind(judged["measures"])
             if not judged["passed"]:

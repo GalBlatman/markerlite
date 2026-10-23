@@ -2263,6 +2263,31 @@ def make_footnote_biglabel():
     make_footnote_repro("footnote_biglabel.pdf", big_label=True)
 
 
+def make_spanning_column_labels():
+    """Full-width labels over an unequal-width two-column table."""
+    pdf = Doc()
+    pdf.add_page()
+    pdf.text_at(72, 90, "Spanning label ownership", style="B", size=14)
+    for y in (145, 176, 260, 290, 374):
+        pdf.line(72, y, 540, y)
+    for y, text in ((160, "FIRST"), (274, "SECOND")):
+        pdf.set_font("Times", "B", 9)
+        pdf.text_at(306 - pdf.get_string_width(text) / 2, y, text, style="B", size=9)
+    entries = [
+        (200, "Alpha", "Accepted after review of every record"),
+        (220, "Beta", "Pending confirmation of all source fields"),
+        (240, "Gamma", "Reviewed with all original entries retained"),
+        (314, "Delta", "Complete after checking the full inventory"),
+        (334, "Epsilon", "Open until independent review is complete"),
+        (354, "Zeta", "Closed with every source record retained"),
+    ]
+    for y, key, value in entries:
+        pdf.text_at(72, y, key, size=9)
+        pdf.text_at(240, y, value, size=9)
+    pdf.text_at(72, 430, "An ordinary paragraph follows the completed table.", size=10)
+    pdf.out("spanning_column_labels.pdf")
+
+
 def make_ruled_header_band():
     """Wrapped leaf labels and a spanning level above ruled numeric bodies."""
     pdf = Doc()
@@ -3432,6 +3457,7 @@ MAKERS = {
     "year_column": make_year_column,
     "table_only_footer": make_table_only_footer,
     "isolated_ocr_page": make_isolated_ocr_page,
+    "spanning_column_labels": make_spanning_column_labels,
     "ruled_header_band": make_ruled_header_band,
     "wrapped_record_rows": make_wrapped_record_rows,
     "all_text_wrapped": make_all_text_wrapped,
