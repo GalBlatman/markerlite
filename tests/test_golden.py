@@ -56,3 +56,52 @@ def test_excluded_file_never_recorded(tmp_path, monkeypatch):
     text = output.read_text(encoding="utf-8")
     assert "open.pdf" in text
     assert "secret" not in text
+
+
+def test_verify_forwards_explicit_grid_mode_and_preserves_legacy(tmp_path, monkeypatch):
+    import json
+
+    source = tmp_path / "tests" / "fixtures" / "mode.pdf"
+    source.parent.mkdir(parents=True)
+    source.write_bytes(b"synthetic source identity")
+    environment = {"pymupdf": "test", "tesseract": None}
+    entries = []
+    for i, mode in enumerate((None, False, True)):
+        effective = True if mode is None else mode
+        entry = {
+            "id": f"mode-{i}",
+            "group": "fixture",
+            "path": "tests/fixtures/mode.pdf",
+            "source_sha256": golden.sha256_file(source),
+            "mode": "default",
+            "pages": 1,
+            "markdown_sha256": f"md-{effective}",
+            "stats_sha256": f"stats-{effective}",
+            "ocr": False,
+            "artifacts": {},
+        }
+        if mode is not None:
+            entry["grids"] = mode
+        entries.append(entry)
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps({"created_with": environment, "entries": entries}))
+    monkeypatch.setattr(golden, "ROOT", tmp_path)
+    monkeypatch.setattr(golden, "environment", lambda: environment)
+    observed = []
+
+    def run(spec, _source, _work):
+        effective = spec.get("grids", True)
+        observed.append(effective)
+        return {
+            "pages": 1,
+            "markdown_sha256": f"md-{effective}",
+            "stats_sha256": f"stats-{effective}",
+            "ocr": False,
+            "artifacts": {},
+        }
+
+    monkeypatch.setattr(golden, "run_one", run)
+    assert (
+        golden.verify(golden.parse_args(["verify", "--manifest", str(manifest)])) == 0
+    )
+    assert observed == [True, False, True]

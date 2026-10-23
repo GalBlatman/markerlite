@@ -306,7 +306,8 @@ def verify(args) -> int:
             actual = run_one(
                 {
                     key: expected[key]
-                    for key in ("id", "group", "path", "source_sha256", "mode")
+                    for key in ("id", "group", "path", "source_sha256", "mode", "grids")
+                    if key in expected
                 },
                 source,
                 work,

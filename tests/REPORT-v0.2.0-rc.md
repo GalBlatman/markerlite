@@ -88,3 +88,18 @@ hash-only records are labels/b5-prose-recoveries.json.
 - Windows build, real frozen window title, --diag first line, icon resources,
   source GUI screenshots and Ubuntu CI on final main: pending.
 - No tag. Final worker/process audit: pending.
+
+
+## Verification-tool correction
+
+The first candidate CI run exposed a verifier bug: record() stored the grids
+choice, but verify() stripped it when constructing the conversion specification.
+It therefore compared grid-on output against grid-off hashes. Explicitly
+preserve the mode; retain historical grids-on behavior for older manifests
+without that field. A regression test checks legacy/on/off forwarding.
+The production converter, source counts, labels and v0.2.0 hashes are unchanged.
+The invalid local new-manifest verification was stopped and its log retained;
+corrected archived verification follows the fix commit.
+
+Corrected local fixture verification: all 112 entries match in both modes,
+zero OCR skips (Tesseract 5.5.0). The three golden-tool regression tests pass.
