@@ -281,3 +281,26 @@ zero wherever Markdown/stats hashes are identical.
 Every future training or held-out label must be committed under tests/labels/
 with document ID, page, region, label and labeller agreement, without source
 text, before it is used. No ephemeral labels may support a claimed result.
+
+## B2 resumed — Zotero source (selection frozen before conversion)
+
+This supersedes the pipeline-only sampling blocker above. The owner supplied
+Zotero storage as a new source, read in place. No PDFs, source text, titles or
+file names from this source are committed. Documents use 16-hex SHA-256 prefixes.
+
+Pool: 1,230 PDF attachments, representing 1,208 unique document hashes.
+Exclusion by exact hash against the entire pipeline corpus, packet upstream
+tree, tests/real, tests/fixtures and gold-source metadata removes 147 unique
+documents, leaving **1,061 eligible documents**. All 238 exclusion fingerprints
+were obtained without read errors; no unresolved historical identity is treated
+as eligible merely because its old label record was lost. Duplicates count
+once so each document has equal selection probability.
+
+First draw: 80 documents, without replacement, from the sorted eligible hashes,
+using Python random.Random(2026102202).sample. Seed, eligible hash-prefix pool
+and selected prefixes are frozen in tests/labels/b2-zotero-selection.json before
+conversion. There is no replacement of unreadable or failed PDFs. If these
+80 yield fewer than 60 emitted grids, a separately seeded batch of 40 will
+be drawn from the remaining eligible hashes. Converted text and rendered
+review images stay outside the repository. Labels must be committed before
+they support any measurement; held-out labels are never tuning inputs.
