@@ -18,6 +18,7 @@ echo Building (this takes a couple of minutes)...
 python -m PyInstaller --noconfirm --onedir --windowed ^
   --name markerlite ^
   --collect-all tkinterdnd2 ^
+  --collect-all sv_ttk ^
   --collect-submodules sklearn ^
   --icon "assets\icon.ico" ^
   --add-data "assets;assets" ^

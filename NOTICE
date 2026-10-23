@@ -7,3 +7,9 @@ This product includes table_recon.py, vendored from Marker
 (https://github.com/datalab-to/marker), Copyright Datalab,
 licensed under the Apache License, Version 2.0. Its license text is in
 third_party/marker/LICENSE.
+
+The Windows app includes sv-ttk (Sun Valley ttk theme,
+https://github.com/rdbende/Sun-Valley-ttk-theme), Copyright rdbende,
+licensed under the MIT License. Its license text is in
+third_party/sv-ttk/LICENSE. assets/sv-ttk holds its two spritesheets with
+the accent sprites recoloured (tools/recolour_sprites.py).

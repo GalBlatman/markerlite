@@ -83,6 +83,7 @@ jobs:
           pyinstaller --noconfirm --onedir --windowed `
             --name markerlite `
             --collect-all tkinterdnd2 `
+            --collect-all sv_ttk `
             --collect-submodules sklearn `
             --icon assets/icon.ico `
             --add-data "assets;assets" `
@@ -119,6 +120,8 @@ jobs:
           Copy-Item LICENSE, NOTICE, README.md, CHANGELOG.md -Destination dist\markerlite\
           New-Item -ItemType Directory -Force dist\markerlite\third_party\marker | Out-Null
           Copy-Item third_party\marker\LICENSE -Destination dist\markerlite\third_party\marker\
+          New-Item -ItemType Directory -Force dist\markerlite\third_party\sv-ttk | Out-Null
+          Copy-Item third_party\sv-ttk\LICENSE -Destination dist\markerlite\third_party\sv-ttk\
 
       - name: Zip the folder build
         run: |
