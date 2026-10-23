@@ -527,13 +527,29 @@ class App:
         self.status.configure(text=result.message)
 
     def check_ocr(self):
+        from markerlite.gui_ocr import WINDOWS_DOWNLOAD_URL, ocr_status
+
         self._check_tesseract()
-        executable = discover_tesseract()
-        messagebox.showinfo(
-            "Check OCR",
-            f"Tesseract: {self.tess_version or 'not found'}\nPath: {executable or 'not found'}\nInstall Tesseract or set TESSERACT_CMD to its executable.",
-            parent=self.root,
-        )
+        status = ocr_status(discover_tesseract(), self.tess_version)
+        win = tk.Toplevel(self.root)
+        win.title("Check OCR")
+        win.transient(self.root)
+        for text in (
+            f"Tesseract: {status.version or 'not found'}",
+            f"Path: {status.path or 'not found'}",
+            status.message,
+        ):
+            ttk.Label(
+                win, text=safe_display(text), wraplength=self.g(65), padding=self.g(1)
+            ).pack(anchor="w", padx=self.g(1))
+        if status.path is None or status.outdated:
+            ttk.Button(
+                win,
+                text="Windows Tesseract downloads",
+                command=lambda: self.open_link(WINDOWS_DOWNLOAD_URL),
+            ).pack(pady=self.g(1))
+        ttk.Button(win, text="Close", command=win.destroy).pack(pady=self.g(1))
+        win.bind("<Escape>", lambda _e: win.destroy())
 
     def preferences(self):
         win = tk.Toplevel(self.root)
@@ -793,6 +809,8 @@ class App:
         # without it, and that was only discoverable from the output.
         self.tess_label = ttk.Label(header, text="", style="Muted.TLabel")
         self.tess_label.pack(side="right", padx=(0, g(3)))
+        self.tess_label.configure(cursor="hand2")
+        self.tess_label.bind("<Button-1>", lambda _e: self.check_ocr())
 
         # ---- bottom controls FIRST, anchored to the bottom edge -----------
         # Whatever is packed first gets space first. If the window is ever

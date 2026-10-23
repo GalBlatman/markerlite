@@ -35,3 +35,12 @@ An update offers its tag page; failures offer Releases. Invalid replies,
 HTTP errors and offline/timeout paths are tested using injected transports.
 No network requests occur in tests. SECURITY.md and README describe this
 single optional request and browser hand-off.
+
+## A3 — Check OCR
+
+Tools → Check OCR and the header's Tesseract label invoke the same window.
+It displays discovery status, full executable path, version and recovery
+instructions. Versions below 5.0 are labelled outdated; missing/outdated
+installs offer the Windows download page through the OS browser. Opening
+this window performs local discovery and --version only; it fetches nothing.
+Six pure tests cover missing, unreadable, old and current engines.
