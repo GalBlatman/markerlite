@@ -597,3 +597,71 @@ generator and fixture were deleted; evidence above is retained, and the idea
 and Wry p. 47 blocker are in PLAN-tables.md's backlog. Grid default is OFF
 for v0.2.0. B4 will re-evaluate only changed grids in the original 60-region
 sample, using the original labels for byte-identical emitted grids.
+
+
+## B4 — paired frozen-sample measurement
+
+All original 80 Zotero documents reconverted with accepted main converter
+8b743f3 (identical converter in main 2e68698); zero failures. All 80 source
+SHA-256 values still match the frozen draw. Physical grids: 218 versus 219
+before repairs. This is a paired original-region evaluation, not a fresh
+sample of that changed population. No replacement documents or regions.
+
+Of the original 60 sampled grids, 59 retain their exact cell matrices and
+boxes; their original two-pass labels are reused. One matrix changes
+(hash 7e004b98bbbd16a8, PDF p. 17, original region 37). Both new independent
+reviewers checked its rendered page/crop against every cell and still label
+it WRONG: spanning-cell and multiline row associations remain wrong. No
+held-out findings were used to tune.
+
+Labels and all 80 outcomes were committed in **13d991b before calculation**.
+Final: **2/60 correct = 3.33%; 95% Wilson interval 0.919–11.364%**.
+Unchanged from B2. rules: 2/33 correct; text: 0/27 correct.
+Gold remains 2 EXACT, 5 NEAR, 14 WRONG, 8 PROSE; mean association 0.479000.
+The rejected B3.5 trial is absent.
+
+B2 reason categories (union of original reviewers, nonexclusive): 36 header,
+22 row, 17 non-table, 15 extent/included-material, 11 cell-text/association,
+10 column cases. One wrong grid has only cell-level codes; 57 have another
+category. Severity was not graded, so cell-only does not mean minor. Exact
+code counts/mapping: tests/labels/b4-b2-reason-breakdown.json. The owner
+chose grids OFF for v0.2.0; no default decision remains pending.
+
+
+## B5 — grids default OFF
+
+CLI --grids / --no-grids, API grids=False, and GUI Options → Table grids
+are implemented. Preferences saves the GUI startup default; settings schema
+3 migrates schemas 1–2 with grids off. The main-thread snapshot carries the
+per-run choice. Source paragraphs/lines replace every Table grid when off,
+with an explicit marker. Detection, guard decisions and protection remain
+unchanged; tables_grids_disabled reports this presentation choice separately.
+
+Both modes were tested on all 89 released-corpus conversion specifications
+and the four accepted B3 fixtures: 93 specifications / 84 unique PDFs.
+**54 of 84 unique documents change Markdown** (60 of 93 specifications).
+Every source table line survives; off output contains no grid marker or HTML
+table. No page's standard content-word count decreases. Only six unique
+pages rise, by 29 tokens total; every added token was checked against its
+rendered source and absent from the grid, with no removed normalized token:
+
+| Document | PDF page | Words on → off | Source-token class |
+| --- | ---: | ---: | --- |
+| SBTi | 54 | 330 → 333 | 3 bullets |
+| Greenwood | 11 | 651 → 655 | 4 spanning-subheader tokens |
+| Jay | 6 | 670 → 671 | 1 wrapped-cell proper-noun token |
+| York | 22 | 331 → 344 | 13 spanning-header tokens |
+| R00373 | 12 | 395 → 401 | 6 wrapped row-label tokens |
+| R05732 | 7 | 509 → 511 | 2 wrapped-cell numeric/acronym tokens |
+
+Alias copies of a PDF share one recovery record. Hash-only per-page proof:
+tests/labels/b5-prose-recoveries.json. All counts and the changed-document
+metadata: tests/labels/b5-mode-audit.json. The metric is unchanged.
+The four B3 fixtures have identical page word counts in both modes.
+
+Local pytest: 283 passed, three Windows-only skips, one existing synthetic
+clustering warning. The entire readable structural fixture regression passes
+with explicit grids enabled, preserving paper.pdf/hard.pdf opt-in output.
+Ruff and check_gui.py pass. Golden recording now includes both modes; old
+manifests without a grids field retain their historical opt-in interpretation.
+No table_recon.py changes. B3.5 remains discarded, with its idea in the backlog.

@@ -33,7 +33,7 @@ class WrappedCellsTests(unittest.TestCase):
         pdf = pathlib.Path(__file__).parent / "fixtures" / "all_text_wrapped.pdf"
         with tempfile.TemporaryDirectory() as directory:
             with patch.object(markerlite_api, "render", record):
-                _, info = markerlite.convert(pdf, pathlib.Path(directory))
+                _, info = markerlite.convert(pdf, pathlib.Path(directory), grids=True)
         expected = [
             ["Record", "Requirement", "Assessment"],
             [
@@ -71,7 +71,7 @@ class WrappedCellsTests(unittest.TestCase):
         pdf = pathlib.Path(__file__).parent / "fixtures" / "wrapped_record_rows.pdf"
         with tempfile.TemporaryDirectory() as directory:
             with patch.object(markerlite_api, "render", record):
-                markerlite.convert(pdf, pathlib.Path(directory))
+                markerlite.convert(pdf, pathlib.Path(directory), grids=True)
         self.assertEqual(
             tables,
             [

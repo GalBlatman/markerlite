@@ -116,7 +116,7 @@ def test_run_batch_emits_pages_and_progress(tmp_path):
     token = ProgressToken(lambda src, pct: events.append(("progress", src, pct)))
     pdf = tmp_path / "a.pdf"
 
-    def convert(path, outdir, *args, cancel=None):
+    def convert(path, outdir, *args, cancel=None, grids=False):
         for _ in range(progress_checks(2)):
             cancel.check()
         md = outdir / "a.md"
@@ -142,7 +142,7 @@ def test_run_batch_emits_pages_and_progress(tmp_path):
 def test_run_batch_without_page_count_is_unchanged(tmp_path):
     events = []
 
-    def convert(path, outdir, *args, cancel=None):
+    def convert(path, outdir, *args, cancel=None, grids=False):
         md = outdir / "a.md"
         md.write_text("x", encoding="utf-8")
         return md, {"stats": {}}

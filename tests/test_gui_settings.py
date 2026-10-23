@@ -35,7 +35,7 @@ def test_migrate_schema_one(tmp_path):
         json.dumps({"schema_version": 1, "theme": "dark", "recent_files": []})
     )
     data = load_settings(path)
-    assert data["schema_version"] == 2 and data["theme"] == "dark"
+    assert data["schema_version"] == 3 and data["theme"] == "dark"
     assert data["output_mode"] == "beside" and data["explorer_auto_start"]
 
 
@@ -55,6 +55,7 @@ def test_corrupt_or_unknown_settings_log_once(tmp_path, payload):
     "key,value",
     [
         ("theme", "invalid"),
+        ("table_grids", "yes"),
         ("auto_open", "yes"),
         ("explorer_auto_start", 1),
         ("output_mode", "relative"),

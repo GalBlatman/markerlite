@@ -623,6 +623,7 @@ class App:
         auto_start = tk.BooleanVar(value=self.settings["explorer_auto_start"])
         ocr = tk.StringVar(value=self.settings["tesseract_path"])
         theme = tk.StringVar(value=self.settings["theme"])
+        grids = tk.BooleanVar(value=self.settings["table_grids"])
         notice = tk.StringVar()
 
         def heading(text):
@@ -646,6 +647,10 @@ class App:
         ttk.Checkbutton(
             frame, text="Open output folder when a batch finishes", variable=auto_open
         ).pack(anchor="w", pady=self.g(0.5))
+        heading("Conversion defaults")
+        ttk.Checkbutton(
+            frame, text="Table grids by default (verify before use)", variable=grids
+        ).pack(anchor="w")
         heading("Explorer integration")
         if self.sendto_var is not None:
             ttk.Checkbutton(
@@ -715,7 +720,9 @@ class App:
                 explorer_auto_start=auto_start.get(),
                 tesseract_path=override,
                 theme=theme.get(),
+                table_grids=grids.get(),
             )
+            self.opt_grids.set(grids.get())
             self.out_mode.set(mode.get())
             self.out_dir.set(folder.get())
             self.theme_choice.set(theme.get())
@@ -733,6 +740,7 @@ class App:
             auto_start.set(values["explorer_auto_start"])
             ocr.set(values["tesseract_path"])
             theme.set(values["theme"])
+            grids.set(values["table_grids"])
             notice.set("Defaults selected. Save to apply them.")
 
         buttons = ttk.Frame(frame)
@@ -1077,6 +1085,7 @@ class App:
         self.opt_images = tk.BooleanVar(value=False)
         self.opt_math = tk.BooleanVar(value=False)
         self.opt_pages = tk.BooleanVar(value=False)
+        self.opt_grids = tk.BooleanVar(value=self.settings["table_grids"])
         self.opts_open = False
         head = ttk.Frame(opts)
         head.pack(fill="x")
@@ -1096,6 +1105,7 @@ class App:
         extra_col.pack(side="left", anchor="n")
         ttk.Label(extra_col, text="Extras", style="Head.TLabel").pack(anchor="w")
         for text, var in (
+            ("Table grids", self.opt_grids),
             ("Extract images", self.opt_images),
             ("Crop equations for transcription", self.opt_math),
             ("Insert <!-- page N --> markers", self.opt_pages),
@@ -1216,6 +1226,7 @@ class App:
         extras = [
             name
             for name, var in (
+                ("table grids", self.opt_grids),
                 ("images", self.opt_images),
                 ("equation crops", self.opt_math),
                 ("page markers", self.opt_pages),
@@ -1413,6 +1424,7 @@ class App:
             self.opt_pages.get(),
             self.out_mode.get(),
             self.out_dir.get(),
+            self.opt_grids.get(),
         )
         threading.Thread(
             target=self._worker,

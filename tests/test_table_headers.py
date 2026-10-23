@@ -26,7 +26,7 @@ def test_printed_header_bands():
     pdf = pathlib.Path(__file__).parent / "fixtures" / "ruled_header_band.pdf"
     with tempfile.TemporaryDirectory() as out:
         with patch.object(api, "render", record):
-            markerlite.convert(pdf, pathlib.Path(out))
+            markerlite.convert(pdf, pathlib.Path(out), grids=True)
     assert len(tables) == 2
     assert tables[0][0] == [
         "Variable",

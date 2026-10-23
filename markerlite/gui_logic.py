@@ -76,6 +76,7 @@ class ConversionOptions:
     page_markers: bool
     mode: str
     directory: str
+    grids: bool = False
 
 
 def snapshot_options(
@@ -84,6 +85,7 @@ def snapshot_options(
     page_markers: object,
     mode: object,
     directory: object,
+    grids: object = False,
 ) -> ConversionOptions:
     """Copy main-thread option values into an immutable worker payload."""
     return ConversionOptions(
@@ -92,6 +94,7 @@ def snapshot_options(
         page_markers=bool(page_markers),
         mode=str(mode),
         directory=str(directory),
+        grids=bool(grids),
     )
 
 
@@ -171,7 +174,13 @@ def run_batch(
         try:
             outdir.mkdir(parents=True, exist_ok=True)
             md, manifest = convert(
-                pdf, outdir, opts.images, opts.math, opts.page_markers, cancel=cancel
+                pdf,
+                outdir,
+                opts.images,
+                opts.math,
+                opts.page_markers,
+                cancel=cancel,
+                grids=opts.grids,
             )
         except Cancelled:
             outcome["cancelled"].append(pdf)

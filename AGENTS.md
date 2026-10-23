@@ -85,7 +85,11 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
    `_figures_from_captions`, `_route_raster_equations`,
    `_attach_figure_source_text`, then the hand-offs
    `flag_math` (--flag-math) and `flag_figures` (--flag-figures).
-6. `render` — Markdown. Footnotes as `[^N]:` with the detected label;
+6. `render` — Markdown. CLI/API grids default OFF; `--grids` /
+   `convert(..., grids=True)` opt in. GUI Options controls the next batch;
+   Preferences saves its startup default. Off mode retains source lines under
+   a `grids disabled; text kept as prose` table marker.
+   `tables_grids_disabled` counts these regions without altering guard decisions. Footnotes as `[^N]:` with the detected label;
    superscript body refs become `[^N]` only when note N exists (else `<sup>`).
    Pages with `ocr_used` emit `<!-- ocr page N -->` independently of
    `--page-markers`, so recognized text keeps its provenance. A paragraph
@@ -212,8 +216,8 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
   All three strings come from `markerlite/gui_logic.py` and `__version__`;
   nothing is hard-coded. Native File/Edit/View/Tools/Help menus share
   button and row handlers; Preferences holds app-wide output, Explorer,
-  OCR and theme choices in %APPDATA%/markerlite/settings.json (schema 2,
-  schema 1 migrates; invalid settings log a defaults reset). Run options
+  OCR and theme choices in %APPDATA%/markerlite/settings.json (schema 3,
+  schemas 1–2 migrate with grids OFF; invalid settings log a defaults reset). Run options
   remain in Options. MARKERLITE_THEME overrides the saved theme. The
   Tesseract header opens Tools → Check OCR. Help has About/license links
   and a user-initiated update check: one HTTPS GET to GitHub's latest
@@ -264,6 +268,8 @@ The downstream bump protocol consumes these field names; keep them stable.
   labeller agreement; never document text. Preserve the records for later
   exclusion checks.
 
+- Future fresh samples must exclude all 80 converted documents in
+  tests/labels/b2-zotero-selection.json, including documents with no labelled grid.
 - After editing CLAUDE.md, run python tools/sync_agents.py and commit AGENTS.md
   with it. Never edit AGENTS.md directly.
 - `markerlite/VERSION` is the one version source. Packaging and
@@ -537,9 +543,14 @@ parentheses fails if the fix is undone):
   Spanning-label column ownership is done (R00112 p. 17 to near).
   Conservative vertical cross-page linking is done; York column-wise and
   Capital IQ split-record continuations remain unresolved. B3.5 was discarded by the owner; its Wry p. 47 blocker and idea are
-  recorded in tests/PLAN-tables.md. B4 follows on current main; v0.2.0
-  grids default OFF by owner ruling (fresh baseline 2/60 correct).
-  B4–B5 have not started. The rule-only fallback is
+  recorded in tests/PLAN-tables.md. v0.2.0 grids default OFF by owner ruling
+  (fresh baseline 2/60 correct).
+  B4 is complete: labels committed before measurement, 59 unchanged grids,
+  one independently rechecked grid, final 2/60 correct (95% 0.9–11.4%).
+  B5 is complete: default-off CLI/API/GUI with a saved GUI startup default;
+  both modes checked on 84 unique corpus PDFs, no count decreases, six
+  rendered-page recoveries (29 tokens) recorded under tests/labels/.
+  The rule-only fallback is
   ruled out: ruled grids measured no more reliable (11/36 vs 5/13).
 - Table work follows tests/PLAN-tables.md; items 0, 1, 7, 8, 11b done;
   fallback-to-prose done; item 5 not needed after fallback-to-prose (no evidence

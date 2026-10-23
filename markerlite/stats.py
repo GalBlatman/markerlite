@@ -52,6 +52,7 @@ class ConversionStats(TypedDict):
     image_only_pages: int
     provenance: list[str]
     tables: int
+    tables_grids_disabled: int
     tables_fallback: int
     table_captions_isolated: int
     table_caption_words: int
@@ -251,6 +252,14 @@ def build_stats(
     gated = [e for p in pages for e in p.gate_events if e["failed"]]
     if gated:
         stats["tables_gated"] = gated
+    disabled = sum(
+        b.grids_disabled
+        for p in pages
+        for b in p.blocks
+        if b.btype == "Table" and not b.ignore_for_output
+    )
+    if disabled:
+        stats["tables_grids_disabled"] = disabled
     return stats
 
 
@@ -306,7 +315,7 @@ def stat_warnings(stats: ConversionStats) -> List[str]:
             f"{len(guarded)} page{'s' * (len(guarded) != 1)} with too many "
             f"size-only headings ({shown}): judged by weight and shape instead"
         )
-    if stats.get("tables_fallback"):
+    if stats.get("tables_fallback") and not stats.get("tables_grids_disabled"):
         n = stats["tables_fallback"]
         out.append(
             f"{n} of {stats.get('tables', n)} table{'s' * (n != 1)} kept as prose"
@@ -350,5 +359,8 @@ def summarize(stats: ConversionStats) -> str:
     # fallbacks, provenance) come from stat_warnings so the CLI, the GUI
     # and the run log say the same thing. Silence here was the bug.
     parts.append(f"{len(stats.get('suppressed', []))} source lines suppressed")
+    if stats.get("tables_grids_disabled"):
+        n = stats["tables_grids_disabled"]
+        parts.append(f"{n} table{'s' * (n != 1)} kept as prose (grids off)")
     parts.extend(stat_warnings(stats))
     return " · ".join(parts)

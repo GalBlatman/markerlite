@@ -73,7 +73,7 @@ def test_continuation_rows():
 def test_stopped_find_tables_grid_is_marked_prose(tmp_path):
     pdf = ROOT / "tests" / "fixtures" / "caption_inside_table.pdf"
     with patch.object(gate, "GATE_MIN_ROWS", 99):
-        md, info = markerlite.convert(pdf, tmp_path)
+        md, info = markerlite.convert(pdf, tmp_path, grids=True)
     text = md.read_text(encoding="utf-8")
     assert "reconstruction failed; text kept as prose" in text
     assert info["stats"]["tables_gated"][0]["failed"] == ["shape"]
@@ -83,7 +83,7 @@ def test_stopped_find_tables_grid_is_marked_prose(tmp_path):
 def test_stopped_proposal_stays_a_paragraph(tmp_path):
     pdf = ROOT / "tests" / "fixtures" / "all_text_wrapped.pdf"
     with patch.object(gate, "GATE_MIN_ROWS", 99):
-        md, info = markerlite.convert(pdf, tmp_path)
+        md, info = markerlite.convert(pdf, tmp_path, grids=True)
     gated = info["stats"]["tables_gated"]
     assert any(g["path"] == "proposal" for g in gated)
     assert info["stats"]["proposals"] == 0
@@ -91,7 +91,7 @@ def test_stopped_proposal_stays_a_paragraph(tmp_path):
 
 def test_every_grid_names_its_evidence(tmp_path):
     ruled = ROOT / "tests" / "fixtures" / "hard.pdf"  # one stroked box per cell
-    md, _info = markerlite.convert(ruled, tmp_path)
+    md, _info = markerlite.convert(ruled, tmp_path, grids=True)
     text = md.read_text(encoding="utf-8")
     assert "<!-- table p. 2: grid from ruling lines; verify before use -->\n\n|" in text
     assert gate.evidence_kind({"hrules": 0, "vrules": 0}) == "text"

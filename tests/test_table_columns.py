@@ -27,7 +27,7 @@ def test_spanning_column_fixture():
     pdf = pathlib.Path(__file__).parent / "fixtures" / "spanning_column_labels.pdf"
     with tempfile.TemporaryDirectory() as out:
         with patch.object(api, "render", record):
-            markerlite.convert(pdf, pathlib.Path(out))
+            markerlite.convert(pdf, pathlib.Path(out), grids=True)
     assert tables == [
         [
             ["FIRST", ""],

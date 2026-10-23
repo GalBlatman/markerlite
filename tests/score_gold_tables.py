@@ -345,7 +345,9 @@ def convert_with_regions(pdf: pathlib.Path) -> tuple[str, list[dict]]:
     api.render = spy
     try:
         with tempfile.TemporaryDirectory() as tmp:
-            md, _info = api.convert(pdf, pathlib.Path(tmp), page_markers=True)
+            md, _info = api.convert(
+                pdf, pathlib.Path(tmp), page_markers=True, grids=True
+            )
             return md.read_text(encoding="utf-8"), found
     finally:
         api.render = original

@@ -407,7 +407,11 @@ def render(pages: List[Page], keep_footnotes=True, page_markers=False) -> str:
                 if blk.fallback_paragraphs:
                     out.append(
                         f"<!-- table p. {page.page_idx + 1}: "
-                        "reconstruction failed; text kept as prose -->"
+                        + (
+                            "grids disabled; text kept as prose -->"
+                            if blk.grids_disabled
+                            else "reconstruction failed; text kept as prose -->"
+                        )
                     )
                     out.extend(fallback_prose(blk))
                 else:

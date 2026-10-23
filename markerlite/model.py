@@ -312,6 +312,7 @@ class Block:
     children: List["Block"] = field(default_factory=list)
     # Explicit same-schema continuations render as one HTML table without
     # relocating any page's words. The physical regions remain for statistics.
+    grids_disabled: bool = False
     table_join_prev: bool = False
     table_join_next: bool = False
     table_join_id: Optional[int] = None

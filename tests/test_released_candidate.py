@@ -30,7 +30,7 @@ def test_released_candidate_is_not_proposed_again(tmp_path):
         patch.object(tables, "reconstruct_table_html", first_call_fails),
         patch.object(tables, "_looks_like_a_table", lambda *a: False),
     ):
-        out, info = markerlite.convert(PDF, tmp_path)
+        out, info = markerlite.convert(PDF, tmp_path, grids=True)
     md = out.read_text(encoding="utf-8")
     assert info["stats"]["table_candidates_released"] == 1
     assert info["stats"]["tables"] == 0

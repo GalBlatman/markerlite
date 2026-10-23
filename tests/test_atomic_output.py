@@ -22,7 +22,7 @@ def _snapshot(folder: pathlib.Path) -> dict:
 
 
 def _convert(outdir):
-    return markerlite.convert(PDF, outdir, images=True, do_flag_math=True)
+    return markerlite.convert(PDF, outdir, images=True, do_flag_math=True, grids=True)
 
 
 def _parts(folder):
@@ -66,7 +66,7 @@ def test_part_left_by_a_killed_run_is_removed(tmp_path):
 
 
 def test_flag_figures_manifest_links_final_folder(tmp_path):
-    md, info = markerlite.convert(PDF, tmp_path, do_flag_figures=True)
+    md, info = markerlite.convert(PDF, tmp_path, do_flag_figures=True, grids=True)
     files = [r["file"] for r in info["figures"] if r["file"]]
     assert files and all(f.startswith("repro_figures/") for f in files)
     assert all((tmp_path / f).is_file() for f in files)

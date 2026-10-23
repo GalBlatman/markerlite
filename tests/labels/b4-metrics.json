@@ -1,0 +1,25 @@
+{
+  "label_commit": "13d991b",
+  "sample": 60,
+  "correct": 2,
+  "precision": 0.03333333333333333,
+  "wilson95": [
+    0.009189319256197877,
+    0.113637742743086
+  ],
+  "unchanged_labels_reused": 59,
+  "changed_grids_relabelled": 1,
+  "by_evidence": {
+    "rules": {
+      "correct": 2,
+      "sample": 33
+    },
+    "text": {
+      "correct": 0,
+      "sample": 27
+    }
+  },
+  "converted_documents": 80,
+  "current_physical_grids": 218,
+  "baseline_physical_grids": 219
+}

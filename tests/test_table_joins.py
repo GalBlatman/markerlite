@@ -42,7 +42,7 @@ def test_row_continuations_join_without_moving_page_words():
     with tempfile.TemporaryDirectory() as out:
         with patch.object(api, "render", record):
             path, _info = markerlite.convert(
-                source, pathlib.Path(out), page_markers=True
+                source, pathlib.Path(out), page_markers=True, grids=True
             )
         md = path.read_text()
     tables = [

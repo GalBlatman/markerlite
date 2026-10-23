@@ -32,7 +32,7 @@ def test_running_subprocess_is_killed_on_cancel():
 
 
 def test_cancel_between_pages_leaves_previous_output(tmp_path, monkeypatch):
-    markerlite.convert(PDF, tmp_path)
+    markerlite.convert(PDF, tmp_path, grids=True)
     before = _snapshot(tmp_path)
     token = CancelToken()
     real = extraction.extract_page
@@ -46,7 +46,7 @@ def test_cancel_between_pages_leaves_previous_output(tmp_path, monkeypatch):
 
     monkeypatch.setattr(api, "extract_page", page_then_cancel)
     with pytest.raises(Cancelled):
-        markerlite.convert(PDF, tmp_path, cancel=token)
+        markerlite.convert(PDF, tmp_path, cancel=token, grids=True)
     assert seen == [0]  # stopped before page 2
     assert _snapshot(tmp_path) == before
     assert not [p for p in tmp_path.iterdir() if ".part" in p.name]
@@ -76,7 +76,7 @@ def test_batch_cancel_keeps_finished_and_skips_rest(tmp_path):
     token = CancelToken()
     events, logged = [], []
 
-    def fake_convert(pdf, outdir, *args, cancel=None):
+    def fake_convert(pdf, outdir, *args, cancel=None, grids=False):
         if pdf.name == "b.pdf":
             token.cancel()
             cancel.check()

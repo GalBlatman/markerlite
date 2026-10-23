@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "standard_metric": "markerlite.stats.content_words unchanged",
+  "method": "Exact normalized on/off token differences, then verification of every recovered token against the rendered original; never source text in this record.",
+  "records": [
+    {
+      "document_id": "92d00018d8810a2e",
+      "page": 54,
+      "region": 45,
+      "label": "verified source-token recovery with grids off",
+      "labeller_agreement": "primary rendered-page and token-multiset check",
+      "before_content_words": 330,
+      "after_content_words": 333,
+      "recovered_tokens": [
+        {
+          "token_class": "bullet",
+          "count": 3
+        }
+      ],
+      "removed_normalized_tokens": 0,
+      "rendered_page_reviewed": true,
+      "source_text_omitted": true
+    },
+    {
+      "document_id": "f20005988876764f",
+      "page": 11,
+      "region": 3,
+      "label": "verified source-token recovery with grids off",
+      "labeller_agreement": "primary rendered-page and token-multiset check",
+      "before_content_words": 651,
+      "after_content_words": 655,
+      "recovered_tokens": [
+        {
+          "token_class": "spanning subheader label",
+          "count": 4
+        }
+      ],
+      "removed_normalized_tokens": 0,
+      "rendered_page_reviewed": true,
+      "source_text_omitted": true
+    },
+    {
+      "document_id": "9f67fc9f723f0d84",
+      "page": 6,
+      "region": 1,
+      "label": "verified source-token recovery with grids off",
+      "labeller_agreement": "primary rendered-page and token-multiset check",
+      "before_content_words": 670,
+      "after_content_words": 671,
+      "recovered_tokens": [
+        {
+          "token_class": "wrapped cell continuation, proper noun",
+          "count": 1
+        }
+      ],
+      "removed_normalized_tokens": 0,
+      "rendered_page_reviewed": true,
+      "source_text_omitted": true
+    },
+    {
+      "document_id": "904e590a395f91b7",
+      "page": 22,
+      "region": 7,
+      "label": "verified source-token recovery with grids off",
+      "labeller_agreement": "primary rendered-page and token-multiset check",
+      "before_content_words": 331,
+      "after_content_words": 344,
+      "recovered_tokens": [
+        {
+          "token_class": "spanning column header",
+          "count": 13
+        }
+      ],
+      "removed_normalized_tokens": 0,
+      "rendered_page_reviewed": true,
+      "source_text_omitted": true
+    },
+    {
+      "document_id": "2ba83f9a048ae5f0",
+      "page": 12,
+      "region": 1,
+      "label": "verified source-token recovery with grids off",
+      "labeller_agreement": "primary rendered-page and token-multiset check",
+      "before_content_words": 395,
+      "after_content_words": 401,
+      "recovered_tokens": [
+        {
+          "token_class": "wrapped row-label continuation",
+          "count": 6
+        }
+      ],
+      "removed_normalized_tokens": 0,
+      "rendered_page_reviewed": true,
+      "source_text_omitted": true
+    },
+    {
+      "document_id": "4d4b75f41f80e45e",
+      "page": 7,
+      "region": 3,
+      "label": "verified source-token recovery with grids off",
+      "labeller_agreement": "primary rendered-page and token-multiset check",
+      "before_content_words": 509,
+      "after_content_words": 511,
+      "recovered_tokens": [
+        {
+          "token_class": "wrapped cell continuation, numeric",
+          "count": 1
+        },
+        {
+          "token_class": "wrapped cell continuation, acronym",
+          "count": 1
+        }
+      ],
+      "removed_normalized_tokens": 0,
+      "rendered_page_reviewed": true,
+      "source_text_omitted": true
+    }
+  ]
+}

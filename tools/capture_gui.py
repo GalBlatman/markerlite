@@ -154,6 +154,11 @@ def main():
         os.environ["APPDATA"] = os.environ["LOCALAPPDATA"] = settings
         root = gui.TkinterDnD.Tk() if gui.HAVE_DND else tk.Tk()
         app = gui.App(root)
+        from markerlite.gui_logic import window_title
+
+        assert root.title() == window_title()
+        assert app.opt_grids.get() is False
+        checked_title = root.title()
         app.add([ROOT / "tests/fixtures/hard.pdf"])
         try:
             for theme in ("light", "dark"):
@@ -162,6 +167,13 @@ def main():
                 app.change_theme()
                 root.lift()
                 pump(root)
+                if not app.opts_open:
+                    app._toggle_options()
+                filename = f"{theme}-table-options.png"
+                capture(root, out / filename)
+                records.append(
+                    {"file": filename, "state": "captured; grids default off"}
+                )
                 for menu_index, (name, menu) in enumerate(app.menus.items()):
                     app._refresh_menus()
                     filename = f"{theme}-menu-{name.lower()}.png"
@@ -288,6 +300,8 @@ def main():
             root.destroy()
     manifest = {
         "source": "Real Windows source App; only tests/fixtures/hard.pdf; isolated settings; update handler uses its real response, never mocked.",
+        "window_title": checked_title,
+        "table_grids_default": False,
         "captures": records,
     }
     (out / "manifest.json").write_text(

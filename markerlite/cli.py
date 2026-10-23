@@ -71,6 +71,12 @@ def main() -> None:
         help="put the descriptions of a filled-in figure manifest "
         "under the matching placeholders in the .md, then exit",
     )
+    ap.add_argument(
+        "--grids",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="opt into table grids (default: ordered prose; verify grids before use)",
+    )
     args = ap.parse_args()
 
     outdir = pathlib.Path(args.outdir)
@@ -120,6 +126,7 @@ def main() -> None:
                 args.flag_math,
                 args.page_markers,
                 args.flag_figures,
+                grids=args.grids,
             )
         except KeyboardInterrupt:
             # Ctrl+C: convert() has already discarded this file's staged

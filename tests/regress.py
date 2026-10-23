@@ -6,6 +6,8 @@ Markdown against tests/expected/.
     python tests/regress.py hard repro # only these fixtures ("cli" = console check)
     python tests/regress.py -v         # full diffs instead of the first 40 lines
 
+Structural fixtures explicitly enable grids; golden.py covers both modes.
+
 The expected files are the converter's current behaviour, frozen. A diff means
 a change in behaviour; if the change is intended, rerun with --update and
 commit the new expected files together with the code change, so the review
@@ -52,7 +54,7 @@ NEEDS_TESSERACT = {
 
 
 def convert_to_string(pdf: pathlib.Path, workdir: pathlib.Path) -> str:
-    out, _info = markerlite.convert(pdf, workdir)
+    out, _info = markerlite.convert(pdf, workdir, grids=True)
     records = _info["stats"]["suppressed"]
     for record in records:
         assert set(record) == {"page", "bbox", "text", "reason"}
@@ -74,7 +76,7 @@ def convert_to_string(pdf: pathlib.Path, workdir: pathlib.Path) -> str:
 
 def check_ocr_markers(pdf: pathlib.Path, workdir: pathlib.Path, plain: str) -> int:
     """OCR provenance survives both page-marker settings, even on a blank page."""
-    out, _ = markerlite.convert(pdf, workdir, page_markers=True)
+    out, _ = markerlite.convert(pdf, workdir, page_markers=True, grids=True)
     marked = out.read_text(encoding="utf-8")
     expected = ["2", "3", "4"]
     if (
@@ -95,7 +97,7 @@ def check_ocr_markers(pdf: pathlib.Path, workdir: pathlib.Path, plain: str) -> i
 
 
 def check_source_suppression(pdf, workdir):
-    out, info = markerlite.convert(pdf, workdir, page_markers=True)
+    out, info = markerlite.convert(pdf, workdir, page_markers=True, grids=True)
     text = out.read_text()
     records = info["stats"]["suppressed"]
     if pdf.stem == "figure_source_labels":
@@ -256,7 +258,7 @@ def check_fallback_prose(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
             ),
             patch.object(markerlite_api, "render", spy),
         ):
-            output, info = markerlite.convert(pdf, directory)
+            output, info = markerlite.convert(pdf, directory, grids=True)
         text = output.read_text(encoding="utf-8")
         marker = "<!-- table p. 1: reconstruction failed; text kept as prose -->"
         if (
@@ -304,7 +306,7 @@ def check_mixed_body_sizes(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     keeps its one real heading; its lines are not headings."""
     directory = workdir / "mixed-body"
     directory.mkdir(exist_ok=True)
-    output, _info = markerlite.convert(pdf, directory)
+    output, _info = markerlite.convert(pdf, directory, grids=True)
     text = output.read_text(encoding="utf-8")
     heads = [ln for ln in text.splitlines() if ln.startswith("#")]
     if heads != ["## Introduction", "## Response to the reviewers"]:
@@ -320,7 +322,7 @@ def check_drawn_boxes(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     cell (boxes sharing edges) stays a grid."""
     directory = workdir / "drawn-boxes"
     directory.mkdir(exist_ok=True)
-    output, info = markerlite.convert(pdf, directory)
+    output, info = markerlite.convert(pdf, directory, grids=True)
     text = output.read_text(encoding="utf-8")
     gated = [(g["page"], g["failed"]) for g in info["stats"].get("tables_gated", [])]
     ok = (
@@ -349,7 +351,7 @@ def check_table_gate(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
 
     directory = workdir / "table-gate"
     directory.mkdir(exist_ok=True)
-    output, info = markerlite.convert(pdf, directory)
+    output, info = markerlite.convert(pdf, directory, grids=True)
     text = output.read_text(encoding="utf-8")
     gated = info["stats"].get("tables_gated", [])
     with pymupdf.open(pdf) as doc:
@@ -375,7 +377,7 @@ def check_sideways_scan(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
     of the page; the fragment warning is gone and the table's words read."""
     directory = workdir / "sideways-scan"
     directory.mkdir(exist_ok=True)
-    output, info = markerlite.convert(pdf, directory)
+    output, info = markerlite.convert(pdf, directory, grids=True)
     text = output.read_text(encoding="utf-8")
     stats = info["stats"]
     words = ("Regression", "Fixture", "Adoption", "Board", "independence", "Regional")
@@ -402,7 +404,7 @@ def check_fragment_pages(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
 
     directory = workdir / "fragment-pages"
     directory.mkdir(exist_ok=True)
-    output, info = markerlite.convert(pdf, directory)
+    output, info = markerlite.convert(pdf, directory, grids=True)
     text = output.read_text(encoding="utf-8")
     flagged = [d["page"] for d in info["stats"].get("fragment_pages", [])]
     with pymupdf.open(pdf) as doc:
@@ -430,7 +432,7 @@ def check_no_table_marker(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
 
     directory = workdir / "no-table-marker"
     directory.mkdir(exist_ok=True)
-    output, info = markerlite.convert(pdf, directory)
+    output, info = markerlite.convert(pdf, directory, grids=True)
     text = output.read_text(encoding="utf-8")
     with pymupdf.open(pdf) as doc:
         source = Counter(w for page in doc for w in page.get_text().split())
@@ -474,7 +476,7 @@ def check_proposal_guard(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
 
     for sub in ("guard", "noguard"):
         (workdir / sub).mkdir(parents=True, exist_ok=True)
-    out, _ = markerlite.convert(pdf, workdir / "guard", page_markers=True)
+    out, _ = markerlite.convert(pdf, workdir / "guard", page_markers=True, grids=True)
     with_guard = per_page(out.read_text(encoding="utf-8"))
     # The table-confidence gate stops the same lossy proposal by token
     # identity, so it is switched off too to show what the guards prevent.
@@ -486,7 +488,9 @@ def check_proposal_guard(pdf: pathlib.Path, workdir: pathlib.Path) -> int:
         patch.object(_gate, "evaluate", lambda *a, **k: passed),
         patch.object(_gate, "record", lambda *a, **k: None),
     ):
-        out2, _ = markerlite.convert(pdf, workdir / "noguard", page_markers=True)
+        out2, _ = markerlite.convert(
+            pdf, workdir / "noguard", page_markers=True, grids=True
+        )
     without = per_page(out2.read_text(encoding="utf-8"))
     ok = (
         with_guard[1][1] == 0  # prose page: no table lines
@@ -514,7 +518,7 @@ def check_conservation(workdir: pathlib.Path) -> int:
     pdf = FIXTURES / "rotated_pages.pdf"
     for sub in ("on", "off"):
         (workdir / sub).mkdir(parents=True, exist_ok=True)
-    _o, info = markerlite.convert(pdf, workdir / "on")
+    _o, info = markerlite.convert(pdf, workdir / "on", grids=True)
     clean = info["stats"].get("lossy_pages")
     # Disable both recovery paths to exercise the loss alarm, rather than
     # treating source text retained in figure comments as a test failure.
@@ -524,7 +528,7 @@ def check_conservation(workdir: pathlib.Path) -> int:
         ),
         patch.object(markerlite_api, "_attach_figure_source_text", lambda pages: None),
     ):
-        _o, info = markerlite.convert(pdf, workdir / "off")
+        _o, info = markerlite.convert(pdf, workdir / "off", grids=True)
     lossy = info["stats"].get("lossy_pages") or []
     line = markerlite.summarize(info["stats"])
     ok = (
@@ -554,10 +558,14 @@ def check_garbled(workdir: pathlib.Path) -> int:
         markerlite_extraction, "_ocr_page", lambda page, idx, dpi=300, cancel=None: None
     ):
         _o, info = markerlite.convert(
-            FIXTURES / "garbled_font.pdf", workdir / "garbled"
+            FIXTURES / "garbled_font.pdf", workdir / "garbled", grids=True
         )
-        _o, clean = markerlite.convert(FIXTURES / "hard.pdf", workdir / "garbled")
-        _o, refs = markerlite.convert(FIXTURES / "paper.pdf", workdir / "garbled")
+        _o, clean = markerlite.convert(
+            FIXTURES / "hard.pdf", workdir / "garbled", grids=True
+        )
+        _o, refs = markerlite.convert(
+            FIXTURES / "paper.pdf", workdir / "garbled", grids=True
+        )
     line = markerlite.summarize(info["stats"])
     ok = (
         info["stats"].get("garbled_pages") == [1]
@@ -604,7 +612,7 @@ def table_cells(pdf: pathlib.Path, workdir: pathlib.Path):
 
     workdir.mkdir(parents=True, exist_ok=True)
     with patch.object(markerlite_api, "render", spy):
-        _o, info = markerlite.convert(pdf, workdir)
+        _o, info = markerlite.convert(pdf, workdir, grids=True)
     return info["stats"], seen
 
 
@@ -677,9 +685,9 @@ def check_flag_figures(workdir: pathlib.Path, update: bool = False) -> int:
     plain_dir, flag_dir = workdir / "fig-plain", workdir / "fig-flag"
     for d in (plain_dir, flag_dir):
         d.mkdir(parents=True, exist_ok=True)
-    plain_md, _i = markerlite.convert(FIXTURES / "repro.pdf", plain_dir)
+    plain_md, _i = markerlite.convert(FIXTURES / "repro.pdf", plain_dir, grids=True)
     md, info = markerlite.convert(
-        FIXTURES / "repro.pdf", flag_dir, do_flag_figures=True
+        FIXTURES / "repro.pdf", flag_dir, do_flag_figures=True, grids=True
     )
     text = md.read_text(encoding="utf-8")
     manifest = json.loads((flag_dir / "repro_figures.json").read_text(encoding="utf-8"))
@@ -747,7 +755,7 @@ def check_low_yield(workdir: pathlib.Path) -> int:
         markerlite_extraction, "_ocr_page", lambda page, idx, dpi=300, cancel=None: None
     ):
         (workdir / "lowyield").mkdir(parents=True, exist_ok=True)
-        _out, info = markerlite.convert(pdf, workdir / "lowyield")
+        _out, info = markerlite.convert(pdf, workdir / "lowyield", grids=True)
     stats = info["stats"]
     line = markerlite.summarize(stats)
     if (

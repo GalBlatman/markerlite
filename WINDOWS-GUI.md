@@ -139,3 +139,12 @@ repository's **Releases** page: unzip, open the `markerlite` folder, run
 `markerlite.exe`. Each release is produced by
 `.github/workflows/build-windows.yml` on a GitHub Actions Windows runner when a
 version tag is pushed.
+
+
+### Table grids
+
+Tables default to ordered source prose. Enable **Table grids** in the main
+window's Options for a batch; verify any grid you intend to read as data.
+Preferences → Conversion defaults saves whether future runs start with grids
+on. Existing settings migrate with grids off. Changing Options during a batch
+does not affect that batch's captured options.

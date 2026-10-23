@@ -30,6 +30,7 @@ def test_option_snapshot_is_plain_and_immutable():
         "page_markers": True,
         "mode": "fixed",
         "directory": "out",
+        "grids": False,
     }
     try:
         options.images = False

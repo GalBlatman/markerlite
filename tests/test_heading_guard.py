@@ -24,7 +24,7 @@ def test_guard_alone_catches_size_only_headings(tmp_path):
         return [doc_body] * len(pages)
 
     with patch.object(classification, "local_body_sizes", document_size_only):
-        md, info = markerlite.convert(PDF, tmp_path)
+        md, info = markerlite.convert(PDF, tmp_path, grids=True)
     assert info["stats"]["heading_guard_pages"] == [1, 2]
     assert _headings(md) == ["## Introduction", "## Response to the reviewers"]
     assert any(
@@ -33,11 +33,11 @@ def test_guard_alone_catches_size_only_headings(tmp_path):
 
 
 def test_guard_is_quiet_on_an_ordinary_document(tmp_path):
-    md, info = markerlite.convert(PDF, tmp_path)
+    md, info = markerlite.convert(PDF, tmp_path, grids=True)
     assert "heading_guard_pages" not in info["stats"]
 
 
 def test_short_pages_are_not_judged(tmp_path):
     title = ROOT / "tests" / "fixtures" / "all_text_wrapped.pdf"
-    md, info = markerlite.convert(title, tmp_path)
+    md, info = markerlite.convert(title, tmp_path, grids=True)
     assert "heading_guard_pages" not in info["stats"]

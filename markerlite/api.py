@@ -64,11 +64,15 @@ def convert(
     page_markers=False,
     do_flag_figures=False,
     cancel: Optional[CancelToken] = None,
+    grids=False,
 ) -> Tuple[pathlib.Path, dict]:
     """Convert one PDF. Returns (markdown path, info).
 
     ``info`` carries ``regions`` (equation crops, when --flag-math ran) and
     ``stats`` (pages, bytes, figures, equations) for reporting.
+
+    ``grids`` defaults to False: tables keep ordered source prose. Pass True
+    to opt into reconstructed grids, which require verification before use.
 
     ``cancel`` (a CancelToken) is checked between pages; a cancel raises
     Cancelled and, like any failure, leaves no output behind.
@@ -76,7 +80,14 @@ def convert(
     out = Output(outdir)
     try:
         md_path, manifest = _convert(
-            path, out, images, do_flag_math, page_markers, do_flag_figures, cancel
+            path,
+            out,
+            images,
+            do_flag_math,
+            page_markers,
+            do_flag_figures,
+            cancel,
+            grids,
         )
         out.commit()
     except BaseException:
@@ -87,7 +98,9 @@ def convert(
     return md_path, manifest
 
 
-def _convert(path, out, images, do_flag_math, page_markers, do_flag_figures, cancel):
+def _convert(
+    path, out, images, do_flag_math, page_markers, do_flag_figures, cancel, grids
+):
     outdir = out.outdir
     doc = pymupdf.open(path)
     drop_pages, drop_lines, provenance = detect_provenance(doc)
@@ -184,7 +197,22 @@ def _convert(path, out, images, do_flag_math, page_markers, do_flag_figures, can
     n_figures -= _route_raster_equations(pages)
     _attach_figure_source_text(pages)
     place_fill_backed_banners(pages)
-    link_continued_tables(pages)
+    if grids:
+        link_continued_tables(pages)
+    else:
+        for page in pages:
+            for block in page.blocks:
+                if block.btype != "Table" or block.ignore_for_output:
+                    continue
+                block.grids_disabled = True
+                if not block.fallback_paragraphs:
+                    block.fallback_paragraphs = [
+                        "\n".join(
+                            line.text.strip()
+                            for line in block.lines
+                            if line.text.strip()
+                        )
+                    ]
 
     check_cancel(cancel)
     manifest = {}

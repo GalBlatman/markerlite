@@ -156,7 +156,11 @@ def source_specs(
                 "mode": mode,
             }
         )
-    return specs
+    return [
+        dict(spec, id=spec["id"] + (":grids" if grids else ":no-grids"), grids=grids)
+        for spec in specs
+        for grids in (False, True)
+    ]
 
 
 def index_corpus(roots: Iterable[pathlib.Path]) -> dict[str, pathlib.Path]:
@@ -208,7 +212,9 @@ def artifact_hashes(directory: pathlib.Path, markdown: pathlib.Path) -> dict:
 def run_one(spec: dict, source: pathlib.Path, work: pathlib.Path) -> dict:
     outdir = work / sha256_bytes(spec["id"].encode("utf-8"))[:16]
     outdir.mkdir(parents=True)
-    markdown, info = markerlite.convert(source, outdir, **mode_options(spec["mode"]))
+    markdown, info = markerlite.convert(
+        source, outdir, grids=spec.get("grids", True), **mode_options(spec["mode"])
+    )
     with pymupdf.open(source) as document:
         pages = len(document)
     result = dict(spec)
