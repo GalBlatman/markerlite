@@ -60,7 +60,7 @@ from markerlite.gui_logic import (
     windows_apps_use_light,
     windows_build,
 )
-from markerlite.gui_settings import load_settings, recent_files, save_settings
+from markerlite.gui_settings import defaults, load_settings, recent_files, save_settings
 
 # Crisp text on high-DPI Windows displays; harmless elsewhere.
 #
@@ -196,6 +196,8 @@ class App:
         self.events: "queue.Queue[tuple]" = events or queue.Queue()
         self.pending: list[pathlib.Path] = []
         self.running = False
+        self.original_tesseract_cmd = os.environ.get("TESSERACT_CMD")
+        self._apply_ocr_override()
         self.cancel_token = None
         self.outcome: dict = {}
         self.log_paths: list[pathlib.Path] = []
@@ -551,20 +553,175 @@ class App:
         ttk.Button(win, text="Close", command=win.destroy).pack(pady=self.g(1))
         win.bind("<Escape>", lambda _e: win.destroy())
 
+    def _apply_ocr_override(self):
+        # Active batches keep their engine, just as they keep their option snapshot.
+        if self.running:
+            return
+        from markerlite.gui_ocr import validate_override
+
+        configured = self.settings["tesseract_path"]
+        try:
+            override = (
+                validate_override(configured)
+                if configured
+                else self.original_tesseract_cmd
+            )
+        except ValueError as exc:
+            app_log(f"Saved Tesseract override unavailable: {exc}")
+            override = self.original_tesseract_cmd
+        if override:
+            os.environ["TESSERACT_CMD"] = override
+        else:
+            os.environ.pop("TESSERACT_CMD", None)
+
+    def _sendto_message(self, message):
+        if self.sendto_error is not None and self.sendto_error.winfo_exists():
+            self.sendto_error.configure(text=message)
+        if message:
+            self.status.configure(text=message)
+            app_log(message)
+
     def preferences(self):
-        win = tk.Toplevel(self.root)
+        from markerlite.gui_ocr import validate_override
+
+        if (
+            getattr(self, "preferences_window", None) is not None
+            and self.preferences_window.winfo_exists()
+        ):
+            self.preferences_window.lift()
+            return
+        win = self.preferences_window = tk.Toplevel(self.root)
         win.title("Preferences")
         win.transient(self.root)
-        ttk.Label(win, text="Appearance", padding=self.g(2)).pack(anchor="w")
+        frame = ttk.Frame(win, padding=self.g(2))
+        frame.pack(fill="both", expand=True)
+        mode = tk.StringVar(value=self.settings["output_mode"])
+        folder = tk.StringVar(value=self.settings["output_dir"])
+        auto_open = tk.BooleanVar(value=self.settings["auto_open"])
+        auto_start = tk.BooleanVar(value=self.settings["explorer_auto_start"])
+        ocr = tk.StringVar(value=self.settings["tesseract_path"])
+        theme = tk.StringVar(value=self.settings["theme"])
+        notice = tk.StringVar()
+
+        def heading(text):
+            ttk.Label(frame, text=text, style="Head.TLabel").pack(
+                anchor="w", pady=(self.g(1.5), self.g(0.5))
+            )
+
+        heading("Output")
+        for label, value in (("Next to each PDF", "beside"), ("Fixed folder", "fixed")):
+            ttk.Radiobutton(frame, text=label, variable=mode, value=value).pack(
+                anchor="w"
+            )
+        row = ttk.Frame(frame)
+        row.pack(fill="x")
+        ttk.Entry(row, textvariable=folder, width=60).pack(
+            side="left", fill="x", expand=True
+        )
+        ttk.Button(row, text="Browse…", command=lambda: self.pick_out(folder)).pack(
+            side="left", padx=self.g(1)
+        )
+        ttk.Checkbutton(
+            frame, text="Open output folder when a batch finishes", variable=auto_open
+        ).pack(anchor="w", pady=self.g(0.5))
+        heading("Explorer integration")
+        if self.sendto_var is not None:
+            ttk.Checkbutton(
+                frame,
+                text="Add markerlite to Explorer's Send to menu",
+                variable=self.sendto_var,
+                command=self._sendto_toggle,
+            ).pack(anchor="w")
+            self.sendto_error = ttk.Label(
+                frame, text="", style="Warn.TLabel", wraplength=self.g(65)
+            )
+            self.sendto_error.pack(anchor="w")
+        else:
+            ttk.Label(
+                frame,
+                text="Send to integration is available in the Windows exe.",
+                style="Muted.TLabel",
+            ).pack(anchor="w")
+        ttk.Checkbutton(
+            frame, text="Start converting files sent from Explorer", variable=auto_start
+        ).pack(anchor="w")
+        heading("OCR")
+        ttk.Label(
+            frame, text="Tesseract executable override (blank uses automatic discovery)"
+        ).pack(anchor="w")
+        row = ttk.Frame(frame)
+        row.pack(fill="x")
+        ttk.Entry(row, textvariable=ocr, width=60).pack(
+            side="left", fill="x", expand=True
+        )
+
+        def detect():
+            detected = discover_tesseract()
+            if detected:
+                ocr.set(detected)
+                notice.set(f"Detected: {detected}")
+            else:
+                notice.set(
+                    "Tesseract was not found; install it or choose its executable path."
+                )
+
+        ttk.Button(row, text="Detect", command=detect).pack(side="left", padx=self.g(1))
+        heading("Appearance")
+        row = ttk.Frame(frame)
+        row.pack(fill="x")
         for label in ("System", "Light", "Dark"):
-            ttk.Radiobutton(
-                win,
-                text=label,
-                variable=self.theme_choice,
-                value=label.lower(),
-                command=self.change_theme,
-            ).pack(anchor="w", padx=self.g(2))
-        ttk.Button(win, text="Close", command=win.destroy).pack(pady=self.g(2))
+            ttk.Radiobutton(row, text=label, variable=theme, value=label.lower()).pack(
+                side="left", padx=(0, self.g(2))
+            )
+        ttk.Label(
+            frame, textvariable=notice, style="Warn.TLabel", wraplength=self.g(65)
+        ).pack(anchor="w", pady=self.g(1))
+
+        def save():
+            if mode.get() == "fixed" and not folder.get().strip():
+                notice.set("Choose a fixed output folder.")
+                return
+            try:
+                override = validate_override(ocr.get()) if ocr.get().strip() else ""
+            except ValueError as exc:
+                notice.set(str(exc))
+                return
+            self.settings.update(
+                output_mode=mode.get(),
+                output_dir=folder.get(),
+                auto_open=auto_open.get(),
+                explorer_auto_start=auto_start.get(),
+                tesseract_path=override,
+                theme=theme.get(),
+            )
+            self.out_mode.set(mode.get())
+            self.out_dir.set(folder.get())
+            self.theme_choice.set(theme.get())
+            self.change_theme()
+            self._apply_ocr_override()
+            self._check_tesseract()
+            self._sync_out()
+            win.destroy()
+
+        def reset():
+            values = defaults()
+            mode.set(values["output_mode"])
+            folder.set(values["output_dir"])
+            auto_open.set(values["auto_open"])
+            auto_start.set(values["explorer_auto_start"])
+            ocr.set(values["tesseract_path"])
+            theme.set(values["theme"])
+            notice.set("Defaults selected. Save to apply them.")
+
+        buttons = ttk.Frame(frame)
+        buttons.pack(fill="x", pady=(self.g(1), 0))
+        ttk.Button(buttons, text="Reset to defaults", command=reset).pack(side="left")
+        ttk.Button(buttons, text="Save", command=save, style="Accent.TButton").pack(
+            side="right"
+        )
+        ttk.Button(buttons, text="Cancel", command=win.destroy).pack(
+            side="right", padx=self.g(1)
+        )
         win.bind("<Escape>", lambda _e: win.destroy())
 
     def _match_monitor_dpi(self):
@@ -893,10 +1050,8 @@ class App:
         self.log_text = self._text_tab("Log")
 
         # ---- options, collapsed by default ---------------------------------
-        self.out_mode = tk.StringVar(value="beside")
-        self.out_dir = tk.StringVar(
-            value=str(pathlib.Path.home() / "Documents" / "markdown")
-        )
+        self.out_mode = tk.StringVar(value=self.settings["output_mode"])
+        self.out_dir = tk.StringVar(value=self.settings["output_dir"])
         self.opt_images = tk.BooleanVar(value=False)
         self.opt_math = tk.BooleanVar(value=False)
         self.opt_pages = tk.BooleanVar(value=False)
@@ -915,28 +1070,8 @@ class App:
 
         panel = ttk.Frame(opts, padding=(g(2), g(1), 0, 0))
         self.opts_panel = panel
-        out_col = ttk.Frame(panel)
-        out_col.pack(side="left", fill="x", expand=True, anchor="n")
         extra_col = ttk.Frame(panel)
-        extra_col.pack(side="left", anchor="n", padx=(g(4), 0))
-        ttk.Label(out_col, text="Output", style="Head.TLabel").pack(anchor="w")
-        for text, value in (
-            ("Next to the original PDF", "beside"),
-            ("This folder:", "fixed"),
-        ):
-            ttk.Radiobutton(
-                out_col,
-                text=text,
-                value=value,
-                variable=self.out_mode,
-                command=self._sync_out,
-            ).pack(anchor="w", pady=(g(1), 0))
-        path_row = ttk.Frame(out_col)
-        path_row.pack(fill="x", pady=(g(1), 0), padx=(g(3), 0))
-        self.out_entry = ttk.Entry(path_row, textvariable=self.out_dir, width=44)
-        self.out_entry.pack(side="left", fill="x", expand=True)
-        self.out_btn = ttk.Button(path_row, text="Change…", command=self.pick_out)
-        self.out_btn.pack(side="left", padx=(g(1), 0))
+        extra_col.pack(side="left", anchor="n")
         ttk.Label(extra_col, text="Extras", style="Head.TLabel").pack(anchor="w")
         for text, var in (
             ("Extract images", self.opt_images),
@@ -953,20 +1088,6 @@ class App:
             from markerlite import sendto
 
             self.sendto_var = tk.BooleanVar(value=sendto.link_path().is_file())
-            ttk.Checkbutton(
-                extra_col,
-                text="Add markerlite to Explorer's Send to menu",
-                variable=self.sendto_var,
-                command=self._sendto_toggle,
-            ).pack(anchor="w", pady=(g(1), 0))
-            self.sendto_error = ttk.Label(
-                extra_col,
-                text="",
-                style="Warn.TLabel",
-                wraplength=g(40),
-                justify="left",
-            )
-            self.sendto_error.pack(anchor="w")
         self._sync_out()
 
         # ---- action bar --------------------------------------------------
@@ -1091,9 +1212,6 @@ class App:
 
     # ---------------------------------------------------------------- files
     def _sync_out(self):
-        fixed = self.out_mode.get() == "fixed"
-        self.out_entry.configure(state="normal" if fixed else "disabled")
-        self.out_btn.configure(state="normal" if fixed else "disabled")
         self.opts_summary.configure(text=self._options_summary())
 
     def on_drop(self, event):
@@ -1156,6 +1274,8 @@ class App:
             self.status.configure(text=f"Skipped {len(skip)} file(s) that are not PDFs")
         if not new:
             return
+        if not self.settings["explorer_auto_start"]:
+            return
         now, self.pending = handoff_plan(new, self.running, self.pending)
         if now:
             self.start(only=now)
@@ -1179,7 +1299,7 @@ class App:
 
         want = bool(self.sendto_var.get())
         exe = pathlib.Path(sys.executable)
-        self.sendto_error.configure(text="")
+        self._sendto_message("")
 
         def work():
             try:
@@ -1225,10 +1345,10 @@ class App:
         self.log_paths = []
         self.status.configure(text="No files yet")
 
-    def pick_out(self):
+    def pick_out(self, variable=None):
         d = filedialog.askdirectory(title="Output folder")
         if d:
-            self.out_dir.set(d)
+            (variable if variable is not None else self.out_dir).set(d)
 
     def outdir_for(self, pdf: pathlib.Path) -> pathlib.Path:
         return output_directory(pdf, self.out_mode.get(), self.out_dir.get())
@@ -1240,6 +1360,7 @@ class App:
             if not files:
                 self.status.configure(text="Add some PDFs first")
             return
+        self._apply_ocr_override()
         self._check_tesseract()
         self.running = True
         # The token also counts convert()'s per-page checks, which is how
@@ -1411,7 +1532,7 @@ class App:
                     _, want, err = ev
                     if err:
                         self.sendto_var.set(not want)
-                        self.sendto_error.configure(text=f"Send to unavailable: {err}")
+                        self._sendto_message(f"Send to unavailable: {err}")
                         verb = "enable" if want else "disable"
                         app_log(f"Send to {verb} failed: {err}")
                     else:
@@ -1424,7 +1545,7 @@ class App:
                 elif kind == "sendto-repaired":
                     _, old, err = ev
                     if err:
-                        self.sendto_error.configure(text=f"Send to unavailable: {err}")
+                        self._sendto_message(f"Send to unavailable: {err}")
                         app_log(f"Send to check failed: {err}")
                     else:
                         app_log(
@@ -1473,6 +1594,8 @@ class App:
         self.status.configure(
             text=finish_status(self.outcome, " · ".join(parts) or "Nothing converted")
         )
+        if done and self.settings["auto_open"]:
+            self.open_out()
         if done:
             self.open_btn.configure(state="normal")
             self.md_btn.configure(state="normal")
@@ -1844,6 +1967,7 @@ def write_diagnostics() -> pathlib.Path:
     import platform
     import traceback
 
+    preferences = load_settings(log=app_log)
     frozen = getattr(sys, "frozen", False)
     base = pathlib.Path(
         getattr(sys, "_MEIPASS", pathlib.Path(__file__).resolve().parent)
@@ -1859,7 +1983,10 @@ def write_diagnostics() -> pathlib.Path:
         f"HAVE_DND    {HAVE_DND}",
         f"DND_ERROR   {DND_ERROR or '-'}",
     ]
-    tesseract = discover_tesseract()
+    discovery_env = dict(os.environ)
+    if preferences["tesseract_path"]:
+        discovery_env["TESSERACT_CMD"] = preferences["tesseract_path"]
+    tesseract = discover_tesseract(env=discovery_env)
     lines.append(
         f"tesseract   {tesseract_version(tesseract)}  path={tesseract}"
         if tesseract
@@ -1890,7 +2017,10 @@ def write_diagnostics() -> pathlib.Path:
     try:
         r = TkinterDnD.Tk() if HAVE_DND else tk.Tk()
         r.withdraw()
-        theme = theme_for(windows_apps_use_light(), os.environ.get("MARKERLITE_THEME"))
+        theme = theme_for(
+            windows_apps_use_light(),
+            os.environ.get("MARKERLITE_THEME") or preferences["theme"],
+        )
         lines.append(f"theme       {load_theme(r, theme)}")
         r.destroy()
     except Exception as exc:

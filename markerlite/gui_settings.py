@@ -6,7 +6,7 @@ import json
 import os
 import pathlib
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 def settings_path():
@@ -18,7 +18,16 @@ def settings_path():
 
 
 def defaults():
-    return {"schema_version": SCHEMA_VERSION, "theme": "system", "recent_files": []}
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "theme": "system",
+        "recent_files": [],
+        "output_mode": "beside",
+        "output_dir": str(pathlib.Path.home() / "Documents" / "markdown"),
+        "auto_open": False,
+        "explorer_auto_start": True,
+        "tesseract_path": "",
+    }
 
 
 def recent_files(paths, added=()):
@@ -37,7 +46,7 @@ def load_settings(path=None, log=lambda line: None):
         if (
             not isinstance(data, dict)
             or type(data.get("schema_version")) is not int
-            or data["schema_version"] != SCHEMA_VERSION
+            or data["schema_version"] not in (1, SCHEMA_VERSION)
         ):
             raise ValueError("unknown settings schema")
         result = defaults()
@@ -47,6 +56,21 @@ def load_settings(path=None, log=lambda line: None):
         if not isinstance(paths, list) or not all(isinstance(p, str) for p in paths):
             raise ValueError("invalid recent files")
         result.update(theme=data["theme"], recent_files=recent_files(paths))
+        # v1 held theme and recents only. New app-wide preferences take defaults.
+        if data["schema_version"] == SCHEMA_VERSION:
+            if data.get("output_mode") not in ("beside", "fixed"):
+                raise ValueError("invalid output location")
+            for key in ("output_dir", "tesseract_path"):
+                if not isinstance(data.get(key), str):
+                    raise ValueError(f"invalid {key}")
+                result[key] = data[key]
+            for key in ("auto_open", "explorer_auto_start"):
+                if type(data.get(key)) is not bool:
+                    raise ValueError(f"invalid {key}")
+                result[key] = data[key]
+            result["output_mode"] = data["output_mode"]
+            if result["output_mode"] == "fixed" and not result["output_dir"].strip():
+                raise ValueError("fixed output folder is empty")
         return result
     except FileNotFoundError:
         return defaults()

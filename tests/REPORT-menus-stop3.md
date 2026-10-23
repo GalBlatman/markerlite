@@ -44,3 +44,17 @@ instructions. Versions below 5.0 are labelled outdated; missing/outdated
 installs offer the Windows download page through the OS browser. Opening
 this window performs local discovery and --version only; it fetches nothing.
 Six pure tests cover missing, unreadable, old and current engines.
+
+## A4 — app-wide preferences
+
+Output defaults and Explorer integration move into Preferences; the main
+Options panel retains only per-run conversion flags. Preferences also
+holds automatic output opening, automatic conversion of Explorer inputs,
+a validated Tesseract override and the same theme setting as View.
+Schema 2 settings live in %APPDATA%/markerlite/settings.json; schema 1
+(theme/recents) migrates with defaults. Corrupt/unknown settings log one
+reset message and use defaults. Writes replace a temporary JSON file.
+OCR overrides run --version locally and apply between batches, preserving
+the active batch's engine. Reset selects defaults; Save applies them.
+Tests cover round trips, migration, corrupt/unknown data, invalid field
+types, recent-file bounds, and executable validation/failures.
