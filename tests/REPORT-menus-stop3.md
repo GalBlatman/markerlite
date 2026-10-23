@@ -69,13 +69,6 @@ buttons disable when the last output row is removed. No fake-widget tests
 are used. Actual Tk construction of all five menus, Preferences and Check
 OCR passed under WSL.
 
-Windows screenshots are currently blocked: the desktop is locked. The
-native App was launched with only hard.pdf and isolated temporary settings;
-the attempted capture showed the lock screen, so that image was discarded.
-No menu, Preferences, Check OCR or update-dialog screenshots are claimed
-in either theme. No Linux or mocked-dialog screenshots substitute for them.
-The owner has been asked to unlock the desktop; capture can then resume.
-
 Final local Part A checks: 271 unit tests passed; three named-pipe tests
 are Windows-only and skipped under WSL. The pinned sv-ttk sprite test ran.
 All fixture regressions passed. Ruff check/format and check_gui.py passed.
@@ -103,3 +96,19 @@ helper now uses visible DWM frame bounds to exclude the runner console
 behind the invisible resize border, and posts each menu below its own
 native menu-bar item. Save diagnostics writes directly to the selected
 file, so it also works when the executable's folder is read-only.
+
+
+## Final Part A evidence
+
+Final app commit: a1b31f0. Windows CI run 39889740384 and Ubuntu run
+39889740338 passed. Windows built and launched the exe and passed icon,
+source/frozen diagnostics and check_gui checks. All sixteen final Windows
+screenshots were visually reviewed: five menus plus Preferences, Check OCR
+and the actual update response in Light and Dark. They are retained under
+screenshots/menus/a1b31f0/. Only synthetic hard.pdf was queued. The source
+Preferences capture cannot show the frozen-only SendTo checkbox; that state
+is not claimed as captured. No other dialog states are mocked.
+
+Archived A1–A5 commits each match all 89 golden entries, including OCR
+(zero skips); full logs are in audits/. Superseded capture-tooling commits
+were also checked. No converter, release version or tag changed.

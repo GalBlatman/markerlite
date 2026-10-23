@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "purpose": "Stop-3 B1 cause audit; no document text",
+  "records": [
+    {
+      "document_id": "R00077",
+      "page": 8,
+      "region": "gold table",
+      "label": "row association",
+      "labeller_agreement": "carried from REPORT-block2-stop2.md"
+    },
+    {
+      "document_id": "R00087",
+      "page": 9,
+      "region": "gold table",
+      "label": "row association",
+      "labeller_agreement": "carried from REPORT-block2-stop2.md"
+    },
+    {
+      "document_id": "R00263",
+      "page": 15,
+      "region": "gold table",
+      "label": "row association",
+      "labeller_agreement": "carried from REPORT-block2-stop2.md"
+    },
+    {
+      "document_id": "R00373",
+      "page": 13,
+      "region": "gold table",
+      "label": "row association",
+      "labeller_agreement": "carried from REPORT-block2-stop2.md"
+    },
+    {
+      "document_id": "R00639",
+      "page": 28,
+      "region": "gold table",
+      "label": "row association",
+      "labeller_agreement": "carried from REPORT-block2-stop2.md"
+    },
+    {
+      "document_id": "R05732",
+      "page": 4,
+      "region": "gold table",
+      "label": "row association",
+      "labeller_agreement": "carried from REPORT-block2-stop2.md"
+    },
+    {
+      "document_id": "S0004",
+      "page": 6,
+      "region": "gold table",
+      "label": "row association",
+      "labeller_agreement": "carried from REPORT-block2-stop2.md"
+    },
+    {
+      "document_id": "R00030",
+      "page": 75,
+      "region": "gold table",
+      "label": "row association",
+      "labeller_agreement": "carried from REPORT-block2-stop2.md"
+    },
+    {
+      "document_id": "R00112",
+      "page": 14,
+      "region": "gold table",
+      "label": "column association",
+      "labeller_agreement": "carried from REPORT-block2-stop2.md"
+    },
+    {
+      "document_id": "R00112",
+      "page": 17,
+      "region": "gold table",
+      "label": "column association",
+      "labeller_agreement": "carried from REPORT-block2-stop2.md"
+    },
+    {
+      "document_id": "R01114",
+      "page": 8,
+      "region": "gold table",
+      "label": "header association",
+      "labeller_agreement": "carried from REPORT-block2-stop2.md"
+    },
+    {
+      "document_id": "R02027",
+      "page": 25,
+      "region": "gold table",
+      "label": "header association",
+      "labeller_agreement": "carried from REPORT-block2-stop2.md"
+    },
+    {
+      "document_id": "R02611",
+      "page": 18,
+      "region": "gold table",
+      "label": "header association",
+      "labeller_agreement": "carried from REPORT-block2-stop2.md"
+    },
+    {
+      "document_id": "York",
+      "page": 14,
+      "region": "gold table",
+      "label": "cross-page joining",
+      "labeller_agreement": "carried from REPORT-block2-stop2.md"
+    },
+    {
+      "document_id": "capiq_keydev",
+      "page": 87,
+      "region": "gold table",
+      "label": "cross-page joining",
+      "labeller_agreement": "carried from REPORT-block2-stop2.md"
+    },
+    {
+      "document_id": "R00077",
+      "page": 28,
+      "region": "gold table",
+      "label": "wrapped row/header association; incomplete continuation coverage",
+      "labeller_agreement": "single rendered-page review; no independent agreement claimed"
+    },
+    {
+      "document_id": "R00315",
+      "page": 14,
+      "region": "gold table",
+      "label": "glyph decoding; cell positions intact",
+      "labeller_agreement": "single rendered-page review; no independent agreement claimed"
+    },
+    {
+      "document_id": "R00258",
+      "page": 6,
+      "region": "gold table",
+      "label": "partial-region fragmentation; missing header; wrapped continuations",
+      "labeller_agreement": "single rendered-page review; no independent agreement claimed"
+    }
+  ]
+}

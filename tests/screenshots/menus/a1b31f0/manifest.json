@@ -1,0 +1,69 @@
+{
+  "source": "Real Windows source App; only tests/fixtures/hard.pdf; isolated settings; update handler uses its real response, never mocked.",
+  "captures": [
+    {
+      "file": "light-menu-file.png",
+      "state": "captured; requires visual review"
+    },
+    {
+      "file": "light-menu-edit.png",
+      "state": "captured; requires visual review"
+    },
+    {
+      "file": "light-menu-view.png",
+      "state": "captured; requires visual review"
+    },
+    {
+      "file": "light-menu-tools.png",
+      "state": "captured; requires visual review"
+    },
+    {
+      "file": "light-menu-help.png",
+      "state": "captured; requires visual review"
+    },
+    {
+      "file": "light-preferences.png",
+      "state": "captured; requires visual review"
+    },
+    {
+      "file": "light-ocr.png",
+      "state": "captured; requires visual review"
+    },
+    {
+      "file": "light-updates.png",
+      "state": "captured; requires visual review"
+    },
+    {
+      "file": "dark-menu-file.png",
+      "state": "captured; requires visual review"
+    },
+    {
+      "file": "dark-menu-edit.png",
+      "state": "captured; requires visual review"
+    },
+    {
+      "file": "dark-menu-view.png",
+      "state": "captured; requires visual review"
+    },
+    {
+      "file": "dark-menu-tools.png",
+      "state": "captured; requires visual review"
+    },
+    {
+      "file": "dark-menu-help.png",
+      "state": "captured; requires visual review"
+    },
+    {
+      "file": "dark-preferences.png",
+      "state": "captured; requires visual review"
+    },
+    {
+      "file": "dark-ocr.png",
+      "state": "captured; requires visual review"
+    },
+    {
+      "file": "dark-updates.png",
+      "state": "captured; requires visual review"
+    }
+  ]
+}
