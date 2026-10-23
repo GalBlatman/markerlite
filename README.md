@@ -195,16 +195,23 @@ before processing the full corpus again.
 
 ### The app
 
+![The markerlite window after a batch: five files done, one with a warning](docs/images/markerlite-window.png)
+
 Drop PDFs onto the window — files, or a folder to take every PDF in it — and
 click **Convert**. Output goes next to each PDF by default, or to one folder you
 pick. The checkboxes are the command-line flags: extract images, crop equations,
 insert page markers. The preview pane shows the Markdown of whichever file is
 selected; read it before trusting a document, because the table and heading
 defects described above are quiet. **Open Markdown** and **Open output folder**
-do what they say. When a batch finishes, the status line reports it as
+do what they say. Each file's row shows its pages, its status (Queued,
+Converting with a percentage, Done, Done with N warnings, Failed, Cancelled)
+and how long it took; click "Done with N warnings" to read them, and hover
+over a row for its word, OCR and table counts. When a batch finishes, the
+status line reports it as
 `17 pages → 76 KB Markdown · 3 figures · 2 equation crops`. The version is in
-the window title and at the right of the status bar; click it to copy the
-markerlite, Tesseract and Windows versions for a bug report.
+the window title and at the top right; click it to copy the markerlite,
+Tesseract and Windows versions for a bug report. The window follows the
+Windows light or dark app setting.
 
 While a batch runs, **Convert** becomes **Cancel** (Esc does the same). The
 file being converted is abandoned and leaves nothing behind, files already
@@ -233,6 +240,14 @@ your own Send to folder, nothing else: no registry change, no administrator
 rights. If you move the markerlite folder, the next start points the
 shortcut at the new place. **Untick the option before deleting the
 markerlite folder**, or the menu keeps an entry that leads nowhere.
+
+**Troubleshooting.** `markerlite.exe --diag` writes `markerlite-diag.txt`
+beside the exe: the version, Tesseract, drag-and-drop and the theme that
+loaded. Attach it to a bug report. The window picks light or dark from the
+Windows setting when it starts; to force one, set the environment variable
+`MARKERLITE_THEME` to `light` or `dark` before starting it (for example
+`set MARKERLITE_THEME=dark` and then `markerlite.exe` in the same Command
+Prompt).
 
 ### The command line
 

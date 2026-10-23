@@ -173,6 +173,17 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
   crashed on first drop, and was removed. Don't re-add it.
 - Every widget in the drop zone is registered as a drop target (tkdnd does not
   propagate drops to parents).
+- Theme (v0.2.0): sv-ttk 2.6.1 (Sun Valley), pinned exactly, light or dark
+  from Windows' AppsUseLightTheme at startup (MARKERLITE_THEME=light|dark
+  overrides it, for screenshots). The accent is the logo blue #2F4C8F:
+  assets/sv-ttk holds sv-ttk's spritesheets with the accent sprites
+  recoloured by tools/recolour_sprites.py, copied over the theme's images at
+  startup (keeps alpha in Tk 8.6 and 9). Rerun the tool if the pin moves.
+  Colours not set by the theme are gui_logic.PALETTES; text meets WCAG AA,
+  status dots 3:1 (tests/test_gui_status.py). One base font size (10 pt,
+  Segoe UI Variable when present); spacing is an 8 px grid scaled to the
+  DPI of the monitor the window opens on (Tk's own scaling follows the
+  primary monitor, so the app sets `tk scaling` from GetDpiForWindow).
 - Options are snapshotted on the main thread before the worker starts; never
   read Tk variables from the worker thread.
 - Window sizing: per-monitor DPI awareness (v2), sized against the work area
@@ -196,15 +207,19 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
   line is `markerlite <version>`.
 - The version is visible without a console: the window title is
   `markerlite <version>` and a muted `v<version>` label sits at the right end
-  of the status bar. Clicking it copies `markerlite <version> · Tesseract
+  of the header. Clicking it copies `markerlite <version> · Tesseract
   <version or not found> · Windows <platform.version()>` for a bug report.
   All three strings come from `markerlite/gui_logic.py` and `__version__`;
   nothing is hard-coded. No About dialog or menu.
-- The status bar shows Tesseract's version (or a warning) at startup and on
-  every Convert. After a batch each row shows pages / content words / OCR
-  pages / tables (fallbacks); a row with any `stat_warnings()` entry gets a
-  warning glyph and a hover tooltip with the summarize() line and the
-  provenance citation. Every batch appends to `markerlite-run.log` in each
+- The header shows Tesseract's version (or a warning) at startup and on
+  every Convert. The file list's columns are File · Pages · Status · Time;
+  Status text and its dot come from gui_logic.status_cell (Queued,
+  Converting NN%, Cancelling…, Done, Done with N warnings, Failed,
+  Cancelled, Skipped). NN% counts convert()'s per-page cancel checks
+  (gui_logic.ProgressToken); the converter is not touched. Clicking "Done
+  with N warnings" (or Enter on the row) opens Show warnings. Every row's
+  hover tooltip carries the summarize() line (words, OCR pages, tables)
+  and the provenance citation. Every batch appends to `markerlite-run.log` in each
   output folder ("Open log"). Warning text comes from markerlite.stat_warnings
   so CLI, GUI and log agree; do not phrase warnings in the GUI.
 - Per-page conservation: every page's emitted words are compared with its
@@ -243,7 +258,7 @@ The downstream bump protocol consumes these field names; keep them stable.
 - Release checklist for the Windows app: the windowed exe has no console, so
   `markerlite.exe --version` prints nothing; never use it to check a build,
   and do not add a console --version to the exe. Check the window title
-  (`markerlite X.Y.Z`), the status-bar label (`vX.Y.Z`) and the first line
+  (`markerlite X.Y.Z`), the header's version label (`vX.Y.Z`) and the first line
   of the `--diag` file (`markerlite X.Y.Z`). Windows CI asserts that line
   for the source run and the frozen exe. `markerlite --version` from pip or
   source covers the command line.

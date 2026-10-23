@@ -129,7 +129,9 @@ def skipped_log_line(name: str) -> str:
     return f"{safe_display(name)}: SKIPPED (batch cancelled)"
 
 
-def run_batch(files, opts: ConversionOptions, convert, cancel, emit, log) -> dict:
+def run_batch(
+    files, opts: ConversionOptions, convert, cancel, emit, log, page_count=None
+) -> dict:
     """Convert ``files`` one after another; the GUI worker thread runs this.
 
     ``convert`` is markerlite.convert; ``cancel`` a CancelToken checked
@@ -138,6 +140,11 @@ def run_batch(files, opts: ConversionOptions, convert, cancel, emit, log) -> dic
     folder's run log. A failed file never sinks the batch. On cancel the
     current file's staged output is discarded by convert(), files already
     converted stay, and the rest are skipped. Returns counts by outcome.
+
+    With ``page_count`` (a function of the PDF path), each file's page count
+    is emitted as ``("pages", src, n)`` before it converts, and a
+    :class:`ProgressToken` is told the file's size so it can report how far
+    the conversion has got.
     """
     from .cancel import Cancelled
     from .stats import stat_warnings as _warnings
@@ -152,6 +159,15 @@ def run_batch(files, opts: ConversionOptions, convert, cancel, emit, log) -> dic
             emit(("skipped", str(pdf)))
             continue
         emit(("busy", str(pdf)))
+        if page_count is not None:
+            try:
+                pages = int(page_count(pdf))
+            except Exception:
+                pages = 0
+            if pages:
+                emit(("pages", str(pdf), pages))
+            if isinstance(cancel, ProgressToken):
+                cancel.begin(str(pdf), pages)
         try:
             outdir.mkdir(parents=True, exist_ok=True)
             md, manifest = convert(
@@ -317,3 +333,195 @@ def handoff_plan(new: list, running: bool, pending: list) -> tuple:
         if p not in queued:
             queued.append(p)
     return [], queued
+
+
+# ---------------------------------------------------------------- progress
+try:
+    from .cancel import CancelToken as _CancelToken
+except Exception:  # pragma: no cover - cancel.py has no third-party imports
+    _CancelToken = object
+
+
+def progress_checks(pages: int) -> int:
+    """How many cancel checks convert() makes for a document of ``pages``
+    pages: one per page while extracting, one per page while finding
+    tables, and four between the later stages (markerlite/api.py). OCR adds
+    a check per Tesseract call, so the estimate runs ahead on scans and is
+    capped below 100 until the file is done."""
+    return 2 * max(0, pages) + 4
+
+
+class ProgressToken(_CancelToken):
+    """A CancelToken that also reports progress through the current file.
+
+    convert() checks the token between pages; counting those checks against
+    :func:`progress_checks` gives a percentage without any change to the
+    converter. ``report(src, percent)`` is called from the worker thread
+    whenever the whole-number percentage grows.
+    """
+
+    def __init__(self, report=None) -> None:
+        super().__init__()
+        self._report = report
+        self._src = ""
+        self._calls = 0
+        self._total = 0
+        self._last = -1
+
+    def begin(self, src: str, pages: int) -> None:
+        self._src, self._calls, self._last = src, 0, -1
+        self._total = progress_checks(pages) if pages else 0
+
+    def check(self) -> None:
+        super().check()
+        if not self._total:
+            return
+        self._calls += 1
+        percent = min(99, self._calls * 100 // self._total)
+        if percent > self._last:
+            self._last = percent
+            if self._report is not None:
+                self._report(self._src, percent)
+
+
+# ------------------------------------------------------------ status column
+STATUS_DOTS = ("muted", "busy", "ok", "warn", "bad")
+
+
+def status_cell(state: str, percent: int | None = None, warnings: int = 0) -> tuple:
+    """(text, dot) for the file list's Status column.
+
+    ``state`` is one of queued, converting, cancelling, done, failed,
+    cancelled, skipped; ``dot`` names the dot colour (one of STATUS_DOTS).
+    A done file with warnings says how many, and its count is what the user
+    clicks to open Show warnings.
+    """
+    if state == "queued":
+        return "Queued", "muted"
+    if state == "converting":
+        if percent is None:
+            return "Converting…", "busy"
+        return f"Converting {max(0, min(99, int(percent)))}%", "busy"
+    if state == "cancelling":
+        return CANCELLING, "warn"
+    if state == "done":
+        if warnings:
+            return f"Done with {warnings} warning{'s' * (warnings != 1)}", "warn"
+        return "Done", "ok"
+    if state == "failed":
+        return "Failed", "bad"
+    if state == "cancelled":
+        return "Cancelled", "muted"
+    if state == "skipped":
+        return "Skipped", "muted"
+    raise ValueError(f"unknown status: {state}")
+
+
+def elapsed_text(seconds: float | None) -> str:
+    """The Time column: tenths below a minute, then m:ss."""
+    if seconds is None:
+        return ""
+    if seconds < 60:
+        return f"{seconds:.1f} s"
+    m, s = divmod(int(round(seconds)), 60)
+    return f"{m}:{s:02d}"
+
+
+def overall_progress(finished: int, current_percent: int, total: int) -> float:
+    """The bottom progress bar, 0-100 over the whole batch."""
+    if total <= 0:
+        return 0.0
+    return min(100.0, (finished * 100 + max(0, current_percent)) / total)
+
+
+# ------------------------------------------------------------------ theme
+def theme_for(apps_use_light: int | None, override: str | None = None) -> str:
+    """ "light" or "dark" from Windows' AppsUseLightTheme value (1 light,
+    0 dark, None when it cannot be read: light). MARKERLITE_THEME, when set
+    to light or dark, overrides it."""
+    if override and override.strip().lower() in ("light", "dark"):
+        return override.strip().lower()
+    return "dark" if apps_use_light == 0 else "light"
+
+
+def windows_apps_use_light() -> int | None:
+    """The Windows "app mode" setting, read once at startup."""
+    if sys.platform != "win32":
+        return None
+    try:
+        import winreg
+
+        key = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize",
+        )
+        with key:
+            return int(winreg.QueryValueEx(key, "AppsUseLightTheme")[0])
+    except Exception:
+        return None
+
+
+# ----------------------------------------------------------------- colours
+# The logo blue: the primary button, selection and checked controls. The
+# theme's own accent sprites are recoloured to it (tools/recolour_sprites.py).
+ACCENT = "#2F4C8F"
+
+# Colours the theme does not set, per Windows app mode. Text colours meet
+# WCAG AA (4.5:1) on the background; dots, which are not text, meet 3:1
+# (tests/test_gui_status.py).
+PALETTES = {
+    "light": {
+        "bg": "#fafafa",
+        "card": "#ffffff",
+        "ink": "#1a1a1a",
+        "muted": "#5d5d5d",
+        "line": "#d6d6d6",
+        "sel_bg": "#d9e1f2",
+        "sel_fg": "#1a1a1a",
+        "ok": "#0f7b0f",
+        "warn": "#9d5d00",
+        "bad": "#c42b1c",
+        "busy": ACCENT,
+        "dot_muted": "#8a8a8a",
+        "focus": ACCENT,
+    },
+    "dark": {
+        "bg": "#1c1c1c",
+        "card": "#2b2b2b",
+        "ink": "#f3f3f3",
+        "muted": "#ababab",
+        "line": "#454545",
+        "sel_bg": ACCENT,
+        "sel_fg": "#ffffff",
+        "ok": "#6ccb5f",
+        "warn": "#fce100",
+        "bad": "#ff99a4",
+        "busy": "#8fa7dc",
+        "dot_muted": "#8a8a8a",
+        "focus": "#8fa7dc",
+    },
+}
+DOT_COLOUR = {
+    "muted": "dot_muted",
+    "busy": "busy",
+    "ok": "ok",
+    "warn": "warn",
+    "bad": "bad",
+}
+
+
+def row_details(stats: dict) -> str:
+    """The counts the file list's columns used to show (content words, OCR
+    pages, tables and how many fell back to prose), for the row tooltip."""
+    pages = stats.get("pages", 0)
+    parts = [f"{stats.get('words', 0):,} content words"]
+    if stats.get("ocr_pages") or stats.get("image_only_pages"):
+        parts.append(f"{stats.get('ocr_pages', 0)}/{pages} pages OCR'd")
+    tables = stats.get("tables", 0)
+    if tables:
+        fell = stats.get("tables_fallback", 0)
+        parts.append(
+            f"{tables} table{'s' * (tables != 1)}"
+            + (f" ({fell} kept as prose)" if fell else "")
+        )
+    return " · ".join(parts)

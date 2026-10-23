@@ -17,33 +17,44 @@ import queue
 import subprocess
 import sys
 import threading
+import time
 import tkinter as tk
+import tkinter.font as tkfont
 import traceback
 from tkinter import filedialog, ttk
 
 from markerlite.display import safe_display
 from markerlite.extraction import discover_tesseract, tesseract_version
 from markerlite.gui_logic import (
+    DOT_COLOUR,
     MENU_ITEMS,
+    PALETTES,
     ConversionOptions,
+    ProgressToken,
     app_log,
     bug_report_line,
     busy_status,
     cancel_pressed,
+    elapsed_text,
     finish_status,
     handoff_plan,
     launch_paths,
     menu_state,
     output_directory,
+    overall_progress,
     provenance_comments,
     reveal_command,
+    row_details,
     run_batch,
     snapshot_options,
+    status_cell,
     summary_text,
+    theme_for,
     version_label,
     warning_details,
     warning_lines,
     window_title,
+    windows_apps_use_light,
     windows_build,
 )
 
@@ -81,16 +92,90 @@ except Exception as _exc:  # pragma: no cover
     DND_ERROR = f"{type(_exc).__name__}: {_exc}"
 
 APP = "markerlite"
-PAD = 10
 
-BG = "#faf9f7"
-CARD = "#ffffff"
-INK = "#1f1d1b"
-MUTED = "#6b6763"
-LINE = "#d9d5d0"
-ACCENT = "#4a6fa5"
-OK = "#2f7d4f"
-BAD = "#b3402f"
+BASE_SIZE = 10  # points: the one body size
+GRID = 8  # spacing unit in pixels at 96 dpi, scaled to the monitor
+
+
+def bundle_dir() -> pathlib.Path:
+    """Where bundled files live: PyInstaller unpacks data under
+    sys._MEIPASS; from source the assets folder sits beside this file."""
+    return pathlib.Path(
+        getattr(sys, "_MEIPASS", pathlib.Path(__file__).resolve().parent)
+    )
+
+
+def _apply_accent(root: tk.Tk, theme: str) -> int:
+    """Copy the recoloured accent sprites over sv-ttk's own images; returns
+    how many sprites were replaced. Raises if anything is missing.
+
+    sv-ttk draws its accent controls from a spritesheet, so the accent is
+    not a colour option. assets/sv-ttk holds the same sheets with the accent
+    sprites in the logo blue (tools/recolour_sprites.py). Copying keeps each
+    pixel's alpha, in Tk 8.6 and 9. Sprite positions come from sv-ttk's own
+    sprite table."""
+    import re
+
+    import sv_ttk
+
+    sheet = bundle_dir() / "assets" / "sv-ttk" / f"spritesheet_{theme}.png"
+    table = pathlib.Path(sv_ttk.__file__).with_name("theme") / f"sprites_{theme}.tcl"
+    for path in (sheet, table):
+        if not path.is_file():
+            raise FileNotFoundError(path)
+    image_sheet = tk.PhotoImage(master=root, file=str(sheet))
+    root._accent_sheet = image_sheet  # keep a reference while Tk uses it
+    sprites = {
+        name: tuple(map(int, rest))
+        for name, *rest in re.findall(
+            r"(\S+) (\d+) (\d+) (\d+) (\d+)", table.read_text()
+        )
+    }
+    call = root.tk.call
+    pairs = root.tk.splitlist(call("array", "get", f"ttk::theme::sv_{theme}::I"))
+    copied = 0
+    for name, image in zip(pairs[0::2], pairs[1::2]):
+        if name in sprites:
+            x, y, w, h = sprites[name]
+            call(
+                image, "copy", image_sheet,
+                "-from", x, y, x + w, y + h,
+                "-to", 0, 0,
+                "-compositingrule", "set",
+            )  # fmt: skip
+            copied += 1
+    if not copied:
+        raise RuntimeError("no sv-ttk sprites matched")
+    return copied
+
+
+def load_theme(root: tk.Tk, theme: str) -> str:
+    """Apply sv-ttk in ``theme`` with the logo-blue accent. Never raises:
+    a failed recolour keeps sv-ttk's stock accent, a missing sv-ttk falls
+    back to Tk's clam theme. Returns one line saying which happened, for
+    the window and for --diag."""
+    try:
+        import sv_ttk
+
+        sv_ttk.set_theme(theme, root)
+    except Exception as exc:
+        try:
+            ttk.Style(root).theme_use("clam")
+        except tk.TclError:
+            pass
+        return f"clam (sv-ttk not loaded: {type(exc).__name__}: {exc})"
+    try:
+        from importlib.metadata import version
+
+        name = f"sv-ttk {version('sv-ttk')}"
+    except Exception:
+        name = "sv-ttk (version unknown)"
+    try:
+        accent = f"accent recoloured ({_apply_accent(root, theme)} sprites)"
+    except Exception as exc:
+        accent = f"stock accent (recolour failed: {type(exc).__name__}: {exc})"
+    tk_version = root.tk.call("info", "patchlevel")
+    return f"{name} {theme}, {accent}, Tk {tk_version}"
 
 
 class App:
@@ -98,6 +183,8 @@ class App:
         self.root = root
         self.files: list[pathlib.Path] = []
         self.results: dict[str, dict] = {}
+        # Per-row display state behind the Pages, Status and Time columns.
+        self.rows: dict[str, dict] = {}
         # Worker progress and hand-offs from later launches both arrive
         # here and are taken off on the Tk thread by _drain (after()).
         self.events: "queue.Queue[tuple]" = events or queue.Queue()
@@ -106,12 +193,21 @@ class App:
         self.cancel_token = None
         self.outcome: dict = {}
         self.log_paths: list[pathlib.Path] = []
+        self.batch_total = 0
+        self.batch_finished = 0
+        self.current_src: str | None = None
 
         # The version comes from markerlite/VERSION through __version__: the
         # windowed exe has no console, so this is where a user reads it.
         root.title(window_title())
         self.tess_version: str | None = None
-        root.configure(bg=BG)
+        # Light or dark follows the Windows app setting, read once here.
+        self.theme = theme_for(
+            windows_apps_use_light(), os.environ.get("MARKERLITE_THEME")
+        )
+        self.c = PALETTES[self.theme]
+        self._match_monitor_dpi()
+        self.scale = max(1.0, root.winfo_fpixels("1i") / 96.0)
 
         self._style()
         self._build()
@@ -130,6 +226,30 @@ class App:
             # Repair the Send to shortcut only when the option is on, in the
             # background, after the window has appeared.
             self.root.after(1500, self._sendto_repair)
+
+    def _match_monitor_dpi(self):
+        """Size fonts and spacing for the monitor the window opens on.
+
+        Tk takes its scaling from the primary monitor. With per-monitor DPI
+        awareness and two monitors at different scaling, a window opened on
+        the other one was drawn at the primary's size. Before anything is
+        built, take the DPI of the monitor under the window instead."""
+        if sys.platform != "win32":
+            return
+        try:
+            import ctypes
+
+            self.root.update_idletasks()
+            hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
+            dpi = ctypes.windll.user32.GetDpiForWindow(hwnd)
+            if dpi:
+                self.root.tk.call("tk", "scaling", dpi / 72.0)
+        except Exception:
+            pass
+
+    def g(self, n: float = 1) -> int:
+        """n units of the 8 px spacing grid, in this monitor's pixels."""
+        return int(round(GRID * n * self.scale))
 
     def _work_area(self):
         """(x, y, w, h) of the usable desktop - the screen minus the taskbar -
@@ -188,7 +308,7 @@ class App:
         self.root.minsize(min(560, w), min(420, h))
 
     def _check_tesseract(self) -> bool:
-        """Show Tesseract's version in the status bar, or a warning when it
+        """Show Tesseract's version in the header, or a warning when it
         is unavailable. Called at startup and again when Convert is pressed,
         because the user may install it while the window is open."""
         exe = discover_tesseract()
@@ -237,168 +357,200 @@ class App:
 
     # ---------------------------------------------------------------- style
     def _style(self):
+        """Sun Valley (sv-ttk), the Windows 11 look, in the Windows app mode,
+        with the logo blue as its accent. Without sv-ttk (a source run that
+        lacks it) the stock clam theme is used and everything still works;
+        if only the accent cannot be recoloured, sv-ttk keeps its own."""
         s = ttk.Style()
-        try:
-            s.theme_use("clam")
-        except tk.TclError:
-            pass
-        s.configure(".", background=BG, foreground=INK, font=("Segoe UI", 10))
-        s.configure("Card.TFrame", background=CARD, relief="flat")
-        s.configure("TLabel", background=BG, foreground=INK)
-        s.configure("Muted.TLabel", background=BG, foreground=MUTED)
-        s.configure("Warn.TLabel", background=BG, foreground=BAD)
-        s.configure("Ok.TLabel", background=BG, foreground=OK)
-        s.configure("CardMuted.TLabel", background=CARD, foreground=MUTED)
-        s.configure(
-            "Head.TLabel", background=BG, foreground=INK, font=("Segoe UI Semibold", 10)
+        c = self.c
+        self.theme_status = load_theme(self.root, self.theme)
+        families = set(tkfont.families(self.root))
+
+        def pick(*names):
+            return next((n for n in names if n in families), names[-1])
+
+        body = pick("Segoe UI Variable Text", "Segoe UI")
+        strong = pick("Segoe UI Variable Text Semibold", "Segoe UI Semibold")
+        display = pick("Segoe UI Variable Display Semibold", "Segoe UI Semibold")
+        # One base size, in points so it follows the monitor's DPI (sv-ttk
+        # sizes its own fonts in pixels).
+        for name in (
+            "TkDefaultFont",
+            "TkTextFont",
+            "TkMenuFont",
+            "TkHeadingFont",
+            "TkTooltipFont",
+            "SunValleyBodyFont",
+            "SunValleyCaptionFont",
+            "SunValleyBodyStrongFont",
+        ):
+            try:
+                tkfont.nametofont(name, self.root).configure(
+                    family=strong if "Strong" in name else body, size=BASE_SIZE
+                )
+            except tk.TclError:
+                pass
+        self.font_body = (body, BASE_SIZE)
+        self.font_strong = (strong, BASE_SIZE)
+        self.font_mono = (pick("Cascadia Mono", "Consolas"), BASE_SIZE)
+        self.font_drop = (display, BASE_SIZE + 4)
+        self.font_wordmark = (display, BASE_SIZE + 6)
+
+        s.configure(".", font=self.font_body)
+        s.configure("Muted.TLabel", foreground=c["muted"])
+        s.configure("Ok.TLabel", foreground=c["muted"])
+        s.configure("Warn.TLabel", foreground=c["warn"])
+        s.configure("Head.TLabel", font=self.font_strong)
+        s.configure("Wordmark.TLabel", font=self.font_wordmark)
+        s.configure("Drop.TLabel", font=self.font_drop)
+        s.configure("Accent.TButton", foreground="#ffffff", font=self.font_strong)
+        s.map(
+            "Accent.TButton",
+            foreground=[("disabled", "#ffffff"), ("pressed", "#d6deef")],
         )
-        s.configure("TButton", padding=(12, 6))
-        s.configure("Go.TButton", padding=(18, 8), font=("Segoe UI Semibold", 10))
-        s.configure("TCheckbutton", background=BG)
-        s.configure("TRadiobutton", background=BG)
-        s.configure(
+        s.configure("Treeview", rowheight=self.g(3.5), font=self.font_body)
+        s.configure("Treeview.Heading", font=self.font_strong, padding=(self.g(1), 0))
+        # The list is flat: no expand arrow in front of each file.
+        s.layout("Treeview.Item", [
+            ("Treeitem.padding", {"sticky": "nswe", "children": [
+                ("Treeitem.image", {"side": "left", "sticky": ""}),
+                ("Treeitem.focus", {"side": "left", "sticky": "", "children": [
+                    ("Treeitem.text", {"side": "left", "sticky": ""}),
+                ]}),
+            ]}),
+        ])  # fmt: skip
+        s.map(
             "Treeview",
-            rowheight=24,
-            fieldbackground=CARD,
-            background=CARD,
-            borderwidth=0,
+            background=[("selected", c["sel_bg"])],
+            foreground=[("selected", c["sel_fg"])],
         )
-        s.configure("Treeview.Heading", font=("Segoe UI", 9))
-        s.configure(
-            "TProgressbar",
-            troughcolor=BG,
-            background=ACCENT,
-            borderwidth=0,
-            thickness=6,
-        )
+        self.root.configure(bg=c["bg"])
+        self.dots = {key: self._dot(c[name]) for key, name in DOT_COLOUR.items()}
+
+    def _dot(self, colour: str) -> tk.PhotoImage:
+        """A small filled circle that leads a row: its status colour."""
+        d = max(8, int(round(9 * self.scale)))
+        img = tk.PhotoImage(width=d + self.g(1), height=d)
+        r = (d - 1) / 2
+        for y in range(d):
+            xs = [x for x in range(d) if (x - r) ** 2 + (y - r) ** 2 <= (r + 0.3) ** 2]
+            if xs:
+                img.put(colour, to=(xs[0], y, xs[-1] + 1, y + 1))
+        return img
 
     # ---------------------------------------------------------------- layout
     def _build(self):
-        root = self.root
-        opts_ref = self._opts_ref = [None]
+        root, g = self.root, self.g
+        outer = ttk.Frame(root, padding=(g(2), g(2), g(2), g(1)))
+        outer.pack(fill="both", expand=True)
 
-        # ---- drop zone -------------------------------------------------
-        drop = tk.Frame(root, bg=CARD, highlightbackground=LINE, highlightthickness=1)
-        drop.pack(fill="x", padx=PAD, pady=(PAD, 6))
-        self.drop = drop
-
-        inner = tk.Frame(drop, bg=CARD)
-        inner.pack(pady=18)
-        self.drop_label = tk.Label(
-            inner,
-            text="Drop PDFs here" if HAVE_DND else "Add PDFs to convert",
-            bg=CARD,
-            fg=INK,
-            font=("Segoe UI Semibold", 13),
+        # ---- header: logo and wordmark; the version at the right ----------
+        header = ttk.Frame(outer)
+        header.pack(side="top", fill="x", pady=(0, g(2)))
+        self._logo = None
+        try:
+            logo = tk.PhotoImage(file=str(bundle_dir() / "assets" / "icon-256.png"))
+            step = max(1, int(round(256 / (32 * self.scale))))
+            self._logo = logo.subsample(step, step)
+            ttk.Label(header, image=self._logo).pack(side="left")
+        except Exception:
+            pass
+        ttk.Label(header, text=APP, style="Wordmark.TLabel").pack(
+            side="left", padx=(g(1), 0)
         )
-        self.drop_label.pack()
-        hint = tk.Label(
-            inner,
-            text="or click to browse — use Add folder for a whole directory",
-            bg=CARD,
-            fg=MUTED,
-            font=("Segoe UI", 9),
+        # A click on the version copies one line with the version, Tesseract
+        # and the Windows build, ready for a bug report.
+        self.version_label = ttk.Label(
+            header, text=version_label(), style="Muted.TLabel", cursor="hand2"
         )
-        hint.pack(pady=(3, 0))
-
-        for w in (drop, inner, self.drop_label):
-            w.bind("<Button-1>", lambda _e: self.browse())
-        for w in (drop, inner):
-            w.bind("<Enter>", lambda _e: drop.configure(highlightbackground=ACCENT))
-            w.bind("<Leave>", lambda _e: drop.configure(highlightbackground=LINE))
-
-        if HAVE_DND:
-            # tkdnd delivers a drop to the widget under the cursor and does not
-            # propagate to parents. The zone is mostly covered by the inner
-            # frame and its two labels, so register all of them - registering
-            # only the outer frame meant a drop on the text went nowhere.
-            for w in (drop, inner, self.drop_label, hint):
-                w.drop_target_register(DND_FILES)
-                w.dnd_bind("<<Drop>>", self.on_drop)
+        self.version_label.pack(side="right")
+        self.version_label.bind("<Button-1>", self.copy_version)
+        # Tesseract state beside it: scanned PDFs silently produce no text
+        # without it, and that was only discoverable from the output.
+        self.tess_label = ttk.Label(header, text="", style="Muted.TLabel")
+        self.tess_label.pack(side="right", padx=(0, g(3)))
 
         # ---- bottom controls FIRST, anchored to the bottom edge -----------
         # Whatever is packed first gets space first. If the window is ever
         # too short, the file list and preview shrink; the buttons never do.
-        statusbar = ttk.Frame(root)
-        statusbar.pack(side="bottom", fill="x", padx=PAD, pady=(0, PAD))
-        bar = ttk.Frame(root)
-        bar.pack(side="bottom", fill="x", padx=PAD, pady=(4, 4))
-        self.bar = ttk.Progressbar(root, mode="determinate")
-        opts = ttk.Frame(root)
-        opts.pack(side="bottom", fill="x", padx=PAD, pady=(PAD, 4))
-        opts_ref[0] = opts
+        statusbar = ttk.Frame(outer)
+        statusbar.pack(side="bottom", fill="x", pady=(g(1), 0))
+        self._statusbar = statusbar
+        self.bar = ttk.Progressbar(outer, mode="determinate", maximum=100)
+        bar = ttk.Frame(outer)
+        bar.pack(side="bottom", fill="x", pady=(g(2), 0))
+        opts = ttk.Frame(outer)
+        opts.pack(side="bottom", fill="x", pady=(g(2), 0))
 
-        # ---- middle: file list + preview -------------------------------
-        mid = ttk.Frame(root)
-        mid.pack(fill="both", expand=True, padx=PAD)
+        # ---- body: the drop zone while empty, then the list and its tabs ---
+        body = ttk.Frame(outer)
+        body.pack(fill="both", expand=True)
+        self.empty = ttk.Frame(body, style="Card.TFrame", padding=g(4))
+        self.drop = self.empty
+        inner = ttk.Frame(self.empty)
+        inner.place(relx=0.5, rely=0.5, anchor="center")
+        self.drop_label = ttk.Label(
+            inner,
+            text="Drop PDFs here, or click to browse"
+            if HAVE_DND
+            else "Click to browse for PDFs",
+            style="Drop.TLabel",
+        )
+        self.drop_label.pack()
+        hint = ttk.Label(
+            inner,
+            text="Add folder… converts every PDF in a directory",
+            style="Muted.TLabel",
+        )
+        hint.pack(pady=(g(1), 0))
+        self._drop_widgets = [self.empty, inner, self.drop_label, hint]
+        for w in self._drop_widgets:
+            w.configure(cursor="hand2")
+            w.bind("<Button-1>", lambda _e: self.browse())
 
-        left = ttk.Frame(mid)
-        left.pack(side="left", fill="both", expand=False)
-        ttk.Label(left, text="Files", style="Head.TLabel").pack(anchor="w")
-
-        table = ttk.Frame(left)
-        table.pack(fill="both", expand=True, pady=(4, 0))
+        self.content = ttk.PanedWindow(body, orient="horizontal")
+        left = ttk.Frame(self.content)
+        self.content.add(left, weight=5)
         self.tree = ttk.Treeview(
-            table,
-            columns=("status", "pages", "words", "ocr", "tables"),
+            left,
+            columns=("pages", "status", "time"),
             show="tree headings",
             selectmode="browse",
-            height=5,
+            height=6,
         )
-        self.tree.heading("#0", text="File")
-        self.tree.heading("status", text="Status")
-        self.tree.heading("pages", text="Pages")
-        self.tree.heading("words", text="Words")
-        self.tree.heading("ocr", text="OCR")
-        self.tree.heading("tables", text="Tables (fallback)")
-        self.tree.column("#0", width=260, stretch=True)
-        self.tree.column("status", width=110, stretch=False, anchor="w")
-        self.tree.column("pages", width=54, stretch=False, anchor="e")
-        self.tree.column("words", width=64, stretch=False, anchor="e")
-        self.tree.column("ocr", width=48, stretch=False, anchor="e")
-        self.tree.column("tables", width=104, stretch=False, anchor="e")
-        sb = ttk.Scrollbar(table, orient="vertical", command=self.tree.yview)
+        self.tree.heading("#0", text="File", anchor="w")
+        self.tree.heading("pages", text="Pages", anchor="center")
+        self.tree.heading("status", text="Status", anchor="w")
+        self.tree.heading("time", text="Time", anchor="e")
+        self.tree.column("#0", width=g(22), minwidth=g(12), stretch=True)
+        self.tree.column(
+            "pages", width=g(8), minwidth=g(7), stretch=False, anchor="center"
+        )
+        self.tree.column(
+            "status", width=g(21), minwidth=g(18), stretch=False, anchor="w"
+        )
+        self.tree.column("time", width=g(8), minwidth=g(7), stretch=False, anchor="e")
+        sb = ttk.Scrollbar(left, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscrollcommand=sb.set)
         self.tree.pack(side="left", fill="both", expand=True)
         sb.pack(side="right", fill="y")
-        self.tree.tag_configure("done", foreground=OK)
-        self.tree.tag_configure("error", foreground=BAD)
-        self.tree.tag_configure("busy", foreground=ACCENT)
-        self.tree.tag_configure("warn", foreground=BAD)
         self.tree.bind("<<TreeviewSelect>>", self.on_select)
         self.tree.bind("<Motion>", self._tree_motion)
         self.tree.bind("<Leave>", lambda _e: self._hide_tip())
         self.tree.bind("<Button-3>", self._row_menu)
+        self.tree.bind("<ButtonRelease-1>", self._tree_click)
+        self.tree.bind("<Return>", self._tree_key)
         self._tip = None
         self._tip_row = None
 
-        right = ttk.Frame(mid)
-        right.pack(side="left", fill="both", expand=True, padx=(PAD, 0))
-        ttk.Label(right, text="Preview", style="Head.TLabel").pack(anchor="w")
-        pv = ttk.Frame(right)
-        pv.pack(fill="both", expand=True, pady=(4, 0))
-        self.preview = tk.Text(
-            pv,
-            wrap="word",
-            bg=CARD,
-            fg=INK,
-            relief="flat",
-            highlightbackground=LINE,
-            highlightthickness=1,
-            font=("Consolas", 9),
-            padx=10,
-            pady=8,
-            state="disabled",
-            height=8,
-        )
-        pvsb = ttk.Scrollbar(pv, orient="vertical", command=self.preview.yview)
-        self.preview.configure(yscrollcommand=pvsb.set)
-        self.preview.pack(side="left", fill="both", expand=True)
-        pvsb.pack(side="right", fill="y")
+        self.tabs = ttk.Notebook(self.content)
+        self.content.add(self.tabs, weight=4)
+        left.configure(width=g(70))
+        self.preview = self._text_tab("Preview")
         self.preview.bind("<Button-3>", self._preview_menu)
+        self.log_text = self._text_tab("Log")
 
-        # ---- options ----------------------------------------------------
-
+        # ---- options, collapsed by default ---------------------------------
         self.out_mode = tk.StringVar(value="beside")
         self.out_dir = tk.StringVar(
             value=str(pathlib.Path.home() / "Documents" / "markdown")
@@ -406,48 +558,52 @@ class App:
         self.opt_images = tk.BooleanVar(value=False)
         self.opt_math = tk.BooleanVar(value=False)
         self.opt_pages = tk.BooleanVar(value=False)
-
-        # Two independently packed columns, so a long checkbox label can never
-        # be clipped by the grid geometry of the output controls.
-        left_opts = ttk.Frame(opts)
-        left_opts.pack(side="left", fill="x", expand=True)
-        right_opts = ttk.Frame(opts)
-        right_opts.pack(side="right", anchor="n", padx=(24, 0))
-
-        ttk.Label(left_opts, text="Output", style="Head.TLabel").grid(
-            row=0, column=0, sticky="w", pady=(0, 2)
+        self.opts_open = False
+        head = ttk.Frame(opts)
+        head.pack(fill="x")
+        self.opts_toggle = ttk.Button(
+            head,
+            text="▸  Options",
+            style="Toolbutton",
+            command=self._toggle_options,
         )
-        ttk.Radiobutton(
-            left_opts,
-            text="Next to the original PDF",
-            value="beside",
-            variable=self.out_mode,
-            command=self._sync_out,
-        ).grid(row=1, column=0, sticky="w", columnspan=3)
-        ttk.Radiobutton(
-            left_opts,
-            text="This folder:",
-            value="fixed",
-            variable=self.out_mode,
-            command=self._sync_out,
-        ).grid(row=2, column=0, sticky="w")
-        self.out_entry = ttk.Entry(left_opts, textvariable=self.out_dir, width=38)
-        self.out_entry.grid(row=2, column=1, sticky="w", padx=(6, 4))
-        self.out_btn = ttk.Button(left_opts, text="Browse…", command=self.pick_out)
-        self.out_btn.grid(row=2, column=2, sticky="w")
+        self.opts_toggle.pack(side="left")
+        self.opts_summary = ttk.Label(head, text="", style="Muted.TLabel")
+        self.opts_summary.pack(side="left", padx=(g(1), 0))
 
-        ttk.Label(right_opts, text="Extras", style="Head.TLabel").pack(
-            anchor="w", pady=(0, 2)
-        )
-        ttk.Checkbutton(
-            right_opts, text="Extract images", variable=self.opt_images
-        ).pack(anchor="w")
-        ttk.Checkbutton(
-            right_opts, text="Crop equations for transcription", variable=self.opt_math
-        ).pack(anchor="w")
-        ttk.Checkbutton(
-            right_opts, text="Insert <!-- page N --> markers", variable=self.opt_pages
-        ).pack(anchor="w")
+        panel = ttk.Frame(opts, padding=(g(2), g(1), 0, 0))
+        self.opts_panel = panel
+        out_col = ttk.Frame(panel)
+        out_col.pack(side="left", fill="x", expand=True, anchor="n")
+        extra_col = ttk.Frame(panel)
+        extra_col.pack(side="left", anchor="n", padx=(g(4), 0))
+        ttk.Label(out_col, text="Output", style="Head.TLabel").pack(anchor="w")
+        for text, value in (
+            ("Next to the original PDF", "beside"),
+            ("This folder:", "fixed"),
+        ):
+            ttk.Radiobutton(
+                out_col,
+                text=text,
+                value=value,
+                variable=self.out_mode,
+                command=self._sync_out,
+            ).pack(anchor="w", pady=(g(1), 0))
+        path_row = ttk.Frame(out_col)
+        path_row.pack(fill="x", pady=(g(1), 0), padx=(g(3), 0))
+        self.out_entry = ttk.Entry(path_row, textvariable=self.out_dir, width=44)
+        self.out_entry.pack(side="left", fill="x", expand=True)
+        self.out_btn = ttk.Button(path_row, text="Change…", command=self.pick_out)
+        self.out_btn.pack(side="left", padx=(g(1), 0))
+        ttk.Label(extra_col, text="Extras", style="Head.TLabel").pack(anchor="w")
+        for text, var in (
+            ("Extract images", self.opt_images),
+            ("Crop equations for transcription", self.opt_math),
+            ("Insert <!-- page N --> markers", self.opt_pages),
+        ):
+            ttk.Checkbutton(
+                extra_col, text=text, variable=var, command=self._sync_out
+            ).pack(anchor="w", pady=(g(1), 0))
         # Explorer's Send to entry: Windows app only (it points at this exe).
         self.sendto_var = None
         self.sendto_error = None
@@ -456,18 +612,16 @@ class App:
 
             self.sendto_var = tk.BooleanVar(value=sendto.link_path().is_file())
             ttk.Checkbutton(
-                right_opts,
+                extra_col,
                 text="Add markerlite to Explorer's Send to menu",
                 variable=self.sendto_var,
                 command=self._sendto_toggle,
-            ).pack(anchor="w")
-            self.sendto_error = tk.Label(
-                right_opts,
+            ).pack(anchor="w", pady=(g(1), 0))
+            self.sendto_error = ttk.Label(
+                extra_col,
                 text="",
-                fg=BAD,
-                bg=BG,
-                font=("Segoe UI", 8),
-                wraplength=320,
+                style="Warn.TLabel",
+                wraplength=g(40),
                 justify="left",
             )
             self.sendto_error.pack(anchor="w")
@@ -475,43 +629,115 @@ class App:
 
         # ---- action bar --------------------------------------------------
         self.go = ttk.Button(
-            bar, text="Convert", style="Go.TButton", command=self.start
+            bar, text="Convert", style="Accent.TButton", command=self.start, width=10
         )
         self.go.pack(side="left")
-        ttk.Button(bar, text="Add folder…", command=self.browse_folder).pack(
-            side="left", padx=6
-        )
-        ttk.Button(bar, text="Clear", command=self.clear).pack(side="left")
-        self.open_btn = ttk.Button(
-            bar, text="Open output folder", command=self.open_out, state="disabled"
-        )
-        self.open_btn.pack(side="left")
-        self.log_btn = ttk.Button(
-            bar, text="Open log", command=self.open_log, state="disabled"
-        )
-        self.log_btn.pack(side="left", padx=(6, 0))
-        self.md_btn = ttk.Button(
-            bar, text="Open Markdown", command=self.open_md, state="disabled"
-        )
-        self.md_btn.pack(side="left", padx=6)
+        for text, command in (
+            ("Add files…", self.browse),
+            ("Add folder…", self.browse_folder),
+            ("Clear", self.clear),
+        ):
+            ttk.Button(bar, text=text, command=command).pack(
+                side="left", padx=(g(1), 0)
+            )
         self.math_btn = ttk.Button(
             bar, text="Open equation crops", command=self.open_math, state="disabled"
         )
-        self.math_btn.pack(side="left")
+        self.math_btn.pack(side="right")
+        self.md_btn = ttk.Button(
+            bar, text="Open Markdown", command=self.open_md, state="disabled"
+        )
+        self.md_btn.pack(side="right", padx=(0, g(1)))
+        self.log_btn = ttk.Button(
+            bar, text="Open log", command=self.open_log, state="disabled"
+        )
+        self.log_btn.pack(side="right", padx=(0, g(1)))
+        self.open_btn = ttk.Button(
+            bar, text="Open output folder", command=self.open_out, state="disabled"
+        )
+        self.open_btn.pack(side="right", padx=(0, g(1)))
 
         self.status = ttk.Label(statusbar, text="No files yet", style="Muted.TLabel")
         self.status.pack(side="left")
-        # The version, at the right end. A click copies one line with the
-        # version, Tesseract and Windows build, ready for a bug report.
-        self.version_label = ttk.Label(
-            statusbar, text=version_label(), style="Muted.TLabel", cursor="hand2"
+
+        if HAVE_DND:
+            # tkdnd delivers a drop to the widget under the cursor and does not
+            # propagate to parents, so every widget a file can land on is
+            # registered: the drop zone and its labels, the list and the tabs.
+            for w in self._drop_widgets + [self.tree, self.preview, self.log_text]:
+                w.drop_target_register(DND_FILES)
+                w.dnd_bind("<<Drop>>", self.on_drop)
+        self._show_body()
+
+    def _text_tab(self, title: str) -> tk.Text:
+        """A read-only text tab in the theme's colours."""
+        c, g = self.c, self.g
+        frame = ttk.Frame(self.tabs, padding=(0, g(1), 0, 0))
+        self.tabs.add(frame, text=title)
+        text = tk.Text(
+            frame,
+            wrap="word",
+            bg=c["card"],
+            fg=c["ink"],
+            insertbackground=c["ink"],
+            selectbackground=c["sel_bg"],
+            selectforeground=c["sel_fg"],
+            inactiveselectbackground=c["sel_bg"],
+            relief="flat",
+            highlightbackground=c["line"],
+            highlightcolor=c["focus"],
+            highlightthickness=1,
+            font=self.font_mono,
+            padx=g(1.5),
+            pady=g(1),
+            state="disabled",
+            height=8,
+            width=40,
         )
-        self.version_label.pack(side="right", padx=(10, 0))
-        self.version_label.bind("<Button-1>", self.copy_version)
-        # Tesseract state, right-aligned: scanned PDFs silently produce no
-        # text without it, and that was only discoverable from the output.
-        self.tess_label = ttk.Label(statusbar, text="", style="Muted.TLabel")
-        self.tess_label.pack(side="right")
+        sb = ttk.Scrollbar(frame, orient="vertical", command=text.yview)
+        text.configure(yscrollcommand=sb.set)
+        text.pack(side="left", fill="both", expand=True)
+        sb.pack(side="right", fill="y")
+        return text
+
+    def _show_body(self):
+        """The drop zone while the list is empty; the list and tabs after."""
+        if self.files:
+            self.empty.pack_forget()
+            if not self.content.winfo_manager():
+                self.content.pack(fill="both", expand=True)
+        else:
+            self.content.pack_forget()
+            if not self.empty.winfo_manager():
+                self.empty.pack(fill="both", expand=True)
+
+    def _toggle_options(self):
+        self.opts_open = not self.opts_open
+        if self.opts_open:
+            self.opts_panel.pack(fill="x")
+            self.opts_toggle.configure(text="▾  Options")
+        else:
+            self.opts_panel.pack_forget()
+            self.opts_toggle.configure(text="▸  Options")
+
+    def _options_summary(self) -> str:
+        folder = safe_display(self.out_dir.get())
+        if len(folder) > 48:
+            folder = folder[:20] + "…" + folder[-27:]
+        where = (
+            "next to each PDF" if self.out_mode.get() == "beside" else f"to {folder}"
+        )
+        extras = [
+            name
+            for name, var in (
+                ("images", self.opt_images),
+                ("equation crops", self.opt_math),
+                ("page markers", self.opt_pages),
+            )
+            if var.get()
+        ]
+        text = f"Markdown {where}"
+        return text + (" · with " + ", ".join(extras) if extras else "")
 
     def copy_version(self, _event=None) -> str:
         """Copy the bug-report line to the clipboard and say so."""
@@ -526,6 +752,7 @@ class App:
         fixed = self.out_mode.get() == "fixed"
         self.out_entry.configure(state="normal" if fixed else "disabled")
         self.out_btn.configure(state="normal" if fixed else "disabled")
+        self.opts_summary.configure(text=self._options_summary())
 
     def on_drop(self, event):
         self.add(self.root.tk.splitlist(event.data))
@@ -556,14 +783,10 @@ class App:
             if p in self.files:
                 continue
             self.files.append(p)
-            self.tree.insert(
-                "",
-                "end",
-                iid=str(p),
-                text=safe_display(p.name),
-                values=("queued", "", "", "", ""),
-            )
+            self.tree.insert("", "end", iid=str(p), text=" " + safe_display(p.name))
+            self._set_row(str(p), "queued")
             added += 1
+        self._show_body()
         skipped = len(found) - added
         msg = f"{len(self.files)} file(s) ready"
         if skipped:
@@ -644,8 +867,11 @@ class App:
             return
         self.files.clear()
         self.results.clear()
+        self.rows.clear()
         self.tree.delete(*self.tree.get_children())
         self._set_preview("")
+        self._set_text(self.log_text, "")
+        self._show_body()
         self.open_btn.configure(state="disabled")
         self.log_btn.configure(state="disabled")
         self.md_btn.configure(state="disabled")
@@ -669,17 +895,24 @@ class App:
                 self.status.configure(text="Add some PDFs first")
             return
         self._check_tesseract()
-        from markerlite.cancel import CancelToken
-
         self.running = True
-        self.cancel_token = CancelToken()
+        # The token also counts convert()'s per-page checks, which is how
+        # a row shows how far its conversion has got.
+        self.cancel_token = ProgressToken(
+            lambda src, pct: self.events.put(("progress", src, pct))
+        )
         # While a batch runs, Convert is Cancel (no confirmation: a
         # cancelled file leaves no output and finished files stay).
         self.go.configure(text="Cancel", command=self.cancel)
+        self.batch_total, self.batch_finished = len(files), 0
+        for f in files:
+            if self.tree.exists(str(f)):
+                self._set_row(str(f), "queued", percent=None, elapsed=None)
         self.bar.pack(
-            side="bottom", fill="x", padx=PAD, pady=(0, 6), before=self._opts_ref[0]
+            side="bottom", fill="x", pady=(self.g(1), 0), after=self._statusbar
         )
-        self.bar.configure(maximum=len(files), value=0)
+        self.bar.configure(value=0)
+        self._set_text(self.log_text, "")
         # Tk variables belong to the main thread: read them here, once, and
         # hand the worker a plain snapshot. Reading them from the worker is a
         # data race, and it also let a mid-run checkbox change alter the batch.
@@ -707,6 +940,8 @@ class App:
         # Feedback first, on this (Tk) thread, before the worker notices.
         self.status.configure(text=text)
         self.go.configure(state=state)
+        if self.current_src and self.current_src in self.rows:
+            self._set_row(self.current_src, "cancelling")
         self.cancel_token.cancel()
 
     def _worker(self, files: list[pathlib.Path], opts: ConversionOptions, token):
@@ -737,8 +972,18 @@ class App:
                     logs[path].append(line)
             except Exception:
                 pass
+            # The same line in the window's Log tab.
+            self.events.put(("log", line))
 
-        outcome = run_batch(files, opts, convert, token, self.events.put, log)
+        def page_count(pdf: pathlib.Path) -> int:
+            import pymupdf
+
+            with pymupdf.open(pdf) as doc:
+                return len(doc)
+
+        outcome = run_batch(
+            files, opts, convert, token, self.events.put, log, page_count=page_count
+        )
         self.events.put(("finished", sorted(logs), outcome))
 
     def _drain(self):
@@ -747,43 +992,31 @@ class App:
                 ev = self.events.get_nowait()
                 kind = ev[0]
                 if kind == "busy":
-                    self.tree.item(
-                        ev[1],
-                        values=("converting\u2026", "", "", "", ""),
-                        tags=("busy",),
+                    src = ev[1]
+                    self.current_src = src
+                    self.rows.setdefault(src, {})["t0"] = time.monotonic()
+                    cancelling = (
+                        self.cancel_token is not None and self.cancel_token.is_set()
                     )
-                    self.tree.see(ev[1])
+                    self._set_row(src, "cancelling" if cancelling else "converting")
+                    self.tree.see(src)
                     self.status.configure(
-                        text=busy_status(
-                            pathlib.Path(ev[1]).name,
-                            self.cancel_token is not None
-                            and self.cancel_token.is_set(),
-                        )
+                        text=busy_status(pathlib.Path(src).name, cancelling)
                     )
+                elif kind == "pages":
+                    self._set_row(ev[1], pages=ev[2])
+                elif kind == "progress":
+                    _, src, pct = ev
+                    row = self.rows.get(src, {})
+                    if row.get("state") == "converting":
+                        self._set_row(src, percent=pct, elapsed=self._since(src))
+                    self._set_progress(pct)
+                elif kind == "log":
+                    self._append_text(self.log_text, ev[1])
                 elif kind == "done":
                     _, src, md, stats = ev
                     eqs = stats.get("equations", 0)
-                    label = "converted" + (f" · {eqs} eq" if eqs else "")
                     warnings = self._warnings(stats)
-                    pages = stats.get("pages", 0)
-                    tables = stats.get("tables", 0)
-                    fell = stats.get("tables_fallback", 0)
-                    values = (
-                        label,
-                        pages,
-                        stats.get("words", ""),
-                        f"{stats.get('ocr_pages', 0)}/{pages}"
-                        if stats.get("ocr_pages") or stats.get("image_only_pages")
-                        else "\u2013",
-                        f"{tables} ({fell})" if tables else "\u2013",
-                    )
-                    name = safe_display(pathlib.Path(src).name)
-                    self.tree.item(
-                        src,
-                        text=("\u26a0 " + name) if warnings else name,
-                        values=values,
-                        tags=("warn",) if warnings else ("done",),
-                    )
                     self.results[src] = {
                         "md": md,
                         "eqs": eqs,
@@ -791,19 +1024,29 @@ class App:
                         "warnings": warnings,
                         "provenance": self._provenance_of(md),
                     }
-                    self.bar.step(1)
+                    self._set_row(
+                        src,
+                        "done",
+                        warnings=len(warnings),
+                        pages=stats.get("pages") or self.rows.get(src, {}).get("pages"),
+                        elapsed=self._since(src),
+                    )
+                    self._file_finished()
                     if not self.tree.selection():
                         self.tree.selection_set(src)
                 elif kind in ("cancelled", "skipped"):
-                    self.tree.item(ev[1], values=(kind, "", "", "", ""), tags=())
-                    self.bar.step(1)
+                    src = ev[1]
+                    self._set_row(
+                        src,
+                        kind,
+                        elapsed=self._since(src) if kind == "cancelled" else None,
+                    )
+                    self._file_finished()
                 elif kind == "error":
                     _, src, msg = ev
-                    self.tree.item(
-                        src, values=("failed", "", "", "", ""), tags=("error",)
-                    )
+                    self._set_row(src, "failed", elapsed=self._since(src))
                     self.results[src] = {"error": msg}
-                    self.bar.step(1)
+                    self._file_finished()
                 elif kind == "fatal":
                     self._set_preview(
                         "markerlite could not be imported.\n\n"
@@ -853,6 +1096,7 @@ class App:
     def _finish(self):
         self.running = False
         self.cancel_token = None
+        self.current_src = None
         self.go.configure(text="Convert", command=self.start, state="normal")
         self.bar.pack_forget()
         done = [r for r in self.results.values() if "md" in r]
@@ -893,6 +1137,73 @@ class App:
             queued, self.pending = self.pending, []
             self.root.after(100, lambda: self.start(only=queued))
 
+    # ------------------------------------------------------------ rows
+    def _set_row(self, src: str, state: str | None = None, **fields):
+        """Update a row's state and redraw its Pages, Status and Time cells.
+        The text of every state comes from gui_logic.status_cell."""
+        if not self.tree.exists(src):
+            return
+        row = self.rows.setdefault(src, {"state": "queued"})
+        if state is not None:
+            row["state"] = state
+            if state != "converting":
+                row["percent"] = None
+        row.update(fields)
+        text, dot = status_cell(
+            row["state"], row.get("percent"), row.get("warnings", 0)
+        )
+        pages = row.get("pages")
+        self.tree.item(
+            src,
+            image=self.dots[dot],
+            values=(pages if pages else "", text, elapsed_text(row.get("elapsed"))),
+        )
+
+    def _since(self, src: str):
+        t0 = self.rows.get(src, {}).get("t0")
+        return None if t0 is None else time.monotonic() - t0
+
+    def _set_progress(self, percent: int):
+        self.bar.configure(
+            value=overall_progress(self.batch_finished, percent, self.batch_total)
+        )
+
+    def _file_finished(self):
+        self.batch_finished += 1
+        self._set_progress(0)
+
+    def _tree_click(self, event):
+        """A click on "Done with N warnings" opens Show warnings."""
+        row = self.tree.identify_row(event.y)
+        if row and self._on_warnings_cell(row, event.x):
+            self._show_warnings(row)
+
+    def _tree_key(self, _event=None):
+        """Enter on a row with warnings opens them, like the click."""
+        sel = self.tree.selection()
+        if sel and self.rows.get(sel[0], {}).get("warnings"):
+            self._show_warnings(sel[0])
+
+    def _on_warnings_cell(self, row: str, x: int) -> bool:
+        info = self.rows.get(row, {})
+        return (
+            info.get("state") == "done"
+            and bool(info.get("warnings"))
+            and self.tree.identify_column(x) == "#2"
+        )
+
+    def _set_text(self, widget: tk.Text, text: str):
+        widget.configure(state="normal")
+        widget.delete("1.0", "end")
+        widget.insert("1.0", text)
+        widget.configure(state="disabled")
+
+    def _append_text(self, widget: tk.Text, line: str):
+        widget.configure(state="normal")
+        widget.insert("end", line + "\n")
+        widget.configure(state="disabled")
+        widget.see("end")
+
     # ---------------------------------------------------------------- results
     @staticmethod
     def _warnings(stats: dict) -> list[str]:
@@ -915,12 +1226,15 @@ class App:
 
     def _tree_motion(self, event):
         row = self.tree.identify_row(event.y)
+        on_warnings = bool(row) and self._on_warnings_cell(row, event.x)
+        self.tree.configure(cursor="hand2" if on_warnings else "")
         if row != self._tip_row:
             self._hide_tip()
             self._tip_row = row
             res = self.results.get(row)
             if res and "stats" in res:
                 text = self._summary(res["stats"])
+                text += "\n" + row_details(res["stats"])
                 for cite in res.get("provenance", []):
                     text += "\n" + cite
                 self._show_tip(text, event.x_root + 12, event.y_root + 16)
@@ -933,11 +1247,11 @@ class App:
             tip,
             text=text,
             justify="left",
-            bg="#fff8e1",
-            fg=INK,
+            bg=self.c["card"],
+            fg=self.c["ink"],
             relief="solid",
             borderwidth=1,
-            font=("Segoe UI", 9),
+            font=self.font_body,
             padx=8,
             pady=5,
             wraplength=520,
@@ -1030,16 +1344,18 @@ class App:
             wrap="word",
             width=80,
             height=min(20, len(lines) + 2),
-            font=("Segoe UI", 9),
-            padx=10,
-            pady=8,
-            bg=CARD,
-            fg=INK,
+            font=self.font_body,
+            padx=self.g(1.5),
+            pady=self.g(1),
+            bg=self.c["card"],
+            fg=self.c["ink"],
+            relief="flat",
         )
         text.insert("1.0", "\n".join(lines))
         text.configure(state="disabled")  # read-only
         text.pack(fill="both", expand=True)
-        ttk.Button(win, text="Close", command=win.destroy).pack(pady=(0, 8))
+        win.configure(bg=self.c["bg"])
+        ttk.Button(win, text="Close", command=win.destroy).pack(pady=self.g(1))
         win.bind("<Escape>", lambda _e: win.destroy())
 
     def _reconvert(self, src: str):
@@ -1056,9 +1372,11 @@ class App:
         if path in self.files:
             self.files.remove(path)
         self.results.pop(src, None)
+        self.rows.pop(src, None)
         if self.tree.exists(src):
             self.tree.delete(src)
         self._set_preview("")
+        self._show_body()
         self.status.configure(text=f"{len(self.files)} file(s) ready")
 
     def _preview_menu(self, event):
@@ -1108,10 +1426,7 @@ class App:
         self._set_preview(text)
 
     def _set_preview(self, text: str):
-        self.preview.configure(state="normal")
-        self.preview.delete("1.0", "end")
-        self.preview.insert("1.0", text)
-        self.preview.configure(state="disabled")
+        self._set_text(self.preview, text)
 
     # ---------------------------------------------------------------- opening
     def _reveal(self, path: pathlib.Path):
@@ -1222,6 +1537,16 @@ def write_diagnostics() -> pathlib.Path:
             r.destroy()
         except Exception:
             lines.append("TkinterDnD.Tk()  FAILED:\n" + traceback.format_exc())
+    # The theme as the window would load it: sv-ttk, then the recoloured
+    # accent (CI asserts this line for the source run and the frozen exe).
+    try:
+        r = TkinterDnD.Tk() if HAVE_DND else tk.Tk()
+        r.withdraw()
+        theme = theme_for(windows_apps_use_light(), os.environ.get("MARKERLITE_THEME"))
+        lines.append(f"theme       {load_theme(r, theme)}")
+        r.destroy()
+    except Exception as exc:
+        lines.append(f"theme       FAILED: {type(exc).__name__}: {exc}")
     exe_dir = pathlib.Path(sys.executable).parent if frozen else base
     out = exe_dir / "markerlite-diag.txt"
     out.write_text("\n".join(lines) + "\n", encoding="utf-8")

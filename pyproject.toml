@@ -19,7 +19,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-gui = ["tkinterdnd2>=0.4,<1"]
+# sv-ttk is pinned exactly: assets/sv-ttk holds its spritesheets recoloured
+# to the logo blue (tools/recolour_sprites.py), which must match its version.
+gui = ["tkinterdnd2>=0.4,<1", "sv-ttk==2.6.1"]
 build = [
   "pyinstaller>=6,<7",
   "pyinstaller-hooks-contrib>=2025,<2027",
