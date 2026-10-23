@@ -528,7 +528,11 @@ def row_details(stats: dict) -> str:
 
 
 def main_menu_state(
-    running: bool, row_states: list[dict], has_output: bool, has_log: bool
+    running: bool,
+    row_states: list[dict],
+    has_output: bool,
+    has_log: bool,
+    has_finished: bool | None = None,
 ) -> dict:
     """Main menu commands use the same per-row decisions as the context menu."""
     return {
@@ -537,9 +541,19 @@ def main_menu_state(
         "Copy Markdown": any(row.get("Copy Markdown", False) for row in row_states),
         "Show warnings": any(row.get("Show warnings", False) for row in row_states),
         "Remove from list": bool(row_states) and not running,
-        "Clear finished": has_output and not running,
+        "Clear finished": (has_output if has_finished is None else has_finished)
+        and not running,
         "Clear list": bool(row_states) and not running,
         "Select all": bool(row_states),
         "Open output folder": has_output,
         "Log": has_log,
     }
+
+
+def finished_rows(rows: dict) -> list[str]:
+    """Terminal rows can be removed without changing queued or active work."""
+    return [
+        src
+        for src, row in rows.items()
+        if row.get("state") in {"done", "failed", "cancelled", "skipped"}
+    ]

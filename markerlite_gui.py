@@ -39,6 +39,7 @@ from markerlite.gui_logic import (
     cancel_pressed,
     elapsed_text,
     finish_status,
+    finished_rows,
     handoff_plan,
     launch_paths,
     main_menu_state,
@@ -349,7 +350,23 @@ class App:
         entry("Help", "Report a problem", self.report_problem)
         entry("Help", "Check for updates", self.check_updates)
         entry("Help", "About markerlite", self.about)
+        self._theme_menus()
         self._refresh_menus()
+
+    def _theme_menus(self):
+        pending = [self.menu_bar]
+        while pending:
+            menu = pending.pop()
+            menu.configure(
+                background=self.c["bg"],
+                foreground=self.c["ink"],
+                disabledforeground=self.c["muted"],
+                activebackground=self.c["sel_bg"],
+                activeforeground=self.c["sel_fg"],
+            )
+            pending.extend(
+                child for child in menu.children.values() if isinstance(child, tk.Menu)
+            )
 
     def _refresh_menus(self):
         states = [self._row_state(str(p)) for p in self.files]
@@ -358,6 +375,7 @@ class App:
             states,
             any("md" in r for r in self.results.values()),
             bool(self.log_paths),
+            bool(finished_rows(self.rows)),
         )
         selected = list(self.tree.selection())
         for label in ("Copy Markdown", "Show warnings", "Remove from list"):
@@ -393,9 +411,8 @@ class App:
         self.tree.selection_set(self.tree.get_children())
 
     def clear_finished(self):
-        for src in list(self.results):
-            if "md" in self.results[src]:
-                self._remove(src)
+        for src in finished_rows(self.rows):
+            self._remove(src)
 
     def resize_preview(self, delta):
         self.preview_size = max(6, min(32, self.preview_size + delta))
@@ -410,6 +427,7 @@ class App:
         )
         self.c = PALETTES[self.theme]
         self._style()
+        self._theme_menus()
         for widget in (self.preview, self.log_text):
             widget.configure(
                 bg=self.c["card"],
@@ -456,8 +474,7 @@ class App:
         )
         if destination:
             try:
-                source = write_diagnostics()
-                pathlib.Path(destination).write_bytes(source.read_bytes())
+                write_diagnostics(pathlib.Path(destination))
                 self.status.configure(text=f"Diagnostics saved to {destination}")
             except OSError as exc:
                 messagebox.showerror("Diagnostics", str(exc), parent=self.root)
@@ -466,6 +483,7 @@ class App:
         win = tk.Toplevel(self.root)
         win.title("About markerlite")
         win.transient(self.root)
+        win.configure(bg=self.c["bg"])
         ttk.Label(
             win, text=f"markerlite {__version__}\nApache-2.0", padding=self.g(2)
         ).pack()
@@ -514,7 +532,9 @@ class App:
     def show_update(self, result):
         win = tk.Toplevel(self.root)
         win.title("Check for updates")
+        win.minsize(self.g(36), 1)
         win.transient(self.root)
+        win.configure(bg=self.c["bg"])
         ttk.Label(win, text=result.message, padding=self.g(2)).pack()
         if result.url:
             ttk.Button(
@@ -536,6 +556,7 @@ class App:
         win = tk.Toplevel(self.root)
         win.title("Check OCR")
         win.transient(self.root)
+        win.configure(bg=self.c["bg"])
         for text in (
             f"Tesseract: {status.version or 'not found'}",
             f"Path: {status.path or 'not found'}",
@@ -593,6 +614,7 @@ class App:
         win = self.preferences_window = tk.Toplevel(self.root)
         win.title("Preferences")
         win.transient(self.root)
+        win.configure(bg=self.c["bg"])
         frame = ttk.Frame(win, padding=self.g(2))
         frame.pack(fill="both", expand=True)
         mode = tk.StringVar(value=self.settings["output_mode"])
@@ -1100,9 +1122,10 @@ class App:
             ("Add folder…", self.browse_folder),
             ("Clear", self.clear),
         ):
-            ttk.Button(bar, text=text, command=command).pack(
-                side="left", padx=(g(1), 0)
-            )
+            button = ttk.Button(bar, text=text, command=command)
+            button.pack(side="left", padx=(g(1), 0))
+            if command == self.clear:
+                self.clear_btn = button
         self.math_btn = ttk.Button(
             bar, text="Open equation crops", command=self.open_math, state="disabled"
         )
@@ -1371,6 +1394,7 @@ class App:
         # While a batch runs, Convert is Cancel (no confirmation: a
         # cancelled file leaves no output and finished files stay).
         self.go.configure(text="Cancel", command=self.cancel)
+        self.clear_btn.configure(state="disabled")
         self.batch_total, self.batch_finished = len(files), 0
         for f in files:
             if self.tree.exists(str(f)):
@@ -1567,6 +1591,7 @@ class App:
         self.cancel_token = None
         self.current_src = None
         self.go.configure(text="Convert", command=self.start, state="normal")
+        self.clear_btn.configure(state="normal")
         self.bar.pack_forget()
         done = [r for r in self.results.values() if "md" in r]
         bad = sum(1 for r in self.results.values() if "error" in r)
@@ -1810,6 +1835,7 @@ class App:
         win = tk.Toplevel(self.root)
         win.title(f"Warnings — {safe_display(pathlib.Path(src).name)}")
         win.transient(self.root)
+        win.configure(bg=self.c["bg"])
         text = tk.Text(
             win,
             wrap="word",
@@ -1844,6 +1870,9 @@ class App:
             self.files.remove(path)
         self.results.pop(src, None)
         self.rows.pop(src, None)
+        if not any("md" in result for result in self.results.values()):
+            self.open_btn.configure(state="disabled")
+            self.md_btn.configure(state="disabled")
         if self.tree.exists(src):
             self.tree.delete(src)
         self._set_preview("")
@@ -1957,7 +1986,7 @@ class App:
                     return
 
 
-def write_diagnostics() -> pathlib.Path:
+def write_diagnostics(destination: pathlib.Path | None = None) -> pathlib.Path:
     """`markerlite --diag`: dump what the app can see about its environment.
 
     A windowed exe has no console, so this goes to a file beside it. Meant for
@@ -2026,7 +2055,7 @@ def write_diagnostics() -> pathlib.Path:
     except Exception as exc:
         lines.append(f"theme       FAILED: {type(exc).__name__}: {exc}")
     exe_dir = pathlib.Path(sys.executable).parent if frozen else base
-    out = exe_dir / "markerlite-diag.txt"
+    out = destination if destination is not None else exe_dir / "markerlite-diag.txt"
     out.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return out
 

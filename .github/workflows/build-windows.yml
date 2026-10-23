@@ -82,6 +82,18 @@ jobs:
       - name: Golden fixture hashes
         run: python tests/golden.py verify --scope fixtures
 
+      - name: Capture GUI menus and dialogs (synthetic fixture only)
+        timeout-minutes: 3
+        run: python tools/capture_gui.py
+
+      - name: Upload GUI screenshots for visual review
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: gui-screenshots
+          path: gui-screenshots/
+          if-no-files-found: warn
+
       - name: Build
         run: |
           pyinstaller --noconfirm --onedir --windowed `

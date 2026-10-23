@@ -210,7 +210,16 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
   of the header. Clicking it copies `markerlite <version> · Tesseract
   <version or not found> · Windows <platform.version()>` for a bug report.
   All three strings come from `markerlite/gui_logic.py` and `__version__`;
-  nothing is hard-coded. No About dialog or menu.
+  nothing is hard-coded. Native File/Edit/View/Tools/Help menus share
+  button and row handlers; Preferences holds app-wide output, Explorer,
+  OCR and theme choices in %APPDATA%/markerlite/settings.json (schema 2,
+  schema 1 migrates; invalid settings log a defaults reset). Run options
+  remain in Options. MARKERLITE_THEME overrides the saved theme. The
+  Tesseract header opens Tools → Check OCR. Help has About/license links
+  and a user-initiated update check: one HTTPS GET to GitHub's latest
+  release API, ten-second timeout, no startup requests, redirects, retries
+  or polling. Help links hand off to the OS browser. GUI tests cover pure
+  logic; tests/REPORT-menus-stop3.md records the menu/preferences checks.
 - The header shows Tesseract's version (or a warning) at startup and on
   every Convert. The file list's columns are File · Pages · Status · Time;
   Status text and its dot come from gui_logic.status_cell (Queued,

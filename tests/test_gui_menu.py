@@ -85,3 +85,29 @@ def test_main_menu_reuses_row_enablement():
     assert (
         not busy["Convert"] and not busy["Remove from list"] and not busy["Clear list"]
     )
+
+
+def test_clear_finished_includes_all_terminal_states():
+    from markerlite.gui_logic import finished_rows, main_menu_state
+
+    rows = {
+        state: {"state": state}
+        for state in (
+            "queued",
+            "converting",
+            "cancelling",
+            "done",
+            "failed",
+            "cancelled",
+            "skipped",
+        )
+    }
+    assert finished_rows(rows) == ["done", "failed", "cancelled", "skipped"]
+    state = main_menu_state(
+        False, [menu_state(True, False, False, False)], False, False, True
+    )
+    assert state["Clear finished"] and not state["Open output folder"]
+    busy = main_menu_state(
+        True, [menu_state(True, False, False, True)], False, False, True
+    )
+    assert not busy["Clear finished"]
