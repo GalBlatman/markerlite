@@ -3,6 +3,29 @@
 Changes that affect output or use, newest first. Every release's golden
 audit (tests/golden.py) lists which reference documents changed and why.
 
+## v0.2.0 (unreleased)
+
+### What's new in 0.2.0
+
+![The refreshed window after a batch](docs/images/markerlite-window.png)
+
+- **A refreshed Windows app.** The Sun Valley (Windows 11) look, light or
+  dark as Windows is set, in the logo's blue. A large drop zone while the
+  list is empty; the list shows each file's pages, status and time, with
+  a live percentage while it converts. Click "Done with N warnings" to
+  read them. Preview and Log are tabs; options fold away.
+- Nothing about conversion has changed: every reference document converts
+  to the same Markdown as in v0.1.18.
+
+### App
+
+- Theme: sv-ttk 2.6.1 (MIT), bundled and pinned. `MARKERLITE_THEME=light`
+  or `dark` overrides the Windows setting. `--diag` reports the theme that
+  loaded.
+- The window sizes its text and spacing for the monitor it opens on (it
+  used the primary monitor's scaling before).
+- The Words, OCR and Tables columns moved into each row's tooltip.
+
 ## v0.1.18
 
 Tables: a confidence gate, evidence labels and a drawn-box test. Scans:

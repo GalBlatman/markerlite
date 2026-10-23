@@ -97,6 +97,87 @@ BASE_SIZE = 10  # points: the one body size
 GRID = 8  # spacing unit in pixels at 96 dpi, scaled to the monitor
 
 
+def bundle_dir() -> pathlib.Path:
+    """Where bundled files live: PyInstaller unpacks data under
+    sys._MEIPASS; from source the assets folder sits beside this file."""
+    return pathlib.Path(
+        getattr(sys, "_MEIPASS", pathlib.Path(__file__).resolve().parent)
+    )
+
+
+def _apply_accent(root: tk.Tk, theme: str) -> int:
+    """Copy the recoloured accent sprites over sv-ttk's own images; returns
+    how many sprites were replaced. Raises if anything is missing.
+
+    sv-ttk draws its accent controls from a spritesheet, so the accent is
+    not a colour option. assets/sv-ttk holds the same sheets with the accent
+    sprites in the logo blue (tools/recolour_sprites.py). Copying keeps each
+    pixel's alpha, in Tk 8.6 and 9. Sprite positions come from sv-ttk's own
+    sprite table."""
+    import re
+
+    import sv_ttk
+
+    sheet = bundle_dir() / "assets" / "sv-ttk" / f"spritesheet_{theme}.png"
+    table = pathlib.Path(sv_ttk.__file__).with_name("theme") / f"sprites_{theme}.tcl"
+    for path in (sheet, table):
+        if not path.is_file():
+            raise FileNotFoundError(path)
+    image_sheet = tk.PhotoImage(master=root, file=str(sheet))
+    root._accent_sheet = image_sheet  # keep a reference while Tk uses it
+    sprites = {
+        name: tuple(map(int, rest))
+        for name, *rest in re.findall(
+            r"(\S+) (\d+) (\d+) (\d+) (\d+)", table.read_text()
+        )
+    }
+    call = root.tk.call
+    pairs = root.tk.splitlist(call("array", "get", f"ttk::theme::sv_{theme}::I"))
+    copied = 0
+    for name, image in zip(pairs[0::2], pairs[1::2]):
+        if name in sprites:
+            x, y, w, h = sprites[name]
+            call(
+                image, "copy", image_sheet,
+                "-from", x, y, x + w, y + h,
+                "-to", 0, 0,
+                "-compositingrule", "set",
+            )  # fmt: skip
+            copied += 1
+    if not copied:
+        raise RuntimeError("no sv-ttk sprites matched")
+    return copied
+
+
+def load_theme(root: tk.Tk, theme: str) -> str:
+    """Apply sv-ttk in ``theme`` with the logo-blue accent. Never raises:
+    a failed recolour keeps sv-ttk's stock accent, a missing sv-ttk falls
+    back to Tk's clam theme. Returns one line saying which happened, for
+    the window and for --diag."""
+    try:
+        import sv_ttk
+
+        sv_ttk.set_theme(theme, root)
+    except Exception as exc:
+        try:
+            ttk.Style(root).theme_use("clam")
+        except tk.TclError:
+            pass
+        return f"clam (sv-ttk not loaded: {type(exc).__name__}: {exc})"
+    try:
+        from importlib.metadata import version
+
+        name = f"sv-ttk {version('sv-ttk')}"
+    except Exception:
+        name = "sv-ttk (version unknown)"
+    try:
+        accent = f"accent recoloured ({_apply_accent(root, theme)} sprites)"
+    except Exception as exc:
+        accent = f"stock accent (recolour failed: {type(exc).__name__}: {exc})"
+    tk_version = root.tk.call("info", "patchlevel")
+    return f"{name} {theme}, {accent}, Tk {tk_version}"
+
+
 class App:
     def __init__(self, root: tk.Tk, events=None, initial=None):
         self.root = root
@@ -275,29 +356,14 @@ class App:
             pass
 
     # ---------------------------------------------------------------- style
-    def _bundle(self) -> pathlib.Path:
-        """Where bundled files live: PyInstaller unpacks data under
-        sys._MEIPASS; from source the assets folder sits beside this file."""
-        return pathlib.Path(
-            getattr(sys, "_MEIPASS", pathlib.Path(__file__).resolve().parent)
-        )
-
     def _style(self):
         """Sun Valley (sv-ttk), the Windows 11 look, in the Windows app mode,
         with the logo blue as its accent. Without sv-ttk (a source run that
-        lacks it) the stock clam theme is used and everything still works."""
+        lacks it) the stock clam theme is used and everything still works;
+        if only the accent cannot be recoloured, sv-ttk keeps its own."""
         s = ttk.Style()
         c = self.c
-        try:
-            import sv_ttk
-
-            sv_ttk.set_theme(self.theme, self.root)
-            self._apply_accent()
-        except Exception:
-            try:
-                s.theme_use("clam")
-            except tk.TclError:
-                pass
+        self.theme_status = load_theme(self.root, self.theme)
         families = set(tkfont.families(self.root))
 
         def pick(*names):
@@ -361,46 +427,6 @@ class App:
         self.root.configure(bg=c["bg"])
         self.dots = {key: self._dot(c[name]) for key, name in DOT_COLOUR.items()}
 
-    def _apply_accent(self):
-        """Copy the recoloured accent sprites over sv-ttk's own images.
-
-        sv-ttk draws its accent controls from a spritesheet, so the accent is
-        not a colour option. assets/sv-ttk holds the same sheets with the
-        accent sprites in the logo blue (tools/recolour_sprites.py). Copying
-        keeps each pixel's alpha, in Tk 8.6 and 9. Sprite positions come from
-        sv-ttk's own sprite table."""
-        import re
-
-        import sv_ttk
-
-        theme = self.theme
-        sheet = self._bundle() / "assets" / "sv-ttk" / f"spritesheet_{theme}.png"
-        table = (
-            pathlib.Path(sv_ttk.__file__).with_name("theme") / f"sprites_{theme}.tcl"
-        )
-        if not sheet.is_file() or not table.is_file():
-            return
-        self._accent_sheet = tk.PhotoImage(file=str(sheet))
-        sprites = {
-            name: tuple(map(int, rest))
-            for name, *rest in re.findall(
-                r"(\S+) (\d+) (\d+) (\d+) (\d+)", table.read_text()
-            )
-        }
-        call = self.root.tk.call
-        pairs = self.root.tk.splitlist(
-            call("array", "get", f"ttk::theme::sv_{theme}::I")
-        )
-        for name, image in zip(pairs[0::2], pairs[1::2]):
-            if name in sprites:
-                x, y, w, h = sprites[name]
-                call(
-                    image, "copy", self._accent_sheet,
-                    "-from", x, y, x + w, y + h,
-                    "-to", 0, 0,
-                    "-compositingrule", "set",
-                )  # fmt: skip
-
     def _dot(self, colour: str) -> tk.PhotoImage:
         """A small filled circle that leads a row: its status colour."""
         d = max(8, int(round(9 * self.scale)))
@@ -423,7 +449,7 @@ class App:
         header.pack(side="top", fill="x", pady=(0, g(2)))
         self._logo = None
         try:
-            logo = tk.PhotoImage(file=str(self._bundle() / "assets" / "icon-256.png"))
+            logo = tk.PhotoImage(file=str(bundle_dir() / "assets" / "icon-256.png"))
             step = max(1, int(round(256 / (32 * self.scale))))
             self._logo = logo.subsample(step, step)
             ttk.Label(header, image=self._logo).pack(side="left")
@@ -1511,6 +1537,16 @@ def write_diagnostics() -> pathlib.Path:
             r.destroy()
         except Exception:
             lines.append("TkinterDnD.Tk()  FAILED:\n" + traceback.format_exc())
+    # The theme as the window would load it: sv-ttk, then the recoloured
+    # accent (CI asserts this line for the source run and the frozen exe).
+    try:
+        r = TkinterDnD.Tk() if HAVE_DND else tk.Tk()
+        r.withdraw()
+        theme = theme_for(windows_apps_use_light(), os.environ.get("MARKERLITE_THEME"))
+        lines.append(f"theme       {load_theme(r, theme)}")
+        r.destroy()
+    except Exception as exc:
+        lines.append(f"theme       FAILED: {type(exc).__name__}: {exc}")
     exe_dir = pathlib.Path(sys.executable).parent if frozen else base
     out = exe_dir / "markerlite-diag.txt"
     out.write_text("\n".join(lines) + "\n", encoding="utf-8")

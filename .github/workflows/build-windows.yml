@@ -64,6 +64,10 @@ jobs:
           $first = Get-Content markerlite-diag.txt -TotalCount 1
           if ($first -ne $want) { throw "diag first line is '$first', expected '$want'" }
           Select-String -Path markerlite-diag.txt -Pattern "tesseract.*path=.*Tesseract-OCR"
+          # The theme loaded with the logo-blue accent (Tk 8.6 on this runner).
+          $theme = Select-String -Path markerlite-diag.txt -Pattern "^theme +sv-ttk \S+ \w+, accent recoloured"
+          if (-not $theme) { throw "theme not loaded: $(Select-String -Path markerlite-diag.txt -Pattern '^theme')" }
+          $theme.Line
           python -c "import pathlib,tempfile,markerlite; d=tempfile.TemporaryDirectory(); _,i=markerlite.convert(pathlib.Path('tests/fixtures/scanned.pdf'), pathlib.Path(d.name)); assert i['stats']['ocr_pages'] == 2; assert i['stats']['words'] > 100"
           Remove-Item markerlite-diag.txt
 
@@ -102,6 +106,9 @@ jobs:
           if ($diag.ExitCode -ne 0) { throw "diagnostics exited $($diag.ExitCode)" }
           if (!(Test-Path dist\markerlite\markerlite-diag.txt)) { throw "diagnostics missing" }
           Select-String -Path dist\markerlite\markerlite-diag.txt -Pattern "frozen=True", "TkinterDnD.Tk\(\)  OK"
+          $theme = Select-String -Path dist\markerlite\markerlite-diag.txt -Pattern "^theme +sv-ttk \S+ \w+, accent recoloured"
+          if (-not $theme) { throw "frozen theme not loaded: $(Select-String -Path dist\markerlite\markerlite-diag.txt -Pattern '^theme')" }
+          $theme.Line
           # The windowed exe has no console: its version is read from the
           # first line of the diagnostics file, never from exe --version.
           $want = "markerlite $(python -c "import markerlite; print(markerlite.__version__)")"

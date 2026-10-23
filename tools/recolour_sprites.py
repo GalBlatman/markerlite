@@ -93,7 +93,12 @@ def recolour(theme: str) -> Image.Image:
 
 
 def main() -> None:
+    from importlib.metadata import version
+
     OUT.mkdir(parents=True, exist_ok=True)
+    # The sheets match this sv-ttk version only; tests/test_sv_sprites.py
+    # fails when the installed sv-ttk differs from it.
+    (OUT / "SV_TTK_VERSION").write_text(version("sv-ttk") + "\n", encoding="ascii")
     for theme in ("light", "dark"):
         recolour(theme).save(OUT / f"spritesheet_{theme}.png", optimize=True)
         print(f"wrote {OUT / f'spritesheet_{theme}.png'}")
