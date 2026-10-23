@@ -1,4 +1,4 @@
-# Block 2 stop 3 — B1 diagnosis
+# Block 2 stop 3 — diagnosis, held-out study and repairs
 
 No converter changes. Sources were read in place. Original rendered pages were
 reviewed at 2x: R00077 pp. 28–32, R00315 p. 14, R00258 (Jay 2013) p. 6.
@@ -329,3 +329,70 @@ only the earlier gold set and training evidence may inform B3 changes.
 
 The seeded-selection commit 9dec1f6 passes the full archived audit: 89/89
 Markdown/stats hashes match v0.1.18, zero OCR skips, exit status 0.
+
+### B2 baseline precision (computed after label commit f672892)
+
+Correct kept grids: **2/60 = 0.0333**. Two-sided 95% Wilson interval:
+**0.0092–0.1136** (0.9%–11.4%). The sample spans 24 documents. This is
+grid-weighted precision on a uniform 60-grid sample from the 219 emitted
+grids in the uniform 80-document draw; it is not document-weighted precision.
+The interval is the same binomial Wilson metric used in stop 2; grids within
+a document can be dependent. Both independent passes agreed on all 60 labels.
+No held-out defect examples are used to choose B3 changes.
+
+## B3.1 — wrapped record rows
+
+Training evidence: R00077 PDF p. 8, visually checked against the rendered page.
+Its two short record keys each wrap after a dash; the following printed line
+also fills all four columns. Treating each complete line as a fresh record
+split each printed row in two. The repair requires the preceding key to end
+in a hyphen/dash, an adjacent hanging-indent continuation, short record keys,
+and complete independent row starts. It reuses the winning grid's column
+assignment and score. A header box plus one undivided booktabs body box gives
+no internal row evidence; independently delimited rows retain their geometry.
+Numeric tables retain their existing path. This changes cell ownership only,
+not word dehyphenation, glyph decoding, gate thresholds or table_recon.py.
+The full source-token multiset must match before a repaired grid is accepted.
+
+Synthetic fixture: wrapped_record_rows.pdf. The immutable pre-fix converter
+collapses its two records into one body row (2 × 3 including the header);
+the repair produces the printed 3 × 3 table with every source token. It is
+rendered and visually checked. The focused tests also protect independently
+aligned complete keys, numeric winners, distant prose and ambiguous records.
+
+| Gold table metric | Before | After |
+| --- | ---: | ---: |
+| EXACT | 1 | 1 |
+| GRID-NEAR | 4 | 4 |
+| GRID-WRONG | 15 | 15 |
+| PROSE | 9 | 9 |
+| Mean cell association | 0.441828 | 0.442931 |
+| Mean adjacency F1 | 0.334621 | 0.336379 |
+| Controls: false grids | 2 | 2 |
+| Controls: false markers | 2 | 2 |
+| Controls: clean | 4 | 4 |
+
+The ambiguous item remains a false grid, scored separately. Every exact/near
+item's complete score record is unchanged. The sole changed gold item is
+R00077 p. 8: 5 × 4 becomes 3 × 4; association .751 → .783, adjacency F1
+.125 → .176. It remains GRID-WRONG because pre-existing source bullet decoding
+and spacing differ from printed gold; no exact/near gain is claimed.
+
+All 42 documents behind the 245 surviving training labels were converted
+before and after. Forty-one Markdown outputs and all their regions are
+identical; R00077 p. 8 is the only changed region in the remaining document.
+Its bounding box, table decision and normalized cell-token multiset are
+unchanged. Every page in all 42 documents has the same standard content-word
+count. R00077 remains 19,014 content words. The all-document counts, region
+comparison and single-review provenance are committed in
+tests/labels/b3-row-audit.json. No lost stop-2 labels were reconstructed and
+no new held-out examples supplied the repair.
+
+All fixtures match, including paper.pdf and hard.pdf. Unit tests: 274 passed,
+three Windows-only named-pipe skips; the final focused table suite passes
+8 tests. Ruff checks and formatting pass. The only intended existing-golden
+change is the R00077 packet conversion: row ownership/Markdown and its byte
+count, with all content words conserved. The new synthetic fixture is
+covered by its expected Markdown and focused test; the released v0.1.18
+manifest is retained for archived comparisons rather than rewritten.
+The full archived-commit output is retained after this commit as required.

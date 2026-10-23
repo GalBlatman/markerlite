@@ -54,6 +54,39 @@ class WrappedCellsTests(unittest.TestCase):
         self.assertEqual(tables, [expected, expected])
         self.assertEqual(info["stats"]["tables_fallback"], 0)
 
+    def test_wrapped_record_fixture_keeps_printed_rows(self):
+        tables = []
+        original_render = markerlite_api.render
+
+        def record(pages, **kwargs):
+            for page in pages:
+                for block in page.blocks:
+                    if block.btype == "Table" and not block.ignore_for_output:
+                        self.assertFalse(block.fallback_paragraphs)
+                        parser = markerlite._TableParser()
+                        parser.feed(block.html)
+                        tables.append([parser.header, *parser.rows])
+            return original_render(pages, **kwargs)
+
+        pdf = pathlib.Path(__file__).parent / "fixtures" / "wrapped_record_rows.pdf"
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(markerlite_api, "render", record):
+                markerlite.convert(pdf, pathlib.Path(directory))
+        self.assertEqual(
+            tables,
+            [
+                [
+                    ["Record", "Description", "Status"],
+                    [
+                        "North- east",
+                        "Opening fragment continued fragment retained ending",
+                        "Accepted with checks",
+                    ],
+                    ["South- west", "Second fragment final fragment", "Pending review"],
+                ]
+            ],
+        )
+
     def lines(self):
         return [
             (
@@ -105,6 +138,96 @@ class WrappedCellsTests(unittest.TestCase):
         lines.append(([("Unrelated paragraph below the table", 100, 240)], 100, 110))
         old = table_recon.reconstruct_table_html(lines)
         self.assertIsNotNone(old)
+        self.assertEqual(recover_wrapped_lines(lines, old), old)
+
+    def test_hanging_hyphenated_key_is_one_record(self):
+        lines = [
+            (
+                [("Record", 0, 30), ("Description", 100, 150), ("Status", 300, 330)],
+                0,
+                10,
+            ),
+            (
+                [
+                    ("North-", 0, 27),
+                    ("Opening fragment", 100, 170),
+                    ("Accepted", 300, 345),
+                ],
+                14,
+                24,
+            ),
+            (
+                [
+                    ("east", 4, 22),
+                    ("continued fragment", 100, 180),
+                    ("with checks", 300, 350),
+                ],
+                26,
+                36,
+            ),
+            ([("", 0, 0), ("retained ending", 100, 170)], 38, 48),
+            (
+                [
+                    ("South-", 0, 27),
+                    ("Second fragment", 100, 170),
+                    ("Pending", 300, 340),
+                ],
+                62,
+                72,
+            ),
+            (
+                [("west", 4, 22), ("final fragment", 100, 170), ("review", 300, 335)],
+                74,
+                84,
+            ),
+        ]
+        lines[3] = ([lines[3][0][1]], 38, 48)
+        old = table_recon.reconstruct_table_html(lines)
+        new = recover_wrapped_lines(lines, old)
+        parser = markerlite._TableParser()
+        parser.feed(new[0])
+        self.assertEqual(parser.header, ["Record", "Description", "Status"])
+        self.assertEqual(
+            parser.rows,
+            [
+                [
+                    "North- east",
+                    "Opening fragment continued fragment retained ending",
+                    "Accepted with checks",
+                ],
+                ["South- west", "Second fragment final fragment", "Pending review"],
+            ],
+        )
+        self.assertEqual(new[1], old[1])
+
+    def test_complete_independent_keys_are_not_merged(self):
+        lines = [
+            (
+                [("Record", 0, 30), ("Description", 100, 150), ("Status", 300, 330)],
+                0,
+                10,
+            ),
+            (
+                [
+                    ("North-", 0, 27),
+                    ("Independent entry", 100, 180),
+                    ("Accepted", 300, 345),
+                ],
+                14,
+                24,
+            ),
+            (
+                [("east", 0, 20), ("Another entry", 100, 170), ("Pending", 300, 340)],
+                26,
+                36,
+            ),
+            (
+                [("South", 0, 27), ("Final entry", 100, 160), ("Reviewed", 300, 345)],
+                38,
+                48,
+            ),
+        ]
+        old = table_recon.reconstruct_table_html(lines)
         self.assertEqual(recover_wrapped_lines(lines, old), old)
 
     def test_numeric_winner_is_unchanged(self):

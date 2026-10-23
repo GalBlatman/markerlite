@@ -49,6 +49,56 @@ def _ruled_bounds(table, columns):
     return bounds
 
 
+def _wrapped_key_groups(lines, body_ids, assign, band):
+    """A hyphen-ended record key can continue on the next printed line.
+
+    A following complete line is not automatically a new record: the key
+    itself may wrap along with the other cells. Require a hanging indent,
+    an adjacent line, short keys and complete independent record starts.
+    The first all-text source row remains the existing header.
+    """
+    header = [] if band else [body_ids[0]]
+    ids = body_ids if band else body_ids[1:]
+    height = median(max(y1 - y0, 1) for _, y0, y1 in lines)
+    groups, keys, last_key, repaired = [], [], None, False
+    for i in ids:
+        spans, y0, _ = lines[i]
+        cells = assign(spans)
+        if cells[0]:
+            left = min(x0 for text, x0, x1 in spans if assign([(text, x0, x1)])[0])
+            continuation = (
+                last_key is not None
+                and keys[-1].rstrip().endswith(("-", "‐", "‑", "–"))
+                and 0 <= y0 - lines[last_key][2] <= height
+                and left
+                > min(
+                    x0
+                    for text, x0, x1 in lines[last_key][0]
+                    if assign([(text, x0, x1)])[0]
+                )
+                + WRAP_RULE_COORD_TOL
+            )
+            if continuation:
+                keys[-1] += " " + cells[0]
+                repaired = True
+            else:
+                if not all(cells):
+                    return None
+                groups.append([])
+                keys.append(cells[0])
+            if len(keys[-1].split()) > WRAP_MAX_RECORD_KEY_WORDS:
+                return None
+            last_key = i
+        if not groups:
+            return None
+        if groups[-1] and y0 - lines[groups[-1][-1]][2] > height:
+            return None
+        groups[-1].append(i)
+    if not repaired or len(groups) < 2:
+        return None
+    return ([header] if header else []) + groups
+
+
 def recover_wrapped_lines(lines, original, table=None):
     """Return an improved ``(html, score)`` or the unmodified original.
 
@@ -60,8 +110,7 @@ def recover_wrapped_lines(lines, original, table=None):
         return original
     source_words = _words(" ".join(t for spans, _, _ in lines for t, _, _ in spans))
     old_words = _html_words(original[0])
-    if not source_words - old_words:
-        return original  # no wrapped words to recover
+    missing_words = bool(source_words - old_words)
     try:
         import table_recon as vendor
     except ImportError:
@@ -117,7 +166,16 @@ def recover_wrapped_lines(lines, original, table=None):
 
     body_ids = [i for i, (_, y0, _) in enumerate(lines) if y0 >= first_y]
     bounds = _ruled_bounds(table, columns)
-    if bounds is not None and not band:
+    key_groups = _wrapped_key_groups(lines, body_ids, assign, band)
+    if not missing_words and key_groups is None:
+        return original
+    # Booktabs can supply only a header rectangle and one undivided body.
+    # That body box gives no internal row evidence against source record keys.
+    if key_groups is not None and (bounds is None or len(bounds) == 2):
+        groups = key_groups
+    elif bounds is not None and not band:
+        if not missing_words:
+            return original
         groups = [[] for _ in bounds]
         for i in body_ids:
             _, y0, y1 = lines[i]

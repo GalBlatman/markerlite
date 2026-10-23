@@ -2263,6 +2263,32 @@ def make_footnote_biglabel():
     make_footnote_repro("footnote_biglabel.pdf", big_label=True)
 
 
+def make_wrapped_record_rows():
+    """Booktabs keys wrap while their continuations fill every column."""
+    pdf = Doc()
+    pdf.add_page()
+    pdf.text_at(72, 90, "Wrapped record ownership", style="B", size=14)
+    xs = [72, 210, 410]
+    for y in (145, 176, 285):
+        pdf.line(72, y, 540, y)
+    for x, text in zip(xs, ["Record", "Description", "Status"]):
+        pdf.text_at(x, 160, text, style="B", size=9)
+    rows = [
+        (184, ["North-", "Opening fragment", "Accepted"]),
+        (200, ["east", "continued fragment", "with checks"]),
+        (216, ["", "retained ending", ""]),
+        (256, ["South-", "Second fragment", "Pending"]),
+        (272, ["west", "final fragment", "review"]),
+    ]
+    for y, cells in rows:
+        for col, (x, text) in enumerate(zip(xs, cells)):
+            if text:
+                indent = 4 if col == 0 and y in (200, 272) else 0
+                pdf.text_at(x + indent, y, text, size=9)
+    pdf.text_at(72, 340, "An ordinary paragraph follows the completed table.", size=10)
+    pdf.out("wrapped_record_rows.pdf")
+
+
 def make_all_text_wrapped():
     """The same all-text table with and without rules, including sparse wraps.
 
@@ -3355,6 +3381,7 @@ MAKERS = {
     "year_column": make_year_column,
     "table_only_footer": make_table_only_footer,
     "isolated_ocr_page": make_isolated_ocr_page,
+    "wrapped_record_rows": make_wrapped_record_rows,
     "all_text_wrapped": make_all_text_wrapped,
     "sectioned_running_heads": make_sectioned_running_heads,
     "late_banner": make_late_banner,
