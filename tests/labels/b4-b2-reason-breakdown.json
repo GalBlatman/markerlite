@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "source": "b2-zotero-labels.json",
+  "method": "Nonexclusive document-region categories from union of both existing reviewer reason-code lists. No new severity labelling; cell-only does not mean minor.",
+  "category_code_map": {
+    "not_a_table": [
+      "NOT_TABLE",
+      "non_table_contents",
+      "non_table_prose"
+    ],
+    "wrong_rows": [
+      "ROW_LABEL_MISSING",
+      "ROW_LABEL_SPLIT",
+      "ROW_MERGE",
+      "missing_row_labels",
+      "row_merge",
+      "row_split"
+    ],
+    "wrong_columns": [
+      "COLUMN_MERGE",
+      "column_merge"
+    ],
+    "header_errors": [
+      "HEADER_ASSOCIATION",
+      "HEADER_MISSING",
+      "HEADER_SPLIT",
+      "header_body_merge",
+      "header_fragment",
+      "header_misalignment",
+      "header_row_merge",
+      "missing_header"
+    ],
+    "wrong_extent_or_included_material": [
+      "CAPTION_INCLUDED",
+      "INCOMPLETE_TABLE",
+      "NOTES_INCLUDED",
+      "caption_in_cells",
+      "incomplete_table",
+      "mixed_content",
+      "notes_in_cells"
+    ],
+    "cell_text_or_association": [
+      "CELL_ASSOCIATION",
+      "CELL_TEXT",
+      "cell_misalignment",
+      "cell_text_corruption"
+    ]
+  },
+  "counts": {
+    "wrong_rows": 22,
+    "header_errors": 36,
+    "wrong_extent_or_included_material": 15,
+    "not_a_table": 17,
+    "cell_text_or_association": 11,
+    "wrong_columns": 10
+  },
+  "cell_only_cases": 1,
+  "raw_reason_counts": {
+    "reviewer_a": {
+      "HEADER_ASSOCIATION": 19,
+      "ROW_MERGE": 17,
+      "INCOMPLETE_TABLE": 11,
+      "NOT_TABLE": 17,
+      "HEADER_MISSING": 15,
+      "CELL_TEXT": 7,
+      "COLUMN_MERGE": 10,
+      "CELL_ASSOCIATION": 1,
+      "CAPTION_INCLUDED": 4,
+      "HEADER_SPLIT": 1,
+      "NOTES_INCLUDED": 1,
+      "ROW_LABEL_SPLIT": 1,
+      "ROW_LABEL_MISSING": 1
+    },
+    "reviewer_b": {
+      "header_body_merge": 12,
+      "row_merge": 17,
+      "missing_header": 17,
+      "incomplete_table": 10,
+      "non_table_prose": 16,
+      "cell_text_corruption": 10,
+      "column_merge": 10,
+      "header_misalignment": 6,
+      "cell_misalignment": 1,
+      "row_split": 5,
+      "caption_in_cells": 4,
+      "header_fragment": 2,
+      "missing_row_labels": 2,
+      "header_row_merge": 2,
+      "notes_in_cells": 1,
+      "non_table_contents": 1,
+      "mixed_content": 1
+    }
+  }
+}

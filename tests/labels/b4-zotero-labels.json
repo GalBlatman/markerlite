@@ -1,0 +1,1984 @@
+{
+  "schema": 1,
+  "converter_commit": "8b743f35f09e6a389d57e9edfdc497784b63b6af",
+  "main_commit": "2e686987f420df11a8f4333aa133c69b6fcbdd13",
+  "document_selection": "b2-zotero-selection.json",
+  "sample_selection": "b2-zotero-grid-sample.json",
+  "method": "Frozen original 60 regions; only changed grids relabelled in two independent passes; no replacement regions or tuning. Accepted main converter identical to archive 8b743f3.",
+  "converted_documents": 80,
+  "conversion_failures": 0,
+  "document_results": [
+    {
+      "document_id": "007897b4ec9e3f16",
+      "status": "converted",
+      "pages": 51,
+      "fallbacks": 0,
+      "grid_count": 10
+    },
+    {
+      "document_id": "00da577e6dc4986f",
+      "status": "converted",
+      "pages": 24,
+      "fallbacks": 0,
+      "grid_count": 1
+    },
+    {
+      "document_id": "01589db43f1b6b8d",
+      "status": "converted",
+      "pages": 21,
+      "fallbacks": 2,
+      "grid_count": 3
+    },
+    {
+      "document_id": "03f63ba1d6e9553f",
+      "status": "converted",
+      "pages": 9,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "0ded9116482bbe71",
+      "status": "converted",
+      "pages": 31,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "190124136e4aeb0c",
+      "status": "converted",
+      "pages": 26,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "1eb7180e6cce7bf0",
+      "status": "converted",
+      "pages": 83,
+      "fallbacks": 19,
+      "grid_count": 2
+    },
+    {
+      "document_id": "22647eae57d31786",
+      "status": "converted",
+      "pages": 20,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "28dde631e0092025",
+      "status": "converted",
+      "pages": 44,
+      "fallbacks": 3,
+      "grid_count": 4
+    },
+    {
+      "document_id": "2bf180772148e4ef",
+      "status": "converted",
+      "pages": 9,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "2c9467618d71b839",
+      "status": "converted",
+      "pages": 21,
+      "fallbacks": 1,
+      "grid_count": 2
+    },
+    {
+      "document_id": "3390b58a6331f9dd",
+      "status": "converted",
+      "pages": 5,
+      "fallbacks": 0,
+      "grid_count": 2
+    },
+    {
+      "document_id": "349b7d589d0f5d4e",
+      "status": "converted",
+      "pages": 14,
+      "fallbacks": 3,
+      "grid_count": 6
+    },
+    {
+      "document_id": "35bd16025a05ec3c",
+      "status": "converted",
+      "pages": 37,
+      "fallbacks": 3,
+      "grid_count": 0
+    },
+    {
+      "document_id": "3b99b3406a08f142",
+      "status": "converted",
+      "pages": 22,
+      "fallbacks": 3,
+      "grid_count": 3
+    },
+    {
+      "document_id": "3bd8357926a04e76",
+      "status": "converted",
+      "pages": 15,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "3dae75976518f89f",
+      "status": "converted",
+      "pages": 26,
+      "fallbacks": 0,
+      "grid_count": 1
+    },
+    {
+      "document_id": "44c6ad5b6445c902",
+      "status": "converted",
+      "pages": 8,
+      "fallbacks": 0,
+      "grid_count": 3
+    },
+    {
+      "document_id": "44dcd92f803a3224",
+      "status": "converted",
+      "pages": 43,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "48fd0cac25d8dc51",
+      "status": "converted",
+      "pages": 8,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "4c81fa9dd2f06b30",
+      "status": "converted",
+      "pages": 41,
+      "fallbacks": 0,
+      "grid_count": 2
+    },
+    {
+      "document_id": "4cb10d247048a062",
+      "status": "converted",
+      "pages": 28,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "52b6ca37c317c939",
+      "status": "converted",
+      "pages": 20,
+      "fallbacks": 2,
+      "grid_count": 2
+    },
+    {
+      "document_id": "53d5baf58d18088b",
+      "status": "converted",
+      "pages": 9,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "5b8b09fc109a4b20",
+      "status": "converted",
+      "pages": 22,
+      "fallbacks": 0,
+      "grid_count": 1
+    },
+    {
+      "document_id": "5e5830aa0f40ecb8",
+      "status": "converted",
+      "pages": 24,
+      "fallbacks": 0,
+      "grid_count": 1
+    },
+    {
+      "document_id": "6015badde545e05c",
+      "status": "converted",
+      "pages": 77,
+      "fallbacks": 1,
+      "grid_count": 6
+    },
+    {
+      "document_id": "611747645d58d134",
+      "status": "converted",
+      "pages": 18,
+      "fallbacks": 1,
+      "grid_count": 3
+    },
+    {
+      "document_id": "616dc23f289e8442",
+      "status": "converted",
+      "pages": 12,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "62138a243843517e",
+      "status": "converted",
+      "pages": 22,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "6a8070d94855a12c",
+      "status": "converted",
+      "pages": 73,
+      "fallbacks": 0,
+      "grid_count": 1
+    },
+    {
+      "document_id": "6e03ea248eebd354",
+      "status": "converted",
+      "pages": 28,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "6f8c474c21655b0d",
+      "status": "converted",
+      "pages": 13,
+      "fallbacks": 2,
+      "grid_count": 0
+    },
+    {
+      "document_id": "71003d9259481056",
+      "status": "converted",
+      "pages": 23,
+      "fallbacks": 0,
+      "grid_count": 3
+    },
+    {
+      "document_id": "794f1741d31bd12f",
+      "status": "converted",
+      "pages": 36,
+      "fallbacks": 0,
+      "grid_count": 2
+    },
+    {
+      "document_id": "7a4e4cf17647aefb",
+      "status": "converted",
+      "pages": 20,
+      "fallbacks": 0,
+      "grid_count": 3
+    },
+    {
+      "document_id": "7de62ce83a13764d",
+      "status": "converted",
+      "pages": 11,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "status": "converted",
+      "pages": 22,
+      "fallbacks": 4,
+      "grid_count": 50
+    },
+    {
+      "document_id": "7f7737940b6e1734",
+      "status": "converted",
+      "pages": 23,
+      "fallbacks": 0,
+      "grid_count": 5
+    },
+    {
+      "document_id": "8577518ba20d635e",
+      "status": "converted",
+      "pages": 26,
+      "fallbacks": 4,
+      "grid_count": 2
+    },
+    {
+      "document_id": "888d0a6e51b3f6fc",
+      "status": "converted",
+      "pages": 24,
+      "fallbacks": 1,
+      "grid_count": 1
+    },
+    {
+      "document_id": "8c3a3906a8259601",
+      "status": "converted",
+      "pages": 14,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "8c5e55abfc1c77aa",
+      "status": "converted",
+      "pages": 21,
+      "fallbacks": 2,
+      "grid_count": 9
+    },
+    {
+      "document_id": "8e36602b72e54497",
+      "status": "converted",
+      "pages": 21,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "9180b6e5c3a1b51c",
+      "status": "converted",
+      "pages": 17,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "9726d15395a2b0b6",
+      "status": "converted",
+      "pages": 27,
+      "fallbacks": 0,
+      "grid_count": 1
+    },
+    {
+      "document_id": "9886148996415ecf",
+      "status": "converted",
+      "pages": 91,
+      "fallbacks": 4,
+      "grid_count": 2
+    },
+    {
+      "document_id": "9aa8fe198c3c3329",
+      "status": "converted",
+      "pages": 18,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "9fb812b5d73898ed",
+      "status": "converted",
+      "pages": 47,
+      "fallbacks": 9,
+      "grid_count": 4
+    },
+    {
+      "document_id": "a2185a402e7f4694",
+      "status": "converted",
+      "pages": 11,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "a4838319b9653edc",
+      "status": "converted",
+      "pages": 28,
+      "fallbacks": 2,
+      "grid_count": 5
+    },
+    {
+      "document_id": "ab5836b3732901ef",
+      "status": "converted",
+      "pages": 6,
+      "fallbacks": 3,
+      "grid_count": 0
+    },
+    {
+      "document_id": "acf63ddadb56b5d8",
+      "status": "converted",
+      "pages": 18,
+      "fallbacks": 2,
+      "grid_count": 0
+    },
+    {
+      "document_id": "af2bcd87550c6620",
+      "status": "converted",
+      "pages": 24,
+      "fallbacks": 5,
+      "grid_count": 2
+    },
+    {
+      "document_id": "b1ee17e559234146",
+      "status": "converted",
+      "pages": 31,
+      "fallbacks": 2,
+      "grid_count": 6
+    },
+    {
+      "document_id": "b271633fe2ca2fb7",
+      "status": "converted",
+      "pages": 27,
+      "fallbacks": 6,
+      "grid_count": 3
+    },
+    {
+      "document_id": "b322f61c720b3315",
+      "status": "converted",
+      "pages": 22,
+      "fallbacks": 1,
+      "grid_count": 1
+    },
+    {
+      "document_id": "b407eb41454bbcfc",
+      "status": "converted",
+      "pages": 21,
+      "fallbacks": 3,
+      "grid_count": 4
+    },
+    {
+      "document_id": "b4f17030e5d723d5",
+      "status": "converted",
+      "pages": 120,
+      "fallbacks": 10,
+      "grid_count": 8
+    },
+    {
+      "document_id": "b69058e74fdaa3ab",
+      "status": "converted",
+      "pages": 24,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "b9123d16f4d1166a",
+      "status": "converted",
+      "pages": 65,
+      "fallbacks": 5,
+      "grid_count": 6
+    },
+    {
+      "document_id": "bdf30334f9cb9a92",
+      "status": "converted",
+      "pages": 5,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "be9efc6c5580bb25",
+      "status": "converted",
+      "pages": 9,
+      "fallbacks": 0,
+      "grid_count": 2
+    },
+    {
+      "document_id": "c26138c9b0b40ce2",
+      "status": "converted",
+      "pages": 39,
+      "fallbacks": 3,
+      "grid_count": 7
+    },
+    {
+      "document_id": "c52e75d445e073ab",
+      "status": "converted",
+      "pages": 43,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "c8212227e9a23b56",
+      "status": "converted",
+      "pages": 16,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "status": "converted",
+      "pages": 15,
+      "fallbacks": 2,
+      "grid_count": 3
+    },
+    {
+      "document_id": "ca69ef9aa3325fcb",
+      "status": "converted",
+      "pages": 13,
+      "fallbacks": 0,
+      "grid_count": 1
+    },
+    {
+      "document_id": "d294b4488ece39c7",
+      "status": "converted",
+      "pages": 37,
+      "fallbacks": 1,
+      "grid_count": 1
+    },
+    {
+      "document_id": "d6842cf937fb4800",
+      "status": "converted",
+      "pages": 3,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "d96ee733668f6520",
+      "status": "converted",
+      "pages": 18,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "d9ddafd95184c047",
+      "status": "converted",
+      "pages": 21,
+      "fallbacks": 0,
+      "grid_count": 0
+    },
+    {
+      "document_id": "dbba8f443b9e071f",
+      "status": "converted",
+      "pages": 9,
+      "fallbacks": 0,
+      "grid_count": 1
+    },
+    {
+      "document_id": "ddc65e7599d83641",
+      "status": "converted",
+      "pages": 71,
+      "fallbacks": 0,
+      "grid_count": 5
+    },
+    {
+      "document_id": "e62c14790b9c0755",
+      "status": "converted",
+      "pages": 20,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "eaa365788a0cea90",
+      "status": "converted",
+      "pages": 40,
+      "fallbacks": 0,
+      "grid_count": 3
+    },
+    {
+      "document_id": "f1d6e514e380774f",
+      "status": "converted",
+      "pages": 21,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "f9bf8207b6034131",
+      "status": "converted",
+      "pages": 21,
+      "fallbacks": 1,
+      "grid_count": 0
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "status": "converted",
+      "pages": 83,
+      "fallbacks": 4,
+      "grid_count": 25
+    },
+    {
+      "document_id": "fabea19cd025f0b1",
+      "status": "converted",
+      "pages": 11,
+      "fallbacks": 1,
+      "grid_count": 0
+    }
+  ],
+  "reviewer_a": [
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 17,
+      "region": 37,
+      "label": "WRONG",
+      "reason_codes": [
+        "SPANNING_CELL_ASSOCIATION_ERROR",
+        "MULTILINE_CELL_SPLIT_ACROSS_ROWS"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "A"
+    }
+  ],
+  "reviewer_b": [
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 17,
+      "region": 37,
+      "label": "WRONG",
+      "reason_codes": [
+        "SPANNING_CELL_ASSOCIATION_LOST",
+        "MULTILINE_CELL_SPLIT"
+      ],
+      "rendered_page_reviewed": true,
+      "cell_check_complete": true,
+      "reviewer": "B"
+    }
+  ],
+  "records": [
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 43,
+      "region": 4,
+      "current_region": 4,
+      "bbox": [
+        73.19819641113281,
+        251.76885986328125,
+        457.3682556152344,
+        547.8136749267578
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "8d062b5dec8b7a5f660fe959449fd344eaf3be7400691ae7503f4c87efb490f9",
+      "after_matrix_sha256": "8d062b5dec8b7a5f660fe959449fd344eaf3be7400691ae7503f4c87efb490f9",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 47,
+      "region": 6,
+      "current_region": 6,
+      "bbox": [
+        46.20444107055664,
+        81.00182342529297,
+        619.6314086914062,
+        177.45582580566406
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "0285ed5a274fefe2789c79f87c7429e7c11e37533d69cf105cd98bd604b71102",
+      "after_matrix_sha256": "0285ed5a274fefe2789c79f87c7429e7c11e37533d69cf105cd98bd604b71102",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 2,
+      "region": 4,
+      "current_region": 4,
+      "bbox": [
+        60.62498474121094,
+        177.3656463623047,
+        502.7852478027344,
+        370.8215026855469
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "6aa12377f39c7c16c4149728cb21b82600317940c66df38015a026ddc1d84d69",
+      "after_matrix_sha256": "6aa12377f39c7c16c4149728cb21b82600317940c66df38015a026ddc1d84d69",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 79,
+      "region": 25,
+      "current_region": 25,
+      "bbox": [
+        133.54473876953125,
+        324.9041442871094,
+        423.2399597167969,
+        639.4413146972656
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "282a86ab6ddcb59aea4b780d88dd82497162033691614fd532101ca343292e0a",
+      "after_matrix_sha256": "282a86ab6ddcb59aea4b780d88dd82497162033691614fd532101ca343292e0a",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 55,
+      "region": 14,
+      "current_region": 14,
+      "bbox": [
+        97.54718017578125,
+        264.65301513671875,
+        490.5204162597656,
+        482.58890533447266
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "4758596259746807b9bc331b9ceed74bcb18ae5b40426c14ec48376e821f1770",
+      "after_matrix_sha256": "4758596259746807b9bc331b9ceed74bcb18ae5b40426c14ec48376e821f1770",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 46,
+      "region": 4,
+      "current_region": 4,
+      "bbox": [
+        38.74336242675781,
+        228.6287384033203,
+        622.9358520507812,
+        423.9227294921875
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "28adaf99d636667148f2694f510419e99bca8f8623253baaf0402a87623cff46",
+      "after_matrix_sha256": "28adaf99d636667148f2694f510419e99bca8f8623253baaf0402a87623cff46",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "c26138c9b0b40ce2",
+      "page": 11,
+      "region": 1,
+      "current_region": 1,
+      "bbox": [
+        47.62199783325195,
+        57.18994140625,
+        408.3973083496094,
+        187.2429428100586
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "923561d0be89ebb242bf21a9a822c443051f3c45139b7a614c51bad6c0fb7eb6",
+      "after_matrix_sha256": "923561d0be89ebb242bf21a9a822c443051f3c45139b7a614c51bad6c0fb7eb6",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 47,
+      "region": 8,
+      "current_region": 8,
+      "bbox": [
+        73.16621398925781,
+        249.75753784179688,
+        511.1877746582031,
+        617.3946990966797
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "44300209fb47f874024801682026bb86e4542e8aabb7d69c761ebe47483ee0d2",
+      "after_matrix_sha256": "44300209fb47f874024801682026bb86e4542e8aabb7d69c761ebe47483ee0d2",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 42,
+      "region": 3,
+      "current_region": 3,
+      "bbox": [
+        73.00040054321289,
+        227.96685791015625,
+        523.1864624023438,
+        591.9993286132812
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "09cecfa6239895de831103680f8709c8afdb56d52c6882c21fd250688a7c25f5",
+      "after_matrix_sha256": "09cecfa6239895de831103680f8709c8afdb56d52c6882c21fd250688a7c25f5",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7a4e4cf17647aefb",
+      "page": 14,
+      "region": 3,
+      "current_region": 3,
+      "bbox": [
+        237.12,
+        408.47999999999996,
+        430.8,
+        496.79999999999995
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "ee1336fe860d431d8b92965dd14bc4cce9c61f25384d14adec398c89b2fa8dd1",
+      "after_matrix_sha256": "ee1336fe860d431d8b92965dd14bc4cce9c61f25384d14adec398c89b2fa8dd1",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 71,
+      "region": 18,
+      "current_region": 18,
+      "bbox": [
+        162.34719848632812,
+        87.72570037841797,
+        673.57568359375,
+        450.76412200927734
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "0b13ed5f8b1f0c1f37a0123c51a302083e5f5cde9c396305f108381948b6d6ef",
+      "after_matrix_sha256": "0b13ed5f8b1f0c1f37a0123c51a302083e5f5cde9c396305f108381948b6d6ef",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "6015badde545e05c",
+      "page": 46,
+      "region": 4,
+      "current_region": 4,
+      "bbox": [
+        71.0030740591196,
+        320.78399047851565,
+        528.9969153771034,
+        500.5200080871582
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "5f47e9e604a95e1bed9e171e6538860d54c8d773d4e5244006caafd6651ffd43",
+      "after_matrix_sha256": "5f47e9e604a95e1bed9e171e6538860d54c8d773d4e5244006caafd6651ffd43",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "01589db43f1b6b8d",
+      "page": 12,
+      "region": 2,
+      "current_region": 2,
+      "bbox": [
+        59.7599983215332,
+        95.16261291503906,
+        433.4312438964844,
+        275.274658203125
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "a7ae6a96b067d7d4c77c445319b6b8c40ea8c3a79eca8c1f42d92a08d38d8fd3",
+      "after_matrix_sha256": "a7ae6a96b067d7d4c77c445319b6b8c40ea8c3a79eca8c1f42d92a08d38d8fd3",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 46,
+      "current_region": 46,
+      "bbox": [
+        60.63712692260742,
+        186.5573272705078,
+        502.52825927734375,
+        229.06480407714844
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "1959d0320d1a39eddb574058138a95d9c9231d8ba2cd90fca39ee34f1a104ae3",
+      "after_matrix_sha256": "1959d0320d1a39eddb574058138a95d9c9231d8ba2cd90fca39ee34f1a104ae3",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "ca69ef9aa3325fcb",
+      "page": 8,
+      "region": 1,
+      "current_region": 1,
+      "bbox": [
+        47.84880065917969,
+        481.702392578125,
+        543.9491577148438,
+        665.5227661132812
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "8171711eae686b36d1cb597ae8c213268f60d5af2f62f84612e68de2d21dbe6b",
+      "after_matrix_sha256": "8171711eae686b36d1cb597ae8c213268f60d5af2f62f84612e68de2d21dbe6b",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "page": 8,
+      "region": 2,
+      "current_region": 2,
+      "bbox": [
+        126.22575378417969,
+        59.791015625,
+        438.5962219238281,
+        371.8699951171875
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "50023596fd8b4e884aa8214832b7e3be84744af33df1d8d6620a1d6b6ad377ec",
+      "after_matrix_sha256": "50023596fd8b4e884aa8214832b7e3be84744af33df1d8d6620a1d6b6ad377ec",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 57,
+      "region": 16,
+      "current_region": 16,
+      "bbox": [
+        74.39360046386719,
+        87.72718811035156,
+        739.2018432617188,
+        336.9602584838867
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "e567c9c7f1bd039a37be76c005ebba7cfa3927c2d45ceb4cb7886d269f4d5812",
+      "after_matrix_sha256": "e567c9c7f1bd039a37be76c005ebba7cfa3927c2d45ceb4cb7886d269f4d5812",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "a4838319b9653edc",
+      "page": 16,
+      "region": 4,
+      "current_region": 4,
+      "bbox": [
+        45.0,
+        629.0220947265625,
+        548.5087890625,
+        657.0220947265625
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "ebf9f6ce79e8b9b54f94ee02062f69fda3f637370b88d318f8091f3327b16c59",
+      "after_matrix_sha256": "ebf9f6ce79e8b9b54f94ee02062f69fda3f637370b88d318f8091f3327b16c59",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 13,
+      "region": 32,
+      "current_region": 32,
+      "bbox": [
+        60.63117980957031,
+        284.84906005859375,
+        502.486083984375,
+        346.81097412109375
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "aace80a29958403081e06537f256f53ea7faee063d3f8f690ac3b1cbc23ca421",
+      "after_matrix_sha256": "aace80a29958403081e06537f256f53ea7faee063d3f8f690ac3b1cbc23ca421",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "b9123d16f4d1166a",
+      "page": 53,
+      "region": 9,
+      "current_region": 9,
+      "bbox": [
+        95.70505269368489,
+        445.99693806966144,
+        515.7456258138021,
+        643.6092732747396
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "caf08a0c3f9aab8ded2b3a9b900882c293d552a641ba23ff35cf1d1288bbd1fe",
+      "after_matrix_sha256": "caf08a0c3f9aab8ded2b3a9b900882c293d552a641ba23ff35cf1d1288bbd1fe",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "page": 9,
+      "region": 3,
+      "current_region": 3,
+      "bbox": [
+        126.35108947753906,
+        59.791015625,
+        448.2552490234375,
+        379.84100341796875
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "526177084ed9bb9c46a34aba32130bf4513cb402d846d8e61d1adf27f6c01c72",
+      "after_matrix_sha256": "526177084ed9bb9c46a34aba32130bf4513cb402d846d8e61d1adf27f6c01c72",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "c9ecfb6988ba4e3d",
+      "page": 10,
+      "region": 4,
+      "current_region": 4,
+      "bbox": [
+        127.8111572265625,
+        59.791015625,
+        235.78561401367188,
+        726.3209838867188
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "1460db35e5bb555dbb05f5115fc678fe55bb415dbdd9ffb7d303e9be380ae2d4",
+      "after_matrix_sha256": "1460db35e5bb555dbb05f5115fc678fe55bb415dbdd9ffb7d303e9be380ae2d4",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 45,
+      "region": 6,
+      "current_region": 6,
+      "bbox": [
+        142.20001220703125,
+        234.86973571777344,
+        414.23992919921875,
+        418.88722229003906
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "e149da7ea8d840bdb8b1828f27de9726744790e90baa8d1cee140803c53039a5",
+      "after_matrix_sha256": "e149da7ea8d840bdb8b1828f27de9726744790e90baa8d1cee140803c53039a5",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 49,
+      "current_region": 49,
+      "bbox": [
+        60.63714599609375,
+        316.1030578613281,
+        502.51873779296875,
+        359.1725769042969
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "54c880fc22dc7b2fdfe7b82eb80a0e41f4172b0e56e6ca927976f1f1fd468427",
+      "after_matrix_sha256": "54c880fc22dc7b2fdfe7b82eb80a0e41f4172b0e56e6ca927976f1f1fd468427",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7f7737940b6e1734",
+      "page": 12,
+      "region": 3,
+      "current_region": 3,
+      "bbox": [
+        169.44000244140625,
+        124.11297607421875,
+        367.6990051269531,
+        154.51806640625
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "496cb8a9364bdcca213916158371d23d93e2ef39e96ddc5d98dd56894dfec515",
+      "after_matrix_sha256": "496cb8a9364bdcca213916158371d23d93e2ef39e96ddc5d98dd56894dfec515",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 47,
+      "region": 8,
+      "current_region": 8,
+      "bbox": [
+        44.40443801879883,
+        424.9618225097656,
+        575.6597900390625,
+        461.3058166503906
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "1eb8fdd1972f3a3950e6df5a0630243bd20534597b562d35c474e163c9d2dd85",
+      "after_matrix_sha256": "1eb8fdd1972f3a3950e6df5a0630243bd20534597b562d35c474e163c9d2dd85",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "be9efc6c5580bb25",
+      "page": 6,
+      "region": 2,
+      "current_region": 2,
+      "bbox": [
+        43.593780517578125,
+        557.8934326171875,
+        548.1100463867188,
+        675.6690673828125
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "37c7cb6fed3c8521b212682e7d3beb55133814a8dc7ea0bc60df7f3472c95051",
+      "after_matrix_sha256": "37c7cb6fed3c8521b212682e7d3beb55133814a8dc7ea0bc60df7f3472c95051",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 12,
+      "region": 30,
+      "current_region": 30,
+      "bbox": [
+        60.63706970214844,
+        69.8584976196289,
+        502.74261474609375,
+        346.8243713378906
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "60cfbd12020437e6332a6a6ea3b2a638be51bb6ed4e4ba519e95796e0ce7f27d",
+      "after_matrix_sha256": "60cfbd12020437e6332a6a6ea3b2a638be51bb6ed4e4ba519e95796e0ce7f27d",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7f7737940b6e1734",
+      "page": 12,
+      "region": 4,
+      "current_region": 4,
+      "bbox": [
+        60.0,
+        158.19296264648438,
+        346.68121337890625,
+        218.11807250976562
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "67566f98357fb1861c3893eafd1811cc34ebd78b691eca2415ded61e9e8a2bca",
+      "after_matrix_sha256": "67566f98357fb1861c3893eafd1811cc34ebd78b691eca2415ded61e9e8a2bca",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 50,
+      "region": 10,
+      "current_region": 10,
+      "bbox": [
+        125.83660125732422,
+        102.42565155029297,
+        711.376953125,
+        471.48070526123047
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "409dfe836a93dcec0035066a8c7c976b043b3ddd35dadd2bc177bb525ec0cd99",
+      "after_matrix_sha256": "409dfe836a93dcec0035066a8c7c976b043b3ddd35dadd2bc177bb525ec0cd99",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 44,
+      "current_region": 44,
+      "bbox": [
+        60.627777099609375,
+        106.52558898925781,
+        502.41595458984375,
+        139.0290985107422
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "c380cb06894ac765ebe52635a1c43ea269527147c1536fdd631ff7ec902e63e8",
+      "after_matrix_sha256": "c380cb06894ac765ebe52635a1c43ea269527147c1536fdd631ff7ec902e63e8",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 1,
+      "region": 2,
+      "current_region": 2,
+      "bbox": [
+        60.625,
+        547.8701171875,
+        503.0532531738281,
+        645.8151245117188
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "380ec7dd75d8492a20fc31f8a38d5033d20dccd465180170e346a643305ce666",
+      "after_matrix_sha256": "380ec7dd75d8492a20fc31f8a38d5033d20dccd465180170e346a643305ce666",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "007897b4ec9e3f16",
+      "page": 44,
+      "region": 2,
+      "current_region": 2,
+      "bbox": [
+        417.2322692871094,
+        365.19580078125,
+        496.79510498046875,
+        438.4557800292969
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "2323aad6e690ebcada166c5537dc289ec8e5b9e792faaf80808632507128ed77",
+      "after_matrix_sha256": "2323aad6e690ebcada166c5537dc289ec8e5b9e792faaf80808632507128ed77",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 41,
+      "region": 2,
+      "current_region": 2,
+      "bbox": [
+        72.00001525878906,
+        147.6885528564453,
+        519.1918334960938,
+        530.7176513671875
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "f7d5a2a64b4ed0710e51e49090fc7ac41a85d50fd0673422e2b8b572e3d32336",
+      "after_matrix_sha256": "f7d5a2a64b4ed0710e51e49090fc7ac41a85d50fd0673422e2b8b572e3d32336",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 11,
+      "region": 28,
+      "current_region": 28,
+      "bbox": [
+        60.63493347167969,
+        320.8638610839844,
+        502.80316162109375,
+        466.3310241699219
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "494dd1f84425a5b73f65d0d32fa09f3ad2eb653dc5a72c1d3b825429b17c5522",
+      "after_matrix_sha256": "494dd1f84425a5b73f65d0d32fa09f3ad2eb653dc5a72c1d3b825429b17c5522",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 51,
+      "current_region": 51,
+      "bbox": [
+        60.637298583984375,
+        445.6488037109375,
+        502.51885986328125,
+        478.15234375
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "4a95c38c538c003bcd863b8a5bd39ce71794d3d22d0992acca3570a5c2bc8bb3",
+      "after_matrix_sha256": "4a95c38c538c003bcd863b8a5bd39ce71794d3d22d0992acca3570a5c2bc8bb3",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "349b7d589d0f5d4e",
+      "page": 12,
+      "region": 8,
+      "current_region": 8,
+      "bbox": [
+        37.587398529052734,
+        624.5009765625,
+        261.0679016113281,
+        741.1989593505859
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "ac96818e7e65620ae656837d806e54e3c220129c92fd45687467fa7dc8c8e28f",
+      "after_matrix_sha256": "ac96818e7e65620ae656837d806e54e3c220129c92fd45687467fa7dc8c8e28f",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "3b99b3406a08f142",
+      "page": 9,
+      "region": 2,
+      "current_region": 2,
+      "bbox": [
+        58.25685501098633,
+        134.76200103759766,
+        716.1157836914062,
+        469.6604995727539
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "15f8f611fbdcb70ffbba27b0d74ca1555236d53eff1064e53084a86583ada6fb",
+      "after_matrix_sha256": "15f8f611fbdcb70ffbba27b0d74ca1555236d53eff1064e53084a86583ada6fb",
+      "evidence": "rules",
+      "label": "CORRECT",
+      "labeller_agreement": {
+        "reviewer_a": "CORRECT",
+        "reviewer_b": "CORRECT",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 17,
+      "region": 37,
+      "current_region": 37,
+      "bbox": [
+        89.99453735351562,
+        80.12899780273438,
+        584.0069580078125,
+        467.1289978027344
+      ],
+      "emitted_grid_changed": true,
+      "before_matrix_sha256": "306206d2929235f52534cd585e3b1b84495a57fade5bb9cf564c8b51d2583eee",
+      "after_matrix_sha256": "3bc0ed0822db4f517d02c23e388fc73cc1223f95b3610f9af8068649ac1ced51",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Two new independent rendered-page/crop passes"
+    },
+    {
+      "document_id": "8577518ba20d635e",
+      "page": 18,
+      "region": 4,
+      "current_region": 4,
+      "bbox": [
+        221.9992218017578,
+        81.280029296875,
+        491.7327880859375,
+        315.7799987792969
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "660160631f0698df4f832f0a54cff3417e3125309c85aaf50ddd8ba661811ab5",
+      "after_matrix_sha256": "660160631f0698df4f832f0a54cff3417e3125309c85aaf50ddd8ba661811ab5",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "8c5e55abfc1c77aa",
+      "page": 10,
+      "region": 1,
+      "current_region": 1,
+      "bbox": [
+        74.9234619140625,
+        167.5175323486328,
+        612.2897338867188,
+        464.4048156738281
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "36d43844f62b972fa4eb854b849d377211bc80367c019ae1b7e24482dba22624",
+      "after_matrix_sha256": "36d43844f62b972fa4eb854b849d377211bc80367c019ae1b7e24482dba22624",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "b1ee17e559234146",
+      "page": 14,
+      "region": 1,
+      "current_region": 1,
+      "bbox": [
+        45.919891357421875,
+        97.3988037109375,
+        548.1132202148438,
+        306.5957336425781
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "6f2668bc50f80aae8fff329c8499347475103520cd7e39da868a21a51399452a",
+      "after_matrix_sha256": "6f2668bc50f80aae8fff329c8499347475103520cd7e39da868a21a51399452a",
+      "evidence": "rules",
+      "label": "CORRECT",
+      "labeller_agreement": {
+        "reviewer_a": "CORRECT",
+        "reviewer_b": "CORRECT",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 7,
+      "region": 15,
+      "current_region": 15,
+      "bbox": [
+        72.625,
+        57.857460021972656,
+        502.53082275390625,
+        107.8182144165039
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "d30ab4511408ab9597efdb0a26c6a0c9e0e3e38bfa4efcbafba1e25bf76a386c",
+      "after_matrix_sha256": "d30ab4511408ab9597efdb0a26c6a0c9e0e3e38bfa4efcbafba1e25bf76a386c",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 43,
+      "current_region": 43,
+      "bbox": [
+        60.608970642089844,
+        67.01551818847656,
+        502.69622802734375,
+        109.52299499511719
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "823a7d8918600a8d226b333c822a04225c805badee3d3602692f4d8b9aad2dad",
+      "after_matrix_sha256": "823a7d8918600a8d226b333c822a04225c805badee3d3602692f4d8b9aad2dad",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 44,
+      "region": 5,
+      "current_region": 5,
+      "bbox": [
+        113.29679870605469,
+        264.6524658203125,
+        479.40106201171875,
+        449.3229217529297
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "8202adfafb746c485d877f930a12325dfa0a2dc0e5c1a06b2f8761d84eaae3be",
+      "after_matrix_sha256": "8202adfafb746c485d877f930a12325dfa0a2dc0e5c1a06b2f8761d84eaae3be",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "28dde631e0092025",
+      "page": 42,
+      "region": 5,
+      "current_region": 5,
+      "bbox": [
+        82.80000305175781,
+        120.61997985839844,
+        649.4862060546875,
+        476.25999450683594
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "23637cbbbfa7187b675d5a2d993f7516243a6ceedce1b2bf7333ab324292bcc5",
+      "after_matrix_sha256": "23637cbbbfa7187b675d5a2d993f7516243a6ceedce1b2bf7333ab324292bcc5",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "c26138c9b0b40ce2",
+      "page": 24,
+      "region": 8,
+      "current_region": 8,
+      "bbox": [
+        33.672786712646484,
+        53.35273742675781,
+        394.5719299316406,
+        157.25245666503906
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "5856bdc6686293c593cb10be12128151a19921c113b3bf9da09faaf7bfbd9dec",
+      "after_matrix_sha256": "5856bdc6686293c593cb10be12128151a19921c113b3bf9da09faaf7bfbd9dec",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "b4f17030e5d723d5",
+      "page": 5,
+      "region": 3,
+      "current_region": 3,
+      "bbox": [
+        313.0870056152344,
+        89.5064926147461,
+        550.0889892578125,
+        170.64048767089844
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "7d9deb65bb9343fccaef5b28580ecef40a9d6aece3e4482171040c88882ddc8e",
+      "after_matrix_sha256": "7d9deb65bb9343fccaef5b28580ecef40a9d6aece3e4482171040c88882ddc8e",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "71003d9259481056",
+      "page": 12,
+      "region": 2,
+      "current_region": 2,
+      "bbox": [
+        66.2500991821289,
+        59.791015625,
+        554.4229125976562,
+        224.16400146484375
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "89e56e3347e23ed498812d2f32dcc07aef07583f00fb570e56727157259ae2bf",
+      "after_matrix_sha256": "89e56e3347e23ed498812d2f32dcc07aef07583f00fb570e56727157259ae2bf",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "9726d15395a2b0b6",
+      "page": 15,
+      "region": 1,
+      "current_region": 1,
+      "bbox": [
+        40.53499984741211,
+        64.176025390625,
+        444.18902587890625,
+        110.21099853515625
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "ef5aa8e151667753bda82164dc824ea4eb40843fb5021130eafebc87950b85e0",
+      "after_matrix_sha256": "ef5aa8e151667753bda82164dc824ea4eb40843fb5021130eafebc87950b85e0",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "3390b58a6331f9dd",
+      "page": 4,
+      "region": 2,
+      "current_region": 2,
+      "bbox": [
+        48.47999954223633,
+        482.87481689453125,
+        370.69195556640625,
+        553.3604125976562
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "37c49ac664c12a24bfbb895c0b6a006b9da71de8e669f6d84c98bf6330fdf6f5",
+      "after_matrix_sha256": "37c49ac664c12a24bfbb895c0b6a006b9da71de8e669f6d84c98bf6330fdf6f5",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 21,
+      "region": 48,
+      "current_region": 48,
+      "bbox": [
+        72.63442993164062,
+        276.0871887207031,
+        502.3131408691406,
+        308.5907287597656
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "a77bc2f5aaa11f8833b9666a171310813348ceba41f6525acea40f80e9ec2314",
+      "after_matrix_sha256": "a77bc2f5aaa11f8833b9666a171310813348ceba41f6525acea40f80e9ec2314",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "b1ee17e559234146",
+      "page": 20,
+      "region": 5,
+      "current_region": 5,
+      "bbox": [
+        69.43673706054688,
+        61.398250579833984,
+        646.977294921875,
+        501.2498779296875
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "3d4fc01f8c217cd8e484e0c4278d773df23beaf5e9e6f30b964d2eb2a829546b",
+      "after_matrix_sha256": "3d4fc01f8c217cd8e484e0c4278d773df23beaf5e9e6f30b964d2eb2a829546b",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 46,
+      "region": 7,
+      "current_region": 7,
+      "bbox": [
+        149.2965850830078,
+        234.87033081054688,
+        412.3199462890625,
+        546.1191558837891
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "2578cf3f8287ca24873e7b3545c3995fce20cb2da2126048745375a581373002",
+      "after_matrix_sha256": "2578cf3f8287ca24873e7b3545c3995fce20cb2da2126048745375a581373002",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 77,
+      "region": 23,
+      "current_region": 23,
+      "bbox": [
+        120.96002197265625,
+        317.3267822265625,
+        469.79736328125,
+        566.14208984375
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "603e61261e71de7d6cf3ec71fc5f9b4105c169d23ad1afb1bd93213a59c1a5c1",
+      "after_matrix_sha256": "603e61261e71de7d6cf3ec71fc5f9b4105c169d23ad1afb1bd93213a59c1a5c1",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "be9efc6c5580bb25",
+      "page": 6,
+      "region": 1,
+      "current_region": 1,
+      "bbox": [
+        43.59379577636719,
+        359.4456481933594,
+        551.7003173828125,
+        521.465576171875
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "b5118c8c7444cc78ee2c71dcd720773cfab4c96f0d06facf5b22fbed06db0a00",
+      "after_matrix_sha256": "b5118c8c7444cc78ee2c71dcd720773cfab4c96f0d06facf5b22fbed06db0a00",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 7,
+      "region": 18,
+      "current_region": 18,
+      "bbox": [
+        60.634246826171875,
+        296.86163330078125,
+        502.8547058105469,
+        609.8206176757812
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "39f1cd0aab792dca04878e9e5566bf3eb3d1c8c32bd111bfd0d1f587ee366597",
+      "after_matrix_sha256": "39f1cd0aab792dca04878e9e5566bf3eb3d1c8c32bd111bfd0d1f587ee366597",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "eaa365788a0cea90",
+      "page": 20,
+      "region": 1,
+      "current_region": 1,
+      "bbox": [
+        48.0196533203125,
+        120.78485107421875,
+        455.54339599609375,
+        551.5938720703125
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "9915a7315ab7a63896f2ff74e845f9eb3511ba3110f35872d5a36032ec5b7a0a",
+      "after_matrix_sha256": "9915a7315ab7a63896f2ff74e845f9eb3511ba3110f35872d5a36032ec5b7a0a",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "faa4eb0942158867",
+      "page": 76,
+      "region": 22,
+      "current_region": 22,
+      "bbox": [
+        152.44808959960938,
+        227.99107360839844,
+        646.88720703125,
+        383.23413848876953
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "53c55895bab794a4f700a5a039ceda24fc30307903aed078ae10ea5b66fc9cce",
+      "after_matrix_sha256": "53c55895bab794a4f700a5a039ceda24fc30307903aed078ae10ea5b66fc9cce",
+      "evidence": "rules",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    },
+    {
+      "document_id": "7e004b98bbbd16a8",
+      "page": 3,
+      "region": 9,
+      "current_region": 9,
+      "bbox": [
+        60.625,
+        613.0603637695312,
+        502.47772216796875,
+        681.2225341796875
+      ],
+      "emitted_grid_changed": false,
+      "before_matrix_sha256": "84a94f013a578fd40c2b9d1e0c953d9f266de9e62dbb97f76d7be9541b6c5475",
+      "after_matrix_sha256": "84a94f013a578fd40c2b9d1e0c953d9f266de9e62dbb97f76d7be9541b6c5475",
+      "evidence": "text",
+      "label": "WRONG",
+      "labeller_agreement": {
+        "reviewer_a": "WRONG",
+        "reviewer_b": "WRONG",
+        "agreed": true
+      },
+      "provenance": "Unchanged emitted cells and source region; frozen b2-zotero-labels.json reused"
+    }
+  ]
+}
