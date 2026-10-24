@@ -266,3 +266,37 @@ conversion. It needs a decision because it changes the GUI's worker model.
 
 This report's own commit changes no code; its audit is listed in the
 commit that follows it.
+
+
+## Second scan: v0.2.1 work (revision 00514b4)
+
+The second scan is verified against tests/golden/v0.2.0.json, 186 entries
+in both grid modes. No baseline is regenerated. Every numbered item is a
+separate commit; archived verification uses exactly that commit, with PDFs
+read in place. A differing hash is a blocker.
+
+### Item 4: raster budgets
+
+Measured all 84 unique PDFs represented by the 186-entry baseline. Source
+PDFs were opened in place; measurement saved counts only. The evidence is
+security-v021-observed.json. Whole-page dimensions conservatively bound the
+figure/equation crop dimensions because clips lie inside the page. Decoded
+source bytes conservatively count four channels per image placement per page.
+Repeated actual decode reservations consume the document budget again.
+Text extraction no longer requests unused decoded image blocks at all.
+
+| Quantity | Observed maximum | Chosen cap | Ratio |
+| --- | ---: | ---: | ---: |
+| Crop device long side at 200 dpi | 2,339 px | 24,000 px | 10.26x |
+| Whole-page raster pixels at 300 dpi (bounds 200-dpi crops) | 8,703,348 | 90,000,000 | 10.34x |
+| Document image bytes, four channels over all placements | 3,745,676,384 (R00639) | 40,000,000,000 | 10.68x |
+
+OCR estimates require finite positive dimensions, clamp each side to at
+least one point and round device dimensions upward. A page that cannot fit
+at 1 dpi keeps native text with a limit record. Crops lower resolution to
+fit both side/pixel limits; impossible crops keep the placeholder/source
+text with a limit record. Exhausted source decode reservations use the
+non-decoding placement route; image export can render a bounded crop.
+All records flow through the existing resource_limits stats/warning path.
+Tests force each branch, including a fractional page side and nonfinite
+geometry, without allocating the dangerous raster.

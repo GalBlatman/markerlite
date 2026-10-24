@@ -232,3 +232,12 @@ OCR_MAX_TSV_BYTES = 1_000_000
 
 # Consecutive continuation grids must share horizontal page-normalized bounds.
 TABLE_CONTINUATION_X_TOL = 0.02
+
+# v0.2.1: all 84 unique v0.2.0 golden sources measured in place.
+# Maximum page-bounded crop long side at 200 dpi: 2,339 px (>=10x).
+CROP_MAX_DEVICE_SIDE = 24_000
+# Max whole-page render at 300 dpi: 8,703,348 pixels; 200-dpi crops are smaller.
+CROP_MAX_PIXELS = 90_000_000
+# Conservative four-channel source bytes summed over all document placements:
+# 3,745,676,384 (R00639). Count repeated decodes against this cumulative cap.
+DOCUMENT_DECODED_BYTES = 40_000_000_000

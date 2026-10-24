@@ -1,0 +1,55 @@
+{
+  "documents": 84,
+  "maxima": {
+    "page_words": {
+      "value": 1084,
+      "id": "packet:pilot/pdf/R02659.pdf:no-grids",
+      "page": 25
+    },
+    "page_drawings": {
+      "value": 326,
+      "id": "packet:autonomous/run-002/pdf/R00032.pdf:no-grids",
+      "page": 89
+    },
+    "page_images": {
+      "value": 32,
+      "id": "packet:autonomous/run-002/pdf/R00717.pdf:no-grids",
+      "page": 9
+    },
+    "crop_device_side": {
+      "value": 2339,
+      "id": "fixture:tests/fixtures/no_table_marker.pdf:no-grids",
+      "page": 1
+    },
+    "ocr_pixels": {
+      "value": 8703348,
+      "id": "fixture:tests/fixtures/no_table_marker.pdf:no-grids",
+      "page": 1
+    },
+    "coordinate_span": {
+      "value": 842.0399780273438,
+      "id": "packet:pilot/pdf/R00023.pdf:no-grids",
+      "page": 1
+    },
+    "table_cells": {
+      "value": 630,
+      "id": "real:tests/real/Target-Validation-Protocol.pdf:no-grids",
+      "page": 28
+    },
+    "document_image_bytes": {
+      "value": 3745676384,
+      "id": "packet:autonomous/run-002/pdf/R00639.pdf:no-grids",
+      "page": null
+    },
+    "document_source_blocks": {
+      "value": 5402,
+      "id": "real:tests/real/capiq_keydev.pdf:no-grids",
+      "page": null
+    },
+    "document_pages": {
+      "value": 185,
+      "id": "real:tests/real/capiq_keydev.pdf:no-grids",
+      "page": null
+    }
+  }
+}

@@ -51,6 +51,7 @@ from .processors import (
     proc_reflow,
     proc_section_levels,
 )
+from .raster_budget import document_raster_budget, flush_limits
 from .render import render
 from .stats import build_stats
 from .table_joins import link_continued_tables
@@ -80,16 +81,18 @@ def convert(
     """
     out = Output(outdir)
     try:
-        md_path, manifest = _convert(
-            path,
-            out,
-            images,
-            do_flag_math,
-            page_markers,
-            do_flag_figures,
-            cancel,
-            grids,
-        )
+        with document_raster_budget() as budget:
+            md_path, manifest = _convert(
+                path,
+                out,
+                images,
+                do_flag_math,
+                page_markers,
+                do_flag_figures,
+                cancel,
+                grids,
+                budget,
+            )
         out.commit()
     except BaseException:
         # A failure or a cancel leaves no .part behind and the previous
@@ -100,7 +103,15 @@ def convert(
 
 
 def _convert(
-    path, out, images, do_flag_math, page_markers, do_flag_figures, cancel, grids
+    path,
+    out,
+    images,
+    do_flag_math,
+    page_markers,
+    do_flag_figures,
+    cancel,
+    grids,
+    budget,
 ):
     outdir = out.outdir
     stem = output_stem(path.stem)
@@ -241,6 +252,7 @@ def _convert(
     if provenance:
         md = "\n".join(provenance) + "\n\n" + md
     out.file(f"{stem}.md").write_text(md, encoding="utf-8")
+    flush_limits(budget, pages)
     manifest["stats"] = build_stats(
         pages, md, manifest, provenance, pi_spans, n_figures
     )

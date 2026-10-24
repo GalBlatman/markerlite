@@ -17,6 +17,7 @@ from typing import Callable, Iterable, List, Mapping, Optional, Tuple
 import pymupdf
 
 from .model import *
+from .raster_budget import device_size
 
 
 def discover_tesseract(
@@ -131,11 +132,10 @@ def oversized_images(page: pymupdf.Page) -> List[tuple]:
 def text_flags(page: pymupdf.Page, base: int) -> int:
     """Text-extraction flags for ``page``. MuPDF decodes every image when
     image blocks are requested (rawdict and dict ask for them by default);
-    the converter never uses those blocks. On a page with an oversized image
-    they are not requested, so the image is never decoded."""
-    if oversized_images(page):
-        return base & ~pymupdf.TEXT_PRESERVE_IMAGES
-    return base
+    the converter never uses those blocks. Never request them, so text
+    extraction does not spend the document's decoded-raster budget."""
+    # No caller consumes rawdict image blocks; never decode them for text.
+    return base & ~pymupdf.TEXT_PRESERVE_IMAGES
 
 
 def readable_ratio(text: str) -> Tuple[int, float]:
@@ -385,13 +385,22 @@ def ocr_dpi(page: pymupdf.Page, dpi: int = OCR_DPI) -> Tuple[int, int]:
     metres wide: its pixel count is computed from the page box before
     anything is rendered, and above OCR_MAX_PIXELS the resolution is lowered
     so that the render stays within the budget."""
-    w = page.rect.width * dpi / 72.0
-    h = page.rect.height * dpi / 72.0
-    pixels = int(w) * int(h)
-    if pixels <= OCR_MAX_PIXELS:
-        return dpi, pixels
-    lowered = int(dpi * math.sqrt(OCR_MAX_PIXELS / pixels))
-    return max(lowered, 1), pixels
+    w, h = device_size(page.rect, dpi)
+    pixels = w * h
+    lowered = (
+        dpi
+        if pixels <= OCR_MAX_PIXELS
+        else max(1, int(dpi * math.sqrt(OCR_MAX_PIXELS / pixels)))
+    )
+    while lowered > 1:
+        rw, rh = device_size(page.rect, lowered)
+        if rw * rh <= OCR_MAX_PIXELS:
+            break
+        lowered -= 1
+    rw, rh = device_size(page.rect, lowered)
+    if rw * rh > OCR_MAX_PIXELS:
+        raise ValueError("page raster exceeds pixel budget even at 1 dpi")
+    return lowered, pixels
 
 
 def _ocr_page(
@@ -678,6 +687,7 @@ def extract_page(
     direct equivalent of pdftext's ``span.minimum_position``.
     """
     ocr_used = False
+    geometry_error = None
     page, derotated = _normalise_rotation(page)
     raw = page.get_text("rawdict", flags=text_flags(page, pymupdf.TEXTFLAGS_RAWDICT))
     text_len = sum(
@@ -698,7 +708,11 @@ def extract_page(
     n_tokens, readable = readable_ratio(page.get_text())
     garbled = n_tokens >= GARBLE_MIN_TOKENS and readable < GARBLE_MIN
     if ocr_if_empty and (text_len < OCR_MIN_NATIVE_CHARS or image_only or garbled):
-        ocr_page = _ocr_page(page, page_idx, cancel=cancel)
+        try:
+            ocr_dpi(page)
+        except ValueError as exc:
+            geometry_error = str(exc)
+        ocr_page = None if geometry_error else _ocr_page(page, page_idx, cancel=cancel)
         if ocr_page is not None:
             ocr_page.garbled = garbled
             ocr_page.readable = readable
@@ -797,7 +811,7 @@ def extract_page(
 
     _attach_drop_caps(blocks)
     _mark_fill_backed_banners(page, blocks)
-    return Page(
+    result = Page(
         page_idx=page_idx,
         width=page.rect.width,
         height=page.rect.height,
@@ -811,6 +825,15 @@ def extract_page(
         garbled=garbled,
         readable=readable if n_tokens >= GARBLE_MIN_TOKENS else 1.0,
     )
+    if geometry_error:
+        note_limit(
+            result,
+            "ocr_geometry",
+            "invalid or over budget",
+            OCR_MAX_PIXELS,
+            "OCR skipped; native source text kept",
+        )
+    return result
 
 
 def _lines_of(text: str) -> List[str]:
