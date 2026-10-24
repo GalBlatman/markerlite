@@ -284,7 +284,10 @@ The downstream bump protocol consumes these field names; keep them stable.
   for the source run and the frozen exe. `markerlite --version` from pip or
   source covers the command line.
 - `pyproject.toml` carries compatible dependency ranges. CI, `build_exe.bat`,
-  and pinned pipelines install through `requirements-lock.txt`.
+  and pinned pipelines install hash-checked `requirements-bootstrap.txt` (pip),
+  then `requirements-lock.txt`, then the trusted project with --no-deps
+  --no-build-isolation. CI pins Python 3.12.10. Windows Tesseract 5.5.3.20260724
+  is installed only on a separate OCR test worker, never the artifact worker.
 - Commit messages: imperative subject, body explains WHY. Every commit ends
   with the Co-Authored-By / Claude-Session trailer.
 - Push after committing (`git pull --rebase` first if the remote is ahead).
@@ -519,6 +522,11 @@ parentheses fails if the fix is undone):
   spanned-line shares could not separate them (tests/REPORT-batchC-block1.md).
 
 ## Open items
+
+- Document-wide page, retained-memory, output and wall-clock budgets are
+  deferred to the planned per-document worker process with its time limit.
+  The child stages privately; only the parent publishes a complete output
+  set after success, so terminating a child cannot interrupt publication.
 
 - CI skips 16 OCR golden entries because runner Tesseract versions differ
   from the recorded 5.5.0. Options for future work: pin Tesseract in CI, or

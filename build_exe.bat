@@ -10,7 +10,11 @@ setlocal
 pushd "%~dp0" || (echo Cannot enter the folder of this script. & exit /b 1)
 
 echo Installing build dependencies...
-python -m pip install --quiet -c "requirements-lock.txt" -e ".[gui,build]"
+python -m pip install --require-hashes --only-binary=:all: -r "requirements-bootstrap.txt"
+if errorlevel 1 goto :fail
+python -m pip install --require-hashes --only-binary=:all: -r "requirements-lock.txt"
+if errorlevel 1 goto :fail
+python -m pip install --no-deps --no-build-isolation -e .
 if errorlevel 1 goto :fail
 
 echo.
@@ -32,7 +36,7 @@ echo.
 echo Done. The app is the folder: "%CD%\dist\markerlite\"
 echo Run markerlite.exe inside it. Keep the folder together - the DLLs beside it are needed.
 echo.
-echo NOTE: scanned PDFs still need Tesseract installed separately and on PATH.
+echo NOTE: scanned PDFs still need Tesseract installed separately.
 echo Digital PDFs - which is nearly everything from a publisher - work without it.
 popd
 pause

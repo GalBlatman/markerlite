@@ -21,7 +21,10 @@ The package follows the conversion order:
 6. `render.py` emits Markdown. Tables default to ordered source prose;
    `grids=True` opts into grids without changing detection/protection. `stats.py` builds the stable reporting schema.
 7. `output.py` stages every output as `<name>.part` and renames it into place
-   only when the whole conversion succeeds (CLI, GUI and API alike).
+   only when the whole conversion succeeds (CLI, GUI and API alike). Existing
+   targets are backed up together, then swapped together; failure rolls the
+   complete set back. `apply_manifest.py` bounds and validates hand-offs and
+   scans Markdown once for all replacements.
 
 `model.py` owns the page/block/line/span records and text patterns.
 `thresholds.py` owns calibrated numeric behavior gates. A threshold change is
@@ -35,9 +38,15 @@ reference PDFs, and the external Packet corpus. OCR hashes compare only when
 the Tesseract version matches. `tests/regress.py` retains readable Markdown
 diffs and specialized structural checks.
 
-`requirements-lock.txt` pins CI and repeatable pipeline environments;
+`raster_budget.py` owns document-local raster/crop reservations and cancel
+checkpoints; exhausted work retains source text with resource-limit stats.
+`display.py` escapes untrusted text at CLI/log/GUI display boundaries.
+
+`requirements-bootstrap.txt` pins pip with hashes. `requirements-lock.txt`
+pins CI and repeatable pipeline environments with platform wheel hashes;
 `pyproject.toml` contains compatible ranges for normal installation. The
 Windows workflow builds the onedir GUI, launches it with `--diag`, and verifies
 all icon resources. The Ubuntu workflow runs Tesseract-backed tests and
-coverage. Releases remain tag-triggered and tags are created only by the
+coverage. Windows OCR tests install pinned Tesseract on a separate worker;
+the artifact-producing job never runs that installer. Releases remain tag-triggered and tags are created only by the
 maintainer.

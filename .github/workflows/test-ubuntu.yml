@@ -19,15 +19,16 @@ jobs:
 
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
-          python-version: "3.12"
+          python-version: "3.12.10"
 
       - name: Install Tesseract
         run: sudo apt-get update && sudo apt-get install -y tesseract-ocr
 
       - name: Install locked dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -c requirements-lock.txt -e ".[dev]"
+          python -m pip install --require-hashes --only-binary=:all: -r requirements-bootstrap.txt
+          python -m pip install --require-hashes --only-binary=:all: -r requirements-lock.txt
+          python -m pip install --no-deps --no-build-isolation -e .
 
       - name: Check generated agent instructions
         run: |

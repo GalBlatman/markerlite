@@ -17,44 +17,28 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  ocr-tests:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
-
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
-          python-version: "3.12"
-
-      - name: Install Tesseract in its default directory
-        run: choco install tesseract --yes --no-progress
-
-      - name: Check generated agent instructions
-        shell: bash
+          python-version: "3.12.10"
+      - name: Install pinned Tesseract (test worker only)
+        run: choco install tesseract --version=5.5.3.20260724 --yes --no-progress
+      - name: Install hash-checked dependencies
         run: |
-          python tools/sync_agents.py
-          git diff --exit-code AGENTS.md
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -c requirements-lock.txt -e ".[dev,gui,build]"
-
-      - name: Check version tag
-        if: startsWith(github.ref, 'refs/tags/v')
-        shell: bash
-        run: test "$(python -c 'import markerlite; print(markerlite.__version__)')" = "${GITHUB_REF_NAME#v}"
-
-      - name: Ruff
-        run: |
-          ruff check .
-          ruff format --check .
-
-      - name: Unit tests
+          python -m pip install --require-hashes --only-binary=:all: -r requirements-bootstrap.txt
+          python -m pip install --require-hashes --only-binary=:all: -r requirements-lock.txt
+          python -m pip install --no-deps --no-build-isolation -e .
+      - name: OCR unit tests
         run: pytest -q
-
+      - name: OCR fixture regression
+        run: python tests/regress.py
+      - name: OCR golden fixtures
+        run: python tests/golden.py verify --scope fixtures
       - name: Discover Tesseract without PATH
         run: |
           $env:PATH = (($env:PATH -split ';') | Where-Object { $_ -notmatch 'Tesseract-OCR|chocolatey\\bin' }) -join ';'
@@ -71,12 +55,51 @@ jobs:
           python -c "import pathlib,tempfile,markerlite; d=tempfile.TemporaryDirectory(); _,i=markerlite.convert(pathlib.Path('tests/fixtures/scanned.pdf'), pathlib.Path(d.name)); assert i['stats']['ocr_pages'] == 2; assert i['stats']['words'] > 100"
           Remove-Item markerlite-diag.txt
 
+
+  build:
+    # Fresh worker: no installer from OCR tests can alter the uploaded executable.
+    needs: ocr-tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12.10"
+
+      - name: Check generated agent instructions
+        shell: bash
+        run: |
+          python tools/sync_agents.py
+          git diff --exit-code AGENTS.md
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --require-hashes --only-binary=:all: -r requirements-bootstrap.txt
+          python -m pip install --require-hashes --only-binary=:all: -r requirements-lock.txt
+          python -m pip install --no-deps --no-build-isolation -e .
+
+      - name: Check version tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: test "$(python -c 'import markerlite; print(markerlite.__version__)')" = "${GITHUB_REF_NAME#v}"
+
+      - name: Ruff
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Unit tests
+        run: pytest -q
+
       - name: Check GUI method references
         run: python check_gui.py
 
       - name: Fixture regression
         # Converts tests/fixtures/*.pdf and diffs against tests/expected/.
-        # Tesseract is installed above, so Windows also checks OCR output.
+        # OCR runs in the separate job; this artifact job installs no Tesseract.
         run: python tests/regress.py
 
       - name: Golden fixture hashes

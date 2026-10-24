@@ -163,27 +163,26 @@ or use the command line, below.
 
 ## Pin markerlite in a pipeline
 
-Use a release tag that contains `pyproject.toml` and `requirements-lock.txt`.
-The lock fixes the converter and build dependencies; the project metadata
+For v0.2.1 and later, install the hash-checked bootstrap and dependency lock
+from the same tag, then install that exact source without resolving new
+dependencies or creating an unpinned build environment. `pyproject.toml`
 keeps compatible ranges for ordinary installs.
 
 ```bash
-TAG=<packaged-release-tag>
+TAG=v0.2.1 # once published; use an exact verified commit before tagging
+curl -O "https://raw.githubusercontent.com/GalBlatman/markerlite/${TAG}/requirements-bootstrap.txt"
 curl -O "https://raw.githubusercontent.com/GalBlatman/markerlite/${TAG}/requirements-lock.txt"
-python -m pip install -c requirements-lock.txt \
+python -m pip install --require-hashes --only-binary=:all: -r requirements-bootstrap.txt
+python -m pip install --require-hashes --only-binary=:all: -r requirements-lock.txt
+python -m pip install --no-deps --no-build-isolation \
   "markerlite @ git+https://github.com/GalBlatman/markerlite.git@${TAG}"
 markerlite --version
 ```
 
-Until a packaged release is tagged, use an exact source commit instead:
-
-```bash
-git clone https://github.com/GalBlatman/markerlite.git
-cd markerlite
-git checkout <commit>
-python -m pip install -c requirements-lock.txt -e .
-markerlite --version
-```
+The lock includes the build/test dependencies and platform-specific wheel
+hashes. To regenerate it deliberately, use `uv pip compile
+requirements-lock.txt --generate-hashes --universal --python-version 3.12
+--no-annotate --output-file requirements-lock.txt` and review the diff.
 
 Record the tag or commit and keep the generated Markdown and stats hashes with
 the pipeline run. Upgrade deliberately and compare those hashes on a sample

@@ -447,3 +447,25 @@ figure replacement remains idempotent and math preserves intervening prose.
 The resulting Markdown uses the rollback-capable output transaction.
 Tests cover invalid schemas, byte/entry refusal, no second parse, single
 scanner invocation and preservation/idempotence. No corpus baseline changes.
+
+
+### Item 9: hash-checked build dependencies and installer isolation
+
+Both workflows pin Python 3.12.10 (the common Windows/Linux patch in the
+setup-python distribution manifest). pip 26.2.2 is bootstrapped with its
+published SHA-256 hashes. A generated universal requirements lock supplies
+hashes for every pinned dependency, including platform-conditional build
+transitives. CI and build_exe.bat use --require-hashes --only-binary=:all:,
+then install the trusted checkout with --no-deps --no-build-isolation.
+Compatible project ranges remain in pyproject.toml. A fresh WSL virtual
+environment successfully installed bootstrap, the complete hash lock and
+the checkout without dependency/build-environment resolution.
+
+Chocolatey Tesseract is pinned to 5.5.3.20260724 in a separate Windows
+ocr-tests job. It runs the OCR suite and off-PATH discovery checks, uploads
+no executable, and cannot share its installed files with the artifact
+worker. The build job waits for OCR success but starts on a fresh worker
+and never invokes the Tesseract installer. Release remains tag-only with
+contents:write confined to its checkout-free publication job. The README
+pipeline recipe uses the same two hash files from the selected tag.
+Final candidate CI and clean-install evidence follow below.
