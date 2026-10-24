@@ -54,3 +54,30 @@ def test_capped_stdout_cancel_reaps_and_joins_reader():
         timer.join()
     assert not token._procs
     assert not any(t.name == "markerlite-capped-stdout" for t in threading.enumerate())
+
+
+def test_reader_start_failure_reaps_child_and_unregisters(monkeypatch):
+    from markerlite import cancel as module
+
+    processes = []
+    real_popen = module.subprocess.Popen
+
+    def launch(*args, **kwargs):
+        process = real_popen(*args, **kwargs)
+        processes.append(process)
+        return process
+
+    def fail_start(self):
+        raise RuntimeError("reader cannot start")
+
+    monkeypatch.setattr(module.subprocess, "Popen", launch)
+    monkeypatch.setattr(module.threading.Thread, "start", fail_start)
+    token = CancelToken()
+    with pytest.raises(RuntimeError, match="reader cannot start"):
+        token.capture(
+            [sys.executable, "-c", "import time; time.sleep(60)"],
+            max_bytes=100,
+            timeout=5,
+        )
+    assert processes and all(p.poll() is not None for p in processes)
+    assert not token._procs
