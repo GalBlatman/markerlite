@@ -9,6 +9,8 @@ Security and robustness patch from the second static scan of 00514b4.
 Ordinary conversion output is unchanged against the 186-entry v0.2.0
 baseline; no table reconstruction algorithm or golden baseline changes.
 
+### Robustness
+
 - A failed PDF no longer aborts a CLI batch. Failures are listed and produce
   a nonzero exit; long derived names are shortened with a stable hash.
 - Output publication backs up the complete previous set before any swap
@@ -19,9 +21,13 @@ baseline; no table reconstruction algorithm or golden baseline changes.
   text/placeholders. Pairwise loops check cancellation inside the work.
 - Apply manifests have byte/entry limits and typed validation, are parsed
   once, and replace all entries with one Markdown scan.
+### Build
+
 - Builds pin Python and pip and install generated, hash-checked dependency
   locks. Pinned Tesseract installation runs on a separate OCR test worker,
   outside the artifact-producing job.
+### Deferred
+
 - Document page, retained-memory, total-output and wall-clock budgets
   remain deferred to the planned timed per-document worker process.
 

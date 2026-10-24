@@ -567,3 +567,9 @@ before reaching the producer. Give the stub finite dimensions and an empty
 image inventory, force discovery, and raise at capture_capped. This tests
 the intended failure boundary both with and without a system OCR install;
 it changes no conversion code or expected output.
+
+
+Candidate notes use the existing release-note section layout (Robustness,
+Build, Deferred). The initial v0.2.1 notes lacked subsection headings and
+failed the standing release-note test; headings now satisfy that contract.
+This is documentation only, with no golden change.
