@@ -292,15 +292,17 @@ def _image_infos(pm: pymupdf.Page) -> list:
     call, which does not decode, and each one's xref from the image whose
     placement box it matches."""
     items = pm.get_images(full=True)
-    if len(items) > IMAGE_PLACEMENT_MAX_CANDIDATES:
+    placements = pm.get_image_info()
+    candidates = max(len(items), len(placements))
+    if candidates > IMAGE_PLACEMENT_MAX_CANDIDATES:
         pending_limit(
             pm,
             "image_placement_candidates",
-            len(items),
+            candidates,
             IMAGE_PLACEMENT_MAX_CANDIDATES,
             "pairwise source matching skipped; placements, placeholders and text kept",
         )
-        return [{**info, "xref": 0} for info in pm.get_image_info()]
+        return [{**info, "xref": 0} for info in placements]
     if not oversized_images(pm) and reserve_decode(pm, image_bytes(pm)):
         return pm.get_image_info(xrefs=True)
     boxes = []
@@ -310,7 +312,7 @@ def _image_infos(pm: pymupdf.Page) -> list:
         except Exception:
             continue
     infos = []
-    for info in checked(pm.get_image_info()):
+    for info in checked(placements):
         box = pymupdf.Rect(info["bbox"])
         match = next(
             (

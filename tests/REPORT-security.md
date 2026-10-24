@@ -592,3 +592,15 @@ no limits tripped, and the overall maximum remains R00639's 11,979,380,000
 bytes (the document is unaffected by this inventory correction). The 128 GB
 cap remains 10.68x. Metadata for every page comparison and both nine-document
 reruns is in security-v021-observed.json. Source PDFs stayed in place.
+
+
+### Item 6 final inventory correction: bound both candidate lists
+
+The complete 84-document non-decoding inventory measures up to 36 image
+placements (R00717 p. 9), versus 32 resource entries. Check the larger count
+before either xref hashing or source/placement matching, covering many
+placements of one reused resource as well as many resources. Cap 400 is
+11.1x the observed larger list. A test with one resource and two placements
+under a forced cap proves neither decoding nor the pair loop is entered.
+Normal placements and source text are retained on the capped route with
+resource-limit stats. The measured corpus never reaches this cap.

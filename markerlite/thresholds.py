@@ -251,7 +251,8 @@ TABLE_MAX_CELLS = 8_000
 TABLE_MAX_COORDINATE_SPAN = 10_000.0
 
 # v0.2.1 candidate upper bounds measured on all 84 baseline PDFs.
-# 32 source images per page; at most 326 drawings per page. Diagram boxes
+# 32 source images / 36 placements per page; cap 400 is 11.1x the larger.
+# At most 326 drawings per page. Diagram boxes
 # maximum 24 stroked boxes (hard p2), capped at 256 (10.7x).
 IMAGE_PLACEMENT_MAX_CANDIDATES = 400
 GATE_MAX_BOX_CANDIDATES = 256

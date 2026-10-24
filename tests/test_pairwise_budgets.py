@@ -65,3 +65,24 @@ def test_furniture_cap_keeps_every_block(monkeypatch):
     processors.proc_marginalia([page])
     assert not any(b.ignore_for_output for b in blocks)
     assert {r["limit"] for r in page.limit_events} == {"furniture_candidates"}
+
+
+def test_placement_count_is_capped_even_with_one_reused_resource(monkeypatch):
+    monkeypatch.setattr(figures, "IMAGE_PLACEMENT_MAX_CANDIDATES", 1)
+
+    def infos(**kwargs):
+        assert not kwargs  # no xref/hash decoder may be requested
+        return [{"bbox": (1, 2, 3, 4)}] * 2
+
+    pm = SimpleNamespace(
+        number=0,
+        get_images=lambda **kw: [(1, 0, 10, 10)],
+        get_image_info=infos,
+        get_image_bbox=lambda *args: pytest.fail("must not enter pairwise matching"),
+    )
+    page = Page(page_idx=0, width=100, height=100, blocks=[])
+    with document_raster_budget() as state:
+        result = figures._image_infos(pm)
+        flush_limits(state, [page])
+    assert len(result) == 2 and all(v["xref"] == 0 for v in result)
+    assert page.limit_events[0]["observed"] == 2
