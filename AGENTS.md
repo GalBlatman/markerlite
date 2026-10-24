@@ -19,8 +19,10 @@ v0.2.0 (`/releases/latest` is the download link the README and blog use;
 release notes are the tag's CHANGELOG.md section). Published from verified
 00514b4; release checks are in tests/REPORT-v0.2.0-release.md. The golden
 baseline is tests/golden/v0.2.0.json (both grid modes; cmr_review.pdf excluded).
-VERSION is 0.2.0. Earlier manifests stay for history; the standing archived
-audit also compares v0.1.18.json.
+VERSION is 0.2.1, an untagged security/robustness release candidate.
+The current patch requires an archived 186/186 audit against v0.2.0.json
+after every commit; earlier manifests remain historical. See
+tests/REPORT-security.md for both scans and candidate verification.
 
 ## Layout
 

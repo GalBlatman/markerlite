@@ -543,3 +543,16 @@ Windows OCR/artifact-worker checks and candidate installation/build checks.
 No tag is authorized here. The page/retained-memory/output/wall-clock work
 remains deferred to a timed per-document worker; killing it must leave only
 private staging, with publication owned by the parent after success.
+
+
+## v0.2.1 candidate: pre-tag verification
+
+VERSION is 0.2.1; current published release remains v0.2.0. CHANGELOG now
+records the patch and leaves document-wide worker budgets deferred. The
+186-entry v0.2.0 manifest is unchanged. Candidate checks below are completed
+against committed archives/build artifacts before requesting the owner tag;
+no release/tag is created by this task.
+
+The runtime/dependency implementation is complete. Final candidate CI,
+exact-commit hashes, cancellation matrix and clean-install results are
+being collected; the evidence section will be completed before stopping.

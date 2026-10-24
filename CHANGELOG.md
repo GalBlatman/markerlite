@@ -3,7 +3,32 @@
 Changes that affect output or use, newest first. Every release's golden
 audit (tests/golden.py) lists which reference documents changed and why.
 
-## v0.2.0 (unreleased)
+## v0.2.1 (unreleased)
+
+Security and robustness patch from the second static scan of 00514b4.
+Ordinary conversion output is unchanged against the 186-entry v0.2.0
+baseline; no table reconstruction algorithm or golden baseline changes.
+
+- A failed PDF no longer aborts a CLI batch. Failures are listed and produce
+  a nonzero exit; long derived names are shortened with a stable hash.
+- Output publication backs up the complete previous set before any swap
+  and restores it on failure. Apply-manifest rewrites use the same rollback.
+- GUI display paths escape PDF-derived control and reordering characters.
+- Measured raster, table-work, pairwise-candidate, OCR stdout and crop-disk
+  budgets degrade visibly with resource-limit stats and retained source
+  text/placeholders. Pairwise loops check cancellation inside the work.
+- Apply manifests have byte/entry limits and typed validation, are parsed
+  once, and replace all entries with one Markdown scan.
+- Builds pin Python and pip and install generated, hash-checked dependency
+  locks. Pinned Tesseract installation runs on a separate OCR test worker,
+  outside the artifact-producing job.
+- Document page, retained-memory, total-output and wall-clock budgets
+  remain deferred to the planned timed per-document worker process.
+
+See tests/REPORT-security.md for both scans, measurements, exact-commit
+audits and the pre-tag checklist. No tag has been created for this candidate.
+
+## v0.2.0
 
 ### Windows app
 
