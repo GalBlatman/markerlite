@@ -36,3 +36,8 @@ def safe_display(value: object) -> str:
         _escape(ch) if unicodedata.category(ch) == "Cc" or ch in _EXTRA else ch
         for ch in text
     )
+
+
+def display_text(value: object) -> str:
+    """Safe multiline GUI text: preserve layout newlines, escape each line."""
+    return "\n".join(safe_display(line) for line in str(value).split("\n"))

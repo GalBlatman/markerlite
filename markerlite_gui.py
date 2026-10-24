@@ -25,7 +25,7 @@ import webbrowser
 from tkinter import filedialog, messagebox, ttk
 
 from markerlite import __version__
-from markerlite.display import safe_display
+from markerlite.display import display_text, safe_display
 from markerlite.extraction import discover_tesseract, tesseract_version
 from markerlite.gui_logic import (
     DOT_COLOUR,
@@ -208,7 +208,7 @@ class App:
 
         # The version comes from markerlite/VERSION through __version__: the
         # windowed exe has no console, so this is where a user reads it.
-        root.title(window_title())
+        root.title(safe_display(window_title()))
         self.tess_version: str | None = None
         # Light or dark follows the Windows app setting, read once here.
         self.theme = theme_for(
@@ -243,7 +243,9 @@ class App:
             save_settings(self.settings)
         except OSError as exc:
             app_log(f"Could not save settings: {exc}")
-            self.status.configure(text=f"Could not save settings: {safe_display(exc)}")
+            self.status.configure(
+                text=display_text(f"Could not save settings: {safe_display(exc)}")
+            )
 
     def _build_menus(self):
         self.menu_bar = tk.Menu(self.root)
@@ -253,14 +255,17 @@ class App:
             menu = tk.Menu(
                 self.menu_bar, tearoff=False, postcommand=self._refresh_menus
             )
-            self.menu_bar.add_cascade(label=name, underline=0, menu=menu)
+            self.menu_bar.add_cascade(label=display_text(name), underline=0, menu=menu)
             self.menus[name] = menu
         self.root.configure(menu=self.menu_bar)
 
         def entry(group, label, command, shortcut="", key=None):
             menu = self.menus[group]
             menu.add_command(
-                label=label, underline=0, command=command, accelerator=shortcut
+                label=display_text(label),
+                underline=0,
+                command=command,
+                accelerator=shortcut,
             )
             self.menu_entries[label] = (menu, menu.index("end"))
             if key:
@@ -310,7 +315,7 @@ class App:
         self.menus["View"].add_cascade(label="Theme", underline=0, menu=themes)
         for label in ("System", "Light", "Dark"):
             themes.add_radiobutton(
-                label=label,
+                label=display_text(label),
                 underline=0,
                 variable=self.theme_choice,
                 value=label.lower(),
@@ -459,7 +464,9 @@ class App:
             else:
                 webbrowser.open(url)
         except OSError as exc:
-            self.status.configure(text=f"Could not open browser: {safe_display(exc)}")
+            self.status.configure(
+                text=display_text(f"Could not open browser: {safe_display(exc)}")
+            )
 
     def report_problem(self):
         self.copy_version()
@@ -475,9 +482,13 @@ class App:
         if destination:
             try:
                 write_diagnostics(pathlib.Path(destination))
-                self.status.configure(text=f"Diagnostics saved to {destination}")
+                self.status.configure(
+                    text=display_text(f"Diagnostics saved to {destination}")
+                )
             except OSError as exc:
-                messagebox.showerror("Diagnostics", str(exc), parent=self.root)
+                messagebox.showerror(
+                    "Diagnostics", safe_display(str(exc)), parent=self.root
+                )
 
     def about(self):
         win = tk.Toplevel(self.root)
@@ -485,7 +496,9 @@ class App:
         win.transient(self.root)
         win.configure(bg=self.c["bg"])
         ttk.Label(
-            win, text=f"markerlite {__version__}\nApache-2.0", padding=self.g(2)
+            win,
+            text=display_text(f"markerlite {__version__}\nApache-2.0"),
+            padding=self.g(2),
         ).pack()
         credits = (
             (
@@ -510,9 +523,9 @@ class App:
             ),
         )
         for label, url in credits:
-            ttk.Button(win, text=label, command=lambda u=url: self.open_link(u)).pack(
-                fill="x", padx=self.g(2), pady=self.g(0.5)
-            )
+            ttk.Button(
+                win, text=display_text(label), command=lambda u=url: self.open_link(u)
+            ).pack(fill="x", padx=self.g(2), pady=self.g(0.5))
         ttk.Button(win, text="Close", command=win.destroy).pack(pady=self.g(2))
         win.bind("<Escape>", lambda _e: win.destroy())
 
@@ -535,18 +548,20 @@ class App:
         win.minsize(self.g(36), 1)
         win.transient(self.root)
         win.configure(bg=self.c["bg"])
-        ttk.Label(win, text=result.message, padding=self.g(2)).pack()
+        ttk.Label(win, text=display_text(result.message), padding=self.g(2)).pack()
         if result.url:
             ttk.Button(
                 win,
-                text="Open release page"
-                if "available" in result.message
-                else "Open Releases",
+                text=display_text(
+                    "Open release page"
+                    if "available" in result.message
+                    else "Open Releases"
+                ),
                 command=lambda: self.open_link(result.url),
             ).pack(pady=self.g(1))
         ttk.Button(win, text="Close", command=win.destroy).pack(pady=self.g(1))
         win.bind("<Escape>", lambda _e: win.destroy())
-        self.status.configure(text=result.message)
+        self.status.configure(text=display_text(result.message))
 
     def check_ocr(self):
         from markerlite.gui_ocr import WINDOWS_DOWNLOAD_URL, ocr_status
@@ -597,9 +612,9 @@ class App:
 
     def _sendto_message(self, message):
         if self.sendto_error is not None and self.sendto_error.winfo_exists():
-            self.sendto_error.configure(text=message)
+            self.sendto_error.configure(text=display_text(message))
         if message:
-            self.status.configure(text=message)
+            self.status.configure(text=display_text(message))
             app_log(message)
 
     def preferences(self):
@@ -627,15 +642,15 @@ class App:
         notice = tk.StringVar()
 
         def heading(text):
-            ttk.Label(frame, text=text, style="Head.TLabel").pack(
+            ttk.Label(frame, text=display_text(text), style="Head.TLabel").pack(
                 anchor="w", pady=(self.g(1.5), self.g(0.5))
             )
 
         heading("Output")
         for label, value in (("Next to each PDF", "beside"), ("Fixed folder", "fixed")):
-            ttk.Radiobutton(frame, text=label, variable=mode, value=value).pack(
-                anchor="w"
-            )
+            ttk.Radiobutton(
+                frame, text=display_text(label), variable=mode, value=value
+            ).pack(anchor="w")
         row = ttk.Frame(frame)
         row.pack(fill="x")
         ttk.Entry(row, textvariable=folder, width=60).pack(
@@ -686,7 +701,7 @@ class App:
             detected = discover_tesseract()
             if detected:
                 ocr.set(detected)
-                notice.set(f"Detected: {detected}")
+                notice.set(safe_display(f"Detected: {detected}"))
             else:
                 notice.set(
                     "Tesseract was not found; install it or choose its executable path."
@@ -697,9 +712,9 @@ class App:
         row = ttk.Frame(frame)
         row.pack(fill="x")
         for label in ("System", "Light", "Dark"):
-            ttk.Radiobutton(row, text=label, variable=theme, value=label.lower()).pack(
-                side="left", padx=(0, self.g(2))
-            )
+            ttk.Radiobutton(
+                row, text=display_text(label), variable=theme, value=label.lower()
+            ).pack(side="left", padx=(0, self.g(2)))
         ttk.Label(
             frame, textvariable=notice, style="Warn.TLabel", wraplength=self.g(65)
         ).pack(anchor="w", pady=self.g(1))
@@ -711,7 +726,7 @@ class App:
             try:
                 override = validate_override(ocr.get()) if ocr.get().strip() else ""
             except ValueError as exc:
-                notice.set(str(exc))
+                notice.set(safe_display(exc))
                 return
             self.settings.update(
                 output_mode=mode.get(),
@@ -842,7 +857,9 @@ class App:
         if exe:
             version = tesseract_version(exe)
             self.tess_version = version
-            self.tess_label.configure(text=f"OCR: {version} ({exe})", style="Ok.TLabel")
+            self.tess_label.configure(
+                text=display_text(f"OCR: {version} ({exe})"), style="Ok.TLabel"
+            )
             return True
         self.tess_version = None
         self.tess_label.configure(
@@ -857,9 +874,11 @@ class App:
         self.drop_backend = "tkdnd" if HAVE_DND else None
         if not HAVE_DND:
             self.status.configure(
-                text="Drag-and-drop unavailable — "
-                + (DND_ERROR or "tkinterdnd2 not found")
-                + ". Run: pip install tkinterdnd2  (or click the zone / Add folder)."
+                text=display_text(
+                    "Drag-and-drop unavailable — "
+                    + (DND_ERROR or "tkinterdnd2 not found")
+                    + ". Run: pip install tkinterdnd2  (or click the zone / Add folder)."
+                )
             )
 
     def _set_icon(self):
@@ -982,13 +1001,16 @@ class App:
             ttk.Label(header, image=self._logo).pack(side="left")
         except Exception:
             pass
-        ttk.Label(header, text=APP, style="Wordmark.TLabel").pack(
+        ttk.Label(header, text=display_text(APP), style="Wordmark.TLabel").pack(
             side="left", padx=(g(1), 0)
         )
         # A click on the version copies one line with the version, Tesseract
         # and the Windows build, ready for a bug report.
         self.version_label = ttk.Label(
-            header, text=version_label(), style="Muted.TLabel", cursor="hand2"
+            header,
+            text=display_text(version_label()),
+            style="Muted.TLabel",
+            cursor="hand2",
         )
         self.version_label.pack(side="right")
         self.version_label.bind("<Button-1>", self.copy_version)
@@ -1020,9 +1042,11 @@ class App:
         inner.place(relx=0.5, rely=0.5, anchor="center")
         self.drop_label = ttk.Label(
             inner,
-            text="Drop PDFs here, or click to browse"
-            if HAVE_DND
-            else "Click to browse for PDFs",
+            text=display_text(
+                "Drop PDFs here, or click to browse"
+                if HAVE_DND
+                else "Click to browse for PDFs"
+            ),
             style="Drop.TLabel",
         )
         self.drop_label.pack()
@@ -1111,7 +1135,7 @@ class App:
             ("Insert <!-- page N --> markers", self.opt_pages),
         ):
             ttk.Checkbutton(
-                extra_col, text=text, variable=var, command=self._sync_out
+                extra_col, text=display_text(text), variable=var, command=self._sync_out
             ).pack(anchor="w", pady=(g(1), 0))
         # Explorer's Send to entry: Windows app only (it points at this exe).
         self.sendto_var = None
@@ -1132,7 +1156,7 @@ class App:
             ("Add folder…", self.browse_folder),
             ("Clear", self.clear),
         ):
-            button = ttk.Button(bar, text=text, command=command)
+            button = ttk.Button(bar, text=display_text(text), command=command)
             button.pack(side="left", padx=(g(1), 0))
             if command == self.clear:
                 self.clear_btn = button
@@ -1169,7 +1193,7 @@ class App:
         """A read-only text tab in the theme's colours."""
         c, g = self.c, self.g
         frame = ttk.Frame(self.tabs, padding=(0, g(1), 0, 0))
-        self.tabs.add(frame, text=title)
+        self.tabs.add(frame, text=display_text(title))
         text = tk.Text(
             frame,
             wrap="word",
@@ -1241,12 +1265,12 @@ class App:
         line = bug_report_line(self.tess_version, windows_build())
         self.root.clipboard_clear()
         self.root.clipboard_append(line)
-        self.status.configure(text=f"Copied: {line}")
+        self.status.configure(text=display_text(f"Copied: {line}"))
         return line
 
     # ---------------------------------------------------------------- files
     def _sync_out(self):
-        self.opts_summary.configure(text=self._options_summary())
+        self.opts_summary.configure(text=display_text(self._options_summary()))
 
     def on_drop(self, event):
         self.add(self.root.tk.splitlist(event.data))
@@ -1277,7 +1301,9 @@ class App:
             if p in self.files:
                 continue
             self.files.append(p)
-            self.tree.insert("", "end", iid=str(p), text=" " + safe_display(p.name))
+            self.tree.insert(
+                "", "end", iid=str(p), text=display_text(" " + safe_display(p.name))
+            )
             self._set_row(str(p), "queued")
             added += 1
             self.settings["recent_files"] = recent_files(
@@ -1291,7 +1317,7 @@ class App:
             msg += f" · {skipped} already listed"
         if not found and raw:
             msg = "Nothing added — those weren't PDFs"
-        self.status.configure(text=msg)
+        self.status.configure(text=display_text(msg))
         return found
 
     # ------------------------------------------------------- Send to / launch
@@ -1305,7 +1331,9 @@ class App:
         new = self.add(take) if take else []
         self._raise_window()
         if skip and not new:
-            self.status.configure(text=f"Skipped {len(skip)} file(s) that are not PDFs")
+            self.status.configure(
+                text=display_text(f"Skipped {len(skip)} file(s) that are not PDFs")
+            )
         if not new:
             return
         if not self.settings["explorer_auto_start"]:
@@ -1315,7 +1343,9 @@ class App:
             self.start(only=now)
         else:
             self.status.configure(
-                text=f"{len(self.pending)} file(s) queued behind the current batch"
+                text=display_text(
+                    f"{len(self.pending)} file(s) queued behind the current batch"
+                )
             )
 
     def _raise_window(self):
@@ -1441,7 +1471,7 @@ class App:
         if not act:
             return
         # Feedback first, on this (Tk) thread, before the worker notices.
-        self.status.configure(text=text)
+        self.status.configure(text=display_text(text))
         self.go.configure(state=state)
         if self.current_src and self.current_src in self.rows:
             self._set_row(self.current_src, "cancelling")
@@ -1506,7 +1536,9 @@ class App:
                     self._set_row(src, "cancelling" if cancelling else "converting")
                     self.tree.see(src)
                     self.status.configure(
-                        text=busy_status(pathlib.Path(src).name, cancelling)
+                        text=display_text(
+                            busy_status(pathlib.Path(src).name, cancelling)
+                        )
                     )
                 elif kind == "pages":
                     self._set_row(ev[1], pages=ev[2])
@@ -1574,9 +1606,11 @@ class App:
                     else:
                         app_log(f"Send to entry {'added' if want else 'removed'}")
                         self.status.configure(
-                            text="Added to Explorer's Send to menu"
-                            if want
-                            else "Removed from Explorer's Send to menu"
+                            text=display_text(
+                                "Added to Explorer's Send to menu"
+                                if want
+                                else "Removed from Explorer's Send to menu"
+                            )
                         )
                 elif kind == "sendto-repaired":
                     _, old, err = ev
@@ -1629,7 +1663,9 @@ class App:
         if bad:
             parts.append(f"{bad} failed")
         self.status.configure(
-            text=finish_status(self.outcome, " · ".join(parts) or "Nothing converted")
+            text=display_text(
+                finish_status(self.outcome, " · ".join(parts) or "Nothing converted")
+            )
         )
         if done and self.settings["auto_open"]:
             self.open_out()
@@ -1703,12 +1739,12 @@ class App:
     def _set_text(self, widget: tk.Text, text: str):
         widget.configure(state="normal")
         widget.delete("1.0", "end")
-        widget.insert("1.0", text)
+        widget.insert("1.0", display_text(text))
         widget.configure(state="disabled")
 
     def _append_text(self, widget: tk.Text, line: str):
         widget.configure(state="normal")
-        widget.insert("end", line + "\n")
+        widget.insert("end", display_text(line + "\n"))
         widget.configure(state="disabled")
         widget.see("end")
 
@@ -1753,7 +1789,7 @@ class App:
         tip.wm_geometry(f"+{x}+{y}")
         tk.Label(
             tip,
-            text=text,
+            text=display_text(text),
             justify="left",
             bg=self.c["card"],
             fg=self.c["ink"],
@@ -1809,7 +1845,7 @@ class App:
             if label in ("Show warnings", "Remove from list"):
                 menu.add_separator()
             menu.add_command(
-                label=label,
+                label=display_text(label),
                 command=actions[label],
                 state="normal" if state[label] else "disabled",
             )
@@ -1828,24 +1864,30 @@ class App:
         try:
             subprocess.Popen(reveal_command(target))  # noqa: S603
         except Exception as exc:
-            self.status.configure(text=f"Could not show folder: {safe_display(exc)}")
+            self.status.configure(
+                text=display_text(f"Could not show folder: {safe_display(exc)}")
+            )
 
     def _copy_markdown(self, src: str):
         try:
             text = pathlib.Path(self.results[src]["md"]).read_text(encoding="utf-8")
         except Exception as exc:
-            self.status.configure(text=f"Could not read output: {safe_display(exc)}")
+            self.status.configure(
+                text=display_text(f"Could not read output: {safe_display(exc)}")
+            )
             return
         self.root.clipboard_clear()
         self.root.clipboard_append(text)
         self.status.configure(
-            text=f"Copied Markdown of {safe_display(pathlib.Path(src).name)}"
+            text=display_text(
+                f"Copied Markdown of {safe_display(pathlib.Path(src).name)}"
+            )
         )
 
     def _show_warnings(self, src: str):
         lines = warning_details(self.results.get(src, {}).get("stats", {}))
         win = tk.Toplevel(self.root)
-        win.title(f"Warnings — {safe_display(pathlib.Path(src).name)}")
+        win.title(safe_display(f"Warnings — {safe_display(pathlib.Path(src).name)}"))
         win.transient(self.root)
         win.configure(bg=self.c["bg"])
         text = tk.Text(
@@ -1860,7 +1902,7 @@ class App:
             fg=self.c["ink"],
             relief="flat",
         )
-        text.insert("1.0", "\n".join(lines))
+        text.insert("1.0", display_text("\n".join(lines)))
         text.configure(state="disabled")  # read-only
         text.pack(fill="both", expand=True)
         win.configure(bg=self.c["bg"])
@@ -1889,7 +1931,7 @@ class App:
             self.tree.delete(src)
         self._set_preview("")
         self._show_body()
-        self.status.configure(text=f"{len(self.files)} file(s) ready")
+        self.status.configure(text=display_text(f"{len(self.files)} file(s) ready"))
 
     def _preview_menu(self, event):
         menu = tk.Menu(self.root, tearoff=0)
@@ -1950,7 +1992,9 @@ class App:
             else:
                 subprocess.run(["xdg-open", str(path)], check=False)
         except Exception as exc:
-            self.status.configure(text=f"Could not open folder: {safe_display(exc)}")
+            self.status.configure(
+                text=display_text(f"Could not open folder: {safe_display(exc)}")
+            )
 
     def open_out(self):
         """Open each distinct output directory.
@@ -1971,7 +2015,9 @@ class App:
         for d in seen[:4]:
             self._reveal(d)
         if len(seen) > 4:
-            self.status.configure(text=f"Opened 4 of {len(seen)} output folders")
+            self.status.configure(
+                text=display_text(f"Opened 4 of {len(seen)} output folders")
+            )
 
     def open_log(self):
         """Open this batch's markerlite-run.log (one per output folder)."""
