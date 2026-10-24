@@ -19,7 +19,7 @@ The app’s only network request is the user-initiated **Help → Check for upda
 unzip, run `markerlite.exe`. Drag PDFs in, get Markdown out. Everything else —
 source install, command line, what it gets right and wrong — is below.
 
-## What it is genuinely good at
+## What it does well
 
 - **Reading order on multi-column pages.** This is the main reason it exists.
   Marker orders text-layer pages by PDF character-stream position rather than by
@@ -31,17 +31,19 @@ source install, command line, what it gets right and wrong — is below.
   size, so a journal name in an article's own citation block survives.
 - **Paragraph flow** — text rejoined across line, column and page breaks, with
   hyphenation undone. A dash between two numbers is kept: a page range broken
-  after "3370-" comes out as "3370-3381".
-- **Headings**, with levels taken from section numbering when the document
-  numbers its sections, and from font-size clustering otherwise.
+  after "3370-" comes out as "3370-3381". Without a dictionary, a real
+  compound broken at a line end can lose its hyphen. Double-spaced
+  manuscripts and documents mixing font sizes (for example, a manuscript
+  with a small-print appendix) are handled.
 - **Lists**, including nesting depth from indentation.
 - **Footnotes**, as labeled definitions (`[^1]: ...`) with the in-text
   superscript emitted as the matching reference (`[^1]`). Notes wrapped across
   lines or blocks are merged; a superscript with no matching note (an exponent)
   is left as `<sup>`.
 
-That set is reliable. What follows is not, and is described honestly because
-the failure modes are quiet ones.
+These behaviours hold up across the 84-PDF golden test corpus, but unlike
+tables they have not been scored against hand-checked answers. The partial
+features below can fail quietly.
 
 ## What is partial
 
@@ -107,10 +109,18 @@ geometry, drawings, image sizes and OCR are bounded well above anything seen
 in real documents, and a document that reaches a bound keeps its content and
 reports "resource limit reached" with the details in the stats.
 
-**Heading recovery on real journal articles** is decent but not complete. A
-document that styles every heading identically, with no numbering, gives the
-classifier little to work with, and some headings will come through as ordinary
-paragraphs.
+**Headings.** Levels come from section numbering or font-size clustering;
+mixed-size documents are handled per page. Recovery is decent but not complete:
+bold headings in sentence case without numbering are often missed and come
+through as ordinary paragraphs. In a review bundle, 19 of 26 real headings
+were found.
+
+**Symbol fonts.** Some decode Greek letters and math symbols to wrong or
+invisible characters, including inside tables.
+
+**Sideways tables on upright pages.** A sideways table printed on an otherwise
+upright page is not rotated and comes out garbled. Whole sideways scanned
+pages are handled.
 
 ## What it will not do
 
@@ -139,6 +149,8 @@ without it. To add scanned support, install the
 markerlite checks `TESSERACT_CMD`, then `PATH`, the Windows installer registry
 keys, and the usual Program Files and LocalAppData install directories. The
 default UB-Mannheim installation therefore works without changing `PATH`.
+**Tools → Check OCR** shows status, path and version, and flags versions below
+5.0. Set a Tesseract path override in **Tools → Preferences** if needed.
 
 ### B. From source — any OS, and no SmartScreen prompt
 
@@ -146,12 +158,15 @@ Nothing is unsigned here because you run the code with your own Python.
 
 ```bash
 python -m pip install -e .
-python -m pip install -e ".[gui]"  # optional: drag-and-drop in the GUI
+python -m pip install -e ".[gui]"  # optional: drag-and-drop and sv-ttk theme
 # optional, for scanned PDFs:
 #   apt install tesseract-ocr      (Linux / WSL)
 #   brew install tesseract         (macOS)
 #   UB-Mannheim installer          (Windows)
 ```
+
+The `[gui]` extra includes `sv-ttk`; without it the app falls back to Tk’s
+plain `clam` theme.
 
 Then either launch the same GUI the app provides:
 
@@ -170,7 +185,7 @@ keeps compatible ranges for ordinary installs. Use Python 3.12.10 to match
 the CI/build environment.
 
 ```bash
-TAG=v0.2.1 # once published; use an exact verified commit before tagging
+TAG=v0.2.1
 curl -O "https://raw.githubusercontent.com/GalBlatman/markerlite/${TAG}/requirements-bootstrap.txt"
 curl -O "https://raw.githubusercontent.com/GalBlatman/markerlite/${TAG}/requirements-lock.txt"
 python -m pip install --require-hashes --only-binary=:all: -r requirements-bootstrap.txt
@@ -197,13 +212,14 @@ before processing the full corpus again.
 
 Drop PDFs onto the window — files, or a folder to take every PDF in it — and
 click **Convert**. Output goes next to each PDF by default, or to one folder you
-pick. The checkboxes are the command-line flags: extract images, crop equations,
-insert page markers. The preview pane shows the Markdown of whichever file is
-selected; read it before trusting a document, because the table and heading
+pick. The collapsible **Options** section holds per-batch choices: images,
+equation crops, page markers and **Table grids**. The preview pane shows the
+Markdown of whichever file is selected; read it before trusting a document,
+because the table and heading
 defects described above are quiet. **Open Markdown** and **Open output folder**
 do what they say. Each file's row shows its pages, its status (Queued,
-Converting with a percentage, Done, Done with N warnings, Failed, Cancelled)
-and how long it took; click "Done with N warnings" to read them, and hover
+Converting with a percentage, Cancelling…, Done, Done with N warnings, Failed,
+Cancelled, Skipped) and how long it took; click "Done with N warnings" to read them, and hover
 over a row for its word, OCR and table counts. When a batch finishes, the
 status line reports it as
 `17 pages → 76 KB Markdown · 3 figures · 2 equation crops`. The version is in
@@ -214,8 +230,9 @@ Windows light or dark app setting.
 While a batch runs, **Convert** becomes **Cancel** (Esc does the same). The
 file being converted is abandoned and leaves nothing behind, files already
 converted stay, and the rest are skipped; the run log says which. Cancel
-takes effect at cooperative checkpoints. The v0.2.1 verification recorded
-8.61 s at worst; the isolated SBTi recheck reached 2.13 s. See the
+takes effect at cooperative checkpoints. The isolated v0.2.1 reference-document
+recheck measured about 2 s at worst (SBTi: 2.13 s); a heavily loaded machine
+measured 8.61 s. See the
 [measurement conditions and historical comparison](tests/REPORT-security.md).
 
 File provides Open PDFs (Ctrl+O), Open folder and recent files. Tools →
@@ -246,7 +263,8 @@ rights. If you move the markerlite folder, the next start points the
 shortcut at the new place. **Untick the option before deleting the
 markerlite folder**, or the menu keeps an entry that leads nowhere.
 
-**Troubleshooting.** `markerlite.exe --diag` writes `markerlite-diag.txt`
+**Troubleshooting.** **Tools → Save diagnostics file** saves a diagnostics
+file from the app. Alternatively, `markerlite.exe --diag` writes `markerlite-diag.txt`
 beside the exe: the version, Tesseract, drag-and-drop and the theme that
 loaded. Attach it to a bug report. The window picks light or dark from the
 Windows setting when it starts; to force one, set the environment variable
@@ -265,6 +283,11 @@ python3 markerlite.py --apply-math md_out/paper_math.json -o md_out
 python3 markerlite.py paper.pdf -o md_out --flag-figures
 python3 markerlite.py --apply-figures md_out/paper_figures.json -o md_out
 ```
+
+Since v0.2.1, a failing PDF is reported and the batch continues with the next
+file. The exit status is nonzero if any file failed, and a summary line lists
+the failures. Over-long output names are shortened deterministically with a
+hash suffix.
 
 | Flag | Effect |
 | --- | --- |
@@ -301,9 +324,10 @@ Windows install, the launcher, and building the exe yourself.
 
 ## Python API
 
+After a pip install, import the package directly:
+
 ```python
-import sys, pathlib
-sys.path.insert(0, "/path/to/markerlite")   # it does `from table_recon import ...`
+import pathlib
 from markerlite import convert, summarize
 
 pathlib.Path("outdir").mkdir(exist_ok=True)
@@ -313,6 +337,9 @@ out_path, info = convert(pathlib.Path("in.pdf"), pathlib.Path("outdir"),
 print(summarize(info["stats"]))
 # 17 pages → 76 KB Markdown · 3 figures · 2 equation crops
 ```
+
+From a plain checkout without installing it, run from the repository root
+or add that root to `sys.path` before importing `markerlite`.
 
 ## Two bugs found in Marker's own code
 
@@ -338,4 +365,19 @@ One license covers the whole repository.
 
 ## Performance
 
-~1–2s per page for digital PDFs, ~15s per page for scanned ones.
+Measured on v0.2.1 with grids, image extraction and crops off: two sequential
+runs of each of the ten reference PDFs (315 pages per run), on an Intel Core
+Ultra 9 185H with 22 logical CPUs exposed to WSL2. Software: Python 3.14.4,
+PyMuPDF 1.28.2 and Tesseract 5.5.0.
+
+| Documents | PDFs | Median seconds/page | Range |
+| --- | ---: | ---: | ---: |
+| Digital only | 6 | 0.18 | 0.11–0.27 |
+| Mostly OCR (at least 90% of pages) | 3 | 2.08 | 2.01–2.55 |
+| Mixed (1 of 23 pages OCR’d) | 1 | 0.24 | 0.24–0.25 |
+
+Each observation is the wall time of `convert()` divided by the document's
+PDF page count, after importing the package. Medians and ranges cover both
+runs; they are document averages, not bounds on individual pages. The mixed
+PDF is shown separately because its one OCR page does not represent scanned
+PDF throughput.
