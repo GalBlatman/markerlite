@@ -397,3 +397,23 @@ Per-document crop counts and encoded byte totals match the earlier real
 crop measurement in all 84 documents. No new limit tripped during calibration.
 OCR pixel reductions and invalid geometry are recorded before rendering,
 so a later renderer/recognizer failure cannot hide a tripped limit.
+
+
+### Item 5 follow-up: enforce the reconstruction boundary
+
+All 84 documents were converted with observers on actual reconstruction
+inputs and returned grids; every observed Markdown/stats pair matched the
+baseline. Maximum actual input: 311 tokens (R00373 p. 12); returned grid:
+552 cells (R00443 p. 14). The conservative pre-allocation grid bound is
+29,055 cells (R00023 p. 51); cap 1,000,000 (34.4x). The independent whole-page
+native bound is 51,207 (R00293 p. 3), also below one tenth of the cap.
+The bound includes a header row and the larger of maximum row spans and
+one-point projection width, covering both vendor candidate builders.
+
+A review found that a failed post-token preflight could still reach the
+old else branch. It now cannot. All vendor calls use the guarded wrapper;
+returned and repaired HTML is checked against the 8,000-cell cap before
+owned cell scans. Forced-limit tests spy on reconstruction/recovery to
+prove refusal occurs first, including finite endpoints with an overflowing
+span. Oversized candidates retain source prose and resource-limit stats.
+No table_recon.py edit and no baseline regeneration.

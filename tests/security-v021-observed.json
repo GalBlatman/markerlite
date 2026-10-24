@@ -93,6 +93,36 @@
     "document_decoded_reservations": {
       "value": 11979380000,
       "id": "packet:autonomous/run-002/pdf/R00639.pdf:no-grids"
+    },
+    "actual_recon_tokens": {
+      "value": 311,
+      "id": "packet:autonomous/run-002/pdf/R00373.pdf:no-grids",
+      "page": 12
+    },
+    "actual_recon_cell_estimate": {
+      "value": 864,
+      "id": "packet:autonomous/run-002/pdf/R00373.pdf:no-grids",
+      "page": 12
+    },
+    "actual_recon_cell_bound": {
+      "value": 29055,
+      "id": "packet:pilot/pdf/R00023.pdf:no-grids",
+      "page": 51
+    },
+    "actual_reconstructed_cells": {
+      "value": 552,
+      "id": "packet:autonomous/run-002/pdf/R00443.pdf:no-grids",
+      "page": 14
+    },
+    "actual_furniture_input_blocks": {
+      "value": 4836,
+      "id": "real:tests/real/capiq_keydev.pdf:no-grids",
+      "page": null
+    },
+    "actual_furniture_evidence": {
+      "value": 766,
+      "id": "real:tests/real/capiq_keydev.pdf:no-grids",
+      "page": null
     }
   },
   "crop_measurement_commit": "fab4880",
@@ -1263,6 +1293,429 @@
       "crop_bytes": 0,
       "decoded_reservations": 0,
       "limits": []
+    }
+  ],
+  "table_work_measurement_commit": "a1ab2f8",
+  "table_work_results": [
+    {
+      "id": "fixture:tests/fixtures/all_text_wrapped.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/bibliography_symbols.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/bold_bullets.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/caption_inside_table.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/continued_table_header.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/cross_page_tables.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/digit_breaks.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/drawn_boxes.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/dropcap.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/ebsco_notice_scan.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/edge_content.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/figure_dedup.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/figure_source_labels.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/first_page_masthead.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/footnote_biglabel.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/footnote_bold_wrapped.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/footnote_repro.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/fragment_text.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/garbled_font.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/hard.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/hard_footer_first.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/images_inline.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/isolated_ocr_page.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/journal_front_matter.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/justified_scan.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/late_banner.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/list_lookalikes.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/manuscript.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/manuscript_numcol.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/mixed_body_sizes.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/no_table_marker.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/panel_letters.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/paper.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/pi_minus.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/provenance_pages.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/repro.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/repro_tight.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/rotated_pages.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/ruled_header_band.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/scanned.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/scanned_with_stamp.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/sectioned_running_heads.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/sideways_scan.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/spanning_column_labels.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/split_toc_columns.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/table_gate.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/table_legend.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/table_only_footer.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/tall_cell.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/watermark.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/wrapped_record_rows.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "fixture:tests/fixtures/year_column.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "real:tests/real/R02027.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "real:tests/real/Ragins craft of clear writing 2012.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "real:tests/real/Target-Validation-Protocol.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "real:tests/real/capiq_keydev.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "real:tests/real/greenwood2006.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "real:tests/real/jay2013.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "real:tests/real/kitchener2002.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "real:tests/real/kostova1999.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "real:tests/real/peng2009.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "real:tests/real/suchman1995.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "real:tests/real/wry2013.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "real:tests/real/york2018.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00030.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00032.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00077.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00087.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00112.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00153.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00263.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00293.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00373.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00443.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00446.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00639.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00717.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00860.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:pilot/pdf/R00014.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:pilot/pdf/R00023.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:pilot/pdf/R02659.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:pilot/pdf/R05732.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:pilot/pdf/S0004.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
+    },
+    {
+      "id": "packet:pilot/pdf/S0009.pdf:no-grids",
+      "markdown_match": true,
+      "stats_match": true
     }
   ]
 }

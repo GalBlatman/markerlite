@@ -263,3 +263,9 @@ FURNITURE_MAX_CANDIDATES = 60_000
 # R02659 reaches 141 crops and 7,077,229 encoded bytes. Caps 14.5x/11.3x.
 DOCUMENT_MAX_CROPS = 2048
 DOCUMENT_MAX_CROP_BYTES = 80_000_000
+
+# Conservative reconstruction matrix bound: input rows (plus a header) times
+# the larger of span count or the one-point projection width. Calibrated on
+# 84 PDFs: actual maximum 29,055 (R00023 p. 51), cap 34.4x. This
+# also bounds the vendor's internal grid candidates.
+TABLE_MAX_RECON_CELLS = 1_000_000

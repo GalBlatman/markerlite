@@ -130,6 +130,49 @@ def _tokens_for_recon(blocks: List[Block], bbox) -> list:
     return [(sorted(t, key=lambda x: x[1]), y0, y1) for t, y0, y1 in rows]
 
 
+class _TableBudgetExceeded(ValueError):
+    pass
+
+
+def _recon_cell_bound(lines):
+    xs = [v for row, _y0, _y1 in lines for _text, x0, x1 in row for v in (x0, x1)]
+    if not xs or not all(math.isfinite(v) for v in xs):
+        return 0  # the coordinate guard reports invalid geometry separately
+    # Span candidates cannot exceed the largest row's span count. Projection
+    # candidates use at most one column per point of x coverage, plus edges.
+    span = max(xs) - min(xs)
+    if not math.isfinite(span):
+        return TABLE_MAX_RECON_CELLS + 1
+    columns = max(max((len(row[0]) for row in lines), default=0), math.ceil(span) + 2)
+    return (len(lines) + 1) * columns
+
+
+def _check_recon_result(result, page):
+    if result:
+        cells = 0
+        for _match in re.finditer(r"<t[dh]\b", result[0], re.I):
+            cells += 1
+            if cells > TABLE_MAX_CELLS:
+                note_limit(
+                    page,
+                    "table_cells",
+                    cells,
+                    TABLE_MAX_CELLS,
+                    "oversized reconstruction skipped; original source text kept as prose",
+                )
+                raise _TableBudgetExceeded("reconstruction cell budget exceeded")
+    return result
+
+
+def _bounded_reconstruct(lines, page):
+    checkpoint()
+    if not _table_work_ok([], page, lines=lines):
+        raise _TableBudgetExceeded("reconstruction input budget exceeded")
+    result = reconstruct_table_html(lines)
+    checkpoint()
+    return _check_recon_result(result, page)
+
+
 def _table_work_ok(members, page=None, tbl=None, lines=None):
     """Bound both reconstruction input and geometric word-by-cell work."""
     events = []
@@ -142,6 +185,9 @@ def _table_work_ok(members, page=None, tbl=None, lines=None):
         tokens = sum(len(row[0]) for row in lines)
         if tokens > TABLE_MAX_TOKENS:
             events.append(("table_tokens", tokens, TABLE_MAX_TOKENS))
+        cells = _recon_cell_bound(lines)
+        if cells > TABLE_MAX_RECON_CELLS:
+            events.append(("table_recon_cells", cells, TABLE_MAX_RECON_CELLS))
     if tbl is not None:
         cells = 0
         for row in tbl.rows:
@@ -166,7 +212,7 @@ def _table_work_ok(members, page=None, tbl=None, lines=None):
             events.append(
                 (
                     "table_coordinate_span",
-                    extent if finite else "non-finite",
+                    extent if math.isfinite(extent) else "non-finite",
                     TABLE_MAX_COORDINATE_SPAN,
                 )
             )
@@ -874,11 +920,19 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
                     TABLE_PROJECTION_MARGIN,
                     "candidate kept as prose",
                 )
-            else:
+            elif ok:
                 try:
-                    res = reconstruct_table_html(lines)
-                    res = recover_ruled_header(lines, res, _rules_in(rules, region))
-                    res = recover_wrapped_lines(lines, res, tbl)
+                    res = _bounded_reconstruct(lines, page)
+                    if res:
+                        res = _check_recon_result(
+                            recover_ruled_header(lines, res, _rules_in(rules, region)),
+                            page,
+                        )
+                        res = _check_recon_result(
+                            recover_wrapped_lines(lines, res, tbl), page
+                        )
+                except _TableBudgetExceeded:
+                    rejected, res = True, None
                 except Exception:
                     res = None
                 if res:
@@ -1064,8 +1118,9 @@ def propose_tables_from_text(pages: List[Page], min_score=PROPOSAL_MIN_SCORE) ->
             if not _columns_align(multi):
                 continue
             try:
-                res = reconstruct_table_html(lines)
-                res = recover_wrapped_lines(lines, res)
+                res = _bounded_reconstruct(lines, page)
+                if res:
+                    res = _check_recon_result(recover_wrapped_lines(lines, res), page)
             except Exception:
                 continue
             if not res:
