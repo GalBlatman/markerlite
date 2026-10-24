@@ -9,6 +9,7 @@ import re
 import sys
 
 from .api import convert
+from .apply_manifest import ManifestLimitError, load_manifest
 from .display import safe_display
 from .figures import apply_figures, apply_math
 from .paths import ManifestPathError, manifest_target
@@ -83,7 +84,12 @@ def main() -> None:
     if args.apply_figures or args.apply_math:
         mpath = pathlib.Path(args.apply_figures or args.apply_math)
         try:
-            manifest = json.loads(mpath.read_text(encoding="utf-8"))
+            manifest = load_manifest(mpath, "figures" if args.apply_figures else "math")
+        except ManifestLimitError as exc:
+            sys.exit(
+                f"markerlite: refused: {safe_display(exc)}; stats="
+                + json.dumps(exc.stats, sort_keys=True)
+            )
         except (OSError, ValueError) as exc:
             sys.exit(
                 f"markerlite: cannot read manifest {safe_display(mpath)}: "
@@ -108,10 +114,10 @@ def main() -> None:
                 f"markerlite: no Markdown file {safe_display(md)} to apply the manifest to"
             )
         if args.apply_figures:
-            n = apply_figures(md, mpath)
+            n = apply_figures(md, manifest)
             print(f"applied {n} figure description(s) to {safe_display(md)}")
         else:
-            n = apply_math(md, mpath)
+            n = apply_math(md, manifest)
             print(f"applied {n} equation(s) to {safe_display(md)}")
         return
 

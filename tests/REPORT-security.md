@@ -427,3 +427,23 @@ invoked the installed engine and compared a real answer with mock data.
 The test now intercepts capture_capped, asserts stdout mode and its cap,
 and verifies the parser independently of engine version. The complete WSL
 unit suite passes: 337 passed, three Windows-only skips. No runtime change.
+
+
+### Item 8: apply manifests
+
+The 84-document crop run's largest manifest is 95,892 bytes and 135
+entries (R02659). Caps are 1,000,000 bytes (10.4x) and 2,048 entries
+(15.2x), checked before parsing/entry processing. Reads request at most
+cap+1; entry counts are checked before schema traversal. Validate container,
+string/UTF-8, identifier, positive-page and finite-bbox types, including
+boolean rejection for integer fields. Invalid input fails with a clear
+error before Markdown is read or changed. A limit error carries the stable
+resource_limits fields (page 0 denotes the manifest operation), and the CLI
+prints the structured stats with its refusal warning.
+
+CLI parses once and passes a validated snapshot through the API. Each apply
+kind builds an entry lookup then scans Markdown once for all replacements;
+figure replacement remains idempotent and math preserves intervening prose.
+The resulting Markdown uses the rollback-capable output transaction.
+Tests cover invalid schemas, byte/entry refusal, no second parse, single
+scanner invocation and preservation/idempotence. No corpus baseline changes.

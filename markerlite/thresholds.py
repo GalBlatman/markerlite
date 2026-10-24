@@ -269,3 +269,8 @@ DOCUMENT_MAX_CROP_BYTES = 80_000_000
 # 84 PDFs: actual maximum 29,055 (R00023 p. 51), cap 34.4x. This
 # also bounds the vendor's internal grid candidates.
 TABLE_MAX_RECON_CELLS = 1_000_000
+
+# Both apply-manifest kinds measured across all 84 crop-enabled sources:
+# R02659: 95,892 bytes and 135 entries. Caps 10.4x and 15.2x.
+APPLY_MAX_MANIFEST_BYTES = 1_000_000
+APPLY_MAX_MANIFEST_ENTRIES = 2048

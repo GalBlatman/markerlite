@@ -116,12 +116,12 @@ def write_text_atomic(path: pathlib.Path, text: str, encoding: str = "utf-8") ->
     """Write ``path`` through ``<path>.part`` and a rename (apply-math and
     apply-figures rewrite a Markdown file in place)."""
     path = pathlib.Path(path)
-    part = path.with_name(path.name + PART)
+    output = Output(path.parent)
     try:
-        part.write_text(text, encoding=encoding)
-        os.replace(part, path)
+        output.file(path.name).write_text(text, encoding=encoding)
+        output.commit()
     except BaseException:
-        _remove(part)
+        output.discard()
         raise
 
 

@@ -9,6 +9,7 @@ from typing import List, Optional, Tuple
 
 import pymupdf
 
+from .apply_manifest import apply_figures_text, apply_math_text, load_manifest
 from .classification import body_font_size
 from .extraction import _bbox_of, oversized_images
 from .model import *
@@ -814,37 +815,8 @@ def apply_figures(md_path: pathlib.Path, manifest_path: pathlib.Path) -> int:
     second time. Entry ``fig_p<N>_<M>`` belongs to the M-th figure
     placeholder of page N.
     """
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    entries = manifest.get("regions", []) if isinstance(manifest, dict) else manifest
-    md = md_path.read_text(encoding="utf-8")
-    applied = 0
-    seen: dict = {}
-    for entry in entries:
-        page = entry.get("page")
-        m = re.match(r"^fig_p(\d+)_(\d+)$", str(entry.get("id") or ""))
-        if m:
-            page, nth = int(m.group(1)), int(m.group(2))
-        else:
-            seen[page] = nth = seen.get(page, 0) + 1
-        text = (entry.get("description") or "").strip()
-        if not text or page is None:
-            continue
-        holders = list(
-            re.finditer(
-                r"<!-- figure: p\. " + str(int(page)) + r"; caption: .*? -->", md, re.S
-            )
-        )
-        if nth > len(holders):
-            continue
-        end = holders[nth - 1].end()
-        old = _FIGURE_DESCRIPTION_BLOCK.match(md, end)
-        tail = md[old.end() :] if old else md[end:]
-        quoted = "\n".join(
-            (">" + (" " + ln if ln.strip() else "")).rstrip()
-            for ln in text.splitlines()
-        )
-        md = md[:end] + "\n\n> " + FIGURE_DESCRIPTION_MARK + "\n" + quoted + tail
-        applied += 1
+    manifest = load_manifest(manifest_path, "figures")
+    md, applied = apply_figures_text(md_path.read_text(encoding="utf-8"), manifest)
     write_text_atomic(md_path, md)
     return applied
 
@@ -900,27 +872,7 @@ def flag_math(
 def apply_math(md_path: pathlib.Path, manifest_path: pathlib.Path) -> int:
     """Splice transcribed LaTeX back into the markdown, replacing the
     text-layer approximation for each anchored equation."""
-    manifest = json.loads(manifest_path.read_text())
-    md = md_path.read_text(encoding="utf-8")
-    applied = 0
-    for region in manifest.get("regions", []):
-        latex = (region.get("latex") or "").strip()
-        if not latex or not region.get("id"):
-            continue
-        anchor = re.escape(f"<!-- markerlite:eq {region['id']} -->")
-        # (?:(?!\$\$).)* keeps the match from starting at an earlier equation
-        # and swallowing the prose in between.
-        pattern = re.compile(r"\$\$\n(?:(?!\$\$).)*\n\$\$\n\n" + anchor, re.DOTALL)
-        new, n = pattern.subn(lambda _m: f"$$\n{latex}\n$$", md, count=1)
-        if not n:
-            # An equation set as a picture has a comment where the text-layer
-            # approximation would be, and perhaps a link to the saved image.
-            pictured = re.compile(
-                r"<!-- equation: p\. \d+; set as an image(?:; number [^>\n]*?)? -->\n\n"
-                r"(?:!\[\]\([^)\n]*\)\n\n)?" + anchor
-            )
-            new, n = pictured.subn(lambda _m: f"$$\n{latex}\n$$", md, count=1)
-        if n:
-            md, applied = new, applied + 1
+    manifest = load_manifest(manifest_path, "math")
+    md, applied = apply_math_text(md_path.read_text(encoding="utf-8"), manifest)
     write_text_atomic(md_path, md)
     return applied
