@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import subprocess
 import threading
+import time
 from typing import Optional
 
 
@@ -70,6 +71,67 @@ class CancelToken:
                 self._procs.discard(proc)
         self.check()
         return code
+
+    def capture(self, args, *, timeout, max_bytes):
+        return capture_capped(args, timeout=timeout, max_bytes=max_bytes, cancel=self)
+
+
+def capture_capped(args, *, timeout, max_bytes, cancel=None):
+    """Read at most cap+1 stdout bytes; kill/reap the producer on overflow.
+
+    A bounded reader thread supports Windows pipes as well as POSIX. Stderr
+    never accumulates. The parent owns timeout/cancellation and always joins
+    the reader and reaps the process before returning.
+    """
+    check(cancel)
+    proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    data = bytearray()
+    errors = []
+    if cancel is not None:
+        with cancel._lock:
+            cancel._procs.add(proc)
+
+    def read():
+        try:
+            while len(data) <= max_bytes:
+                chunk = proc.stdout.read(min(65536, max_bytes + 1 - len(data)))
+                if not chunk:
+                    return
+                data.extend(chunk)
+            proc.kill()
+        except OSError as exc:
+            errors.append(exc)
+
+    reader = threading.Thread(target=read, name="markerlite-capped-stdout")
+    reader.start()
+    deadline = time.monotonic() + timeout
+    try:
+        while True:
+            check(cancel)
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise subprocess.TimeoutExpired(args, timeout)
+            try:
+                code = proc.wait(timeout=min(0.05, remaining))
+                break
+            except subprocess.TimeoutExpired:
+                continue
+        reader.join(timeout=5)
+        if reader.is_alive():
+            raise RuntimeError("stdout reader did not finish")
+        check(cancel)
+        if errors:
+            raise errors[0]
+        return code, bytes(data[:max_bytes]), len(data) > max_bytes
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+        proc.wait()
+        reader.join(timeout=5)
+        proc.stdout.close()
+        if cancel is not None:
+            with cancel._lock:
+                cancel._procs.discard(proc)
 
 
 def check(token: Optional[CancelToken]) -> None:

@@ -14,11 +14,13 @@ from .extraction import _bbox_of, oversized_images
 from .model import *
 from .output import target, write_text_atomic
 from .raster_budget import (
+    can_crop,
     checked,
     crop_pixmap,
     image_bytes,
     pending_limit,
     reserve_decode,
+    save_crop,
 )
 from .render import block_text
 from .tables import _overlap_frac
@@ -591,13 +593,17 @@ def place_figures(
             continue  # a page dropped as provenance
         pm = doc[page.page_idx]
         oversized = {x for x, _w, _h in oversized_images(pm)}
+        source_bytes = {
+            item[0]: item[2] * item[3] * 4 for item in pm.get_images(full=True)
+        }
         for kind, n, xref, bbox in _figure_regions(pm, page):
             path = None
-            if imgdir is not None:
+            if imgdir is not None and can_crop(page):
                 try:
                     imgdir.mkdir(parents=True, exist_ok=True)
                     if kind == "img" and (
-                        xref in oversized or not reserve_decode(pm, image_bytes(pm))
+                        xref in oversized
+                        or not reserve_decode(pm, source_bytes.get(xref, 0))
                     ):
                         # Decoding the source would allocate every one of
                         # its pixels. The page render of its placement is
@@ -607,13 +613,15 @@ def place_figures(
                         pix = crop_pixmap(pm, page, clip, FIGURE_CROP_DPI)
                         if pix is None:
                             raise ValueError("crop skipped by raster budget")
-                        pix.save(imgdir / name)
+                        if not save_crop(pix, imgdir / name, page):
+                            raise ValueError("crop disk budget exceeded")
                     elif kind == "img":
                         pix = pymupdf.Pixmap(doc, xref)
                         if pix.n - pix.alpha >= 4:
                             pix = pymupdf.Pixmap(pymupdf.csRGB, pix)
                         name = f"page{page.page_idx + 1}_img{n}.png"
-                        pix.save(imgdir / name)
+                        if not save_crop(pix, imgdir / name, page):
+                            raise ValueError("crop disk budget exceeded")
                     else:
                         name = f"page{page.page_idx + 1}_vec{n}.png"
                         # Pad: the cluster box hugs the path bounds and clips
@@ -622,7 +630,8 @@ def place_figures(
                         pix = crop_pixmap(pm, page, clip, 200)
                         if pix is None:
                             raise ValueError("crop skipped by raster budget")
-                        pix.save(imgdir / name)
+                        if not save_crop(pix, imgdir / name, page):
+                            raise ValueError("crop disk budget exceeded")
                     path = f"{stem}_images/{name}"
                 except Exception:
                     path = None
@@ -777,8 +786,7 @@ def flag_figures(
                 clip = (pymupdf.Rect(bbox) + (-5, -5, 5, 5)) & pm.rect
                 name = f"{fig_id}.png"
                 pix = crop_pixmap(pm, page, clip, dpi)
-                if pix is not None:
-                    pix.save(figdir / name)
+                if pix is not None and save_crop(pix, figdir / name, page):
                     entry["file"] = f"{stem}_figures/{name}"
                 if link:
                     blk.image_path = entry["file"]
@@ -868,8 +876,9 @@ def flag_math(
             if pix is None:
                 continue
             eq_id = f"page{page.page_idx + 1}_eq{n}"
+            if not save_crop(pix, cropdir / f"{eq_id}.png", page):
+                continue
             blk.eq_id = eq_id
-            pix.save(cropdir / f"{eq_id}.png")
             regions.append(
                 {
                     "id": eq_id,

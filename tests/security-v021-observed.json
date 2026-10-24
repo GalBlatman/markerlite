@@ -65,6 +65,610 @@
       "value": 24,
       "id": "fixture:tests/fixtures/hard.pdf:no-grids",
       "page": 2
+    },
+    "document_crop_count": {
+      "value": 141,
+      "id": "packet:pilot/pdf/R02659.pdf:no-grids"
+    },
+    "document_crop_bytes": {
+      "value": 7077229,
+      "id": "packet:pilot/pdf/R02659.pdf:no-grids"
+    },
+    "manifest_bytes": {
+      "value": 95892,
+      "id": "packet:pilot/pdf/R02659.pdf:no-grids"
+    },
+    "manifest_entries": {
+      "value": 135,
+      "id": "packet:pilot/pdf/R02659.pdf:no-grids"
+    },
+    "tsv_bytes": {
+      "value": 42506,
+      "id": "real:tests/real/kostova1999.pdf:no-grids"
+    },
+    "osd_bytes": {
+      "value": 125,
+      "id": "real:tests/real/R02027.pdf:no-grids"
     }
-  }
+  },
+  "crop_measurement_commit": "fab4880",
+  "crop_document_results": [
+    {
+      "id": "fixture:tests/fixtures/all_text_wrapped.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/bibliography_symbols.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/bold_bullets.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/caption_inside_table.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 14675,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/continued_table_header.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/cross_page_tables.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/digit_breaks.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/drawn_boxes.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/dropcap.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/ebsco_notice_scan.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/edge_content.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/figure_dedup.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 14174,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/figure_source_labels.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 11247,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/first_page_masthead.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/footnote_biglabel.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/footnote_bold_wrapped.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/footnote_repro.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/fragment_text.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/garbled_font.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/hard.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/hard_footer_first.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/images_inline.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 17452,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/isolated_ocr_page.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/journal_front_matter.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/justified_scan.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/late_banner.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/list_lookalikes.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/manuscript.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/manuscript_numcol.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/mixed_body_sizes.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/no_table_marker.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 11365,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/panel_letters.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/paper.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 10365,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/pi_minus.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/provenance_pages.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/repro.pdf:no-grids",
+      "crop_count": 5,
+      "crop_bytes": 56123,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/repro_tight.pdf:no-grids",
+      "crop_count": 5,
+      "crop_bytes": 56164,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/rotated_pages.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/ruled_header_band.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/scanned.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/scanned_with_stamp.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/sectioned_running_heads.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/sideways_scan.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/spanning_column_labels.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/split_toc_columns.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/table_gate.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/table_legend.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/table_only_footer.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/tall_cell.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/watermark.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/wrapped_record_rows.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/year_column.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 23771,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/R02027.pdf:no-grids",
+      "crop_count": 6,
+      "crop_bytes": 44078,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/Ragins craft of clear writing 2012.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/Target-Validation-Protocol.pdf:no-grids",
+      "crop_count": 8,
+      "crop_bytes": 410315,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/capiq_keydev.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/greenwood2006.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 315423,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/jay2013.pdf:no-grids",
+      "crop_count": 10,
+      "crop_bytes": 49958,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/kitchener2002.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/kostova1999.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/peng2009.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 109145,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/suchman1995.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/wry2013.pdf:no-grids",
+      "crop_count": 7,
+      "crop_bytes": 977198,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/york2018.pdf:no-grids",
+      "crop_count": 4,
+      "crop_bytes": 1580962,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00030.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00032.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00077.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 221979,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00087.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 153650,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00112.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00153.pdf:no-grids",
+      "crop_count": 19,
+      "crop_bytes": 244357,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00263.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 222355,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00293.pdf:no-grids",
+      "crop_count": 11,
+      "crop_bytes": 817326,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00373.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 90596,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00443.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00446.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 2809,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00639.pdf:no-grids",
+      "crop_count": 4,
+      "crop_bytes": 42123,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00717.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 145275,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00860.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 177510,
+      "limits": []
+    },
+    {
+      "id": "packet:pilot/pdf/R00014.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 395098,
+      "limits": []
+    },
+    {
+      "id": "packet:pilot/pdf/R00023.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 87486,
+      "limits": []
+    },
+    {
+      "id": "packet:pilot/pdf/R02659.pdf:no-grids",
+      "crop_count": 141,
+      "crop_bytes": 7077229,
+      "limits": []
+    },
+    {
+      "id": "packet:pilot/pdf/R05732.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 101204,
+      "limits": []
+    },
+    {
+      "id": "packet:pilot/pdf/S0004.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 147395,
+      "limits": []
+    },
+    {
+      "id": "packet:pilot/pdf/S0009.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "limits": []
+    }
+  ],
+  "ocr_document_results": [
+    {
+      "id": "fixture:tests/fixtures/ebsco_notice_scan.pdf:no-grids",
+      "tsv_bytes": 2456
+    },
+    {
+      "id": "fixture:tests/fixtures/garbled_font.pdf:no-grids",
+      "tsv_bytes": 10156
+    },
+    {
+      "id": "fixture:tests/fixtures/isolated_ocr_page.pdf:no-grids",
+      "tsv_bytes": 2231
+    },
+    {
+      "id": "fixture:tests/fixtures/justified_scan.pdf:no-grids",
+      "tsv_bytes": 18165
+    },
+    {
+      "id": "fixture:tests/fixtures/scanned.pdf:no-grids",
+      "tsv_bytes": 33853
+    },
+    {
+      "id": "fixture:tests/fixtures/scanned_with_stamp.pdf:no-grids",
+      "tsv_bytes": 34092
+    },
+    {
+      "id": "fixture:tests/fixtures/sideways_scan.pdf:no-grids",
+      "osd_bytes": 122,
+      "tsv_bytes": 4678
+    },
+    {
+      "id": "real:tests/real/R02027.pdf:no-grids",
+      "osd_bytes": 125,
+      "tsv_bytes": 14333
+    },
+    {
+      "id": "real:tests/real/greenwood2006.pdf:no-grids",
+      "tsv_bytes": 2413
+    },
+    {
+      "id": "real:tests/real/kitchener2002.pdf:no-grids",
+      "tsv_bytes": 27711
+    },
+    {
+      "id": "real:tests/real/kostova1999.pdf:no-grids",
+      "tsv_bytes": 42506
+    },
+    {
+      "id": "real:tests/real/suchman1995.pdf:no-grids",
+      "tsv_bytes": 26073
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00030.pdf:no-grids",
+      "tsv_bytes": 383
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00032.pdf:no-grids",
+      "tsv_bytes": 246
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00373.pdf:no-grids",
+      "tsv_bytes": 2413
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00443.pdf:no-grids",
+      "osd_bytes": 122,
+      "tsv_bytes": 25173
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00639.pdf:no-grids",
+      "tsv_bytes": 27074
+    }
+  ]
 }

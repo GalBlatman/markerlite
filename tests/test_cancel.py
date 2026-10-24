@@ -60,8 +60,10 @@ def test_ocr_page_is_cancelled_mid_tesseract(monkeypatch):
     token = CancelToken()
     monkeypatch.setattr(extraction, "discover_tesseract", lambda: sys.executable)
     sleeper = [sys.executable, "-c", "import time; time.sleep(30)"]
-    real_run = token.run
-    monkeypatch.setattr(token, "run", lambda args, **kw: real_run(sleeper, **kw))
+    real_capture = token.capture
+    monkeypatch.setattr(
+        token, "capture", lambda args, **kw: real_capture(sleeper, **kw)
+    )
     doc = pymupdf.open()
     doc.new_page()
     threading.Timer(0.3, token.cancel).start()

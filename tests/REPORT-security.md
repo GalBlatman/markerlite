@@ -345,3 +345,35 @@ CI at bf131ba failed only that outdated named-guard assertion, not output
 conservation. It is corrected here without changing any golden baseline.
 Cancellation timing results against the v0.1.17 table follow in the final
 verification section after the archived reference runs complete.
+
+
+### Item 7: bounded Tesseract stdout and crop disk writes
+
+All 17 OCR source documents in the baseline were converted with a byte-count
+observer on the actual stdout capture; no recognized text was saved as
+measurement data. Maximum TSV: 42,506 bytes (Kostova); maximum OSD stdout:
+125 bytes (R02027). The 1,000,000-byte TSV cap is 23.5x; the 4,096-byte OSD
+cap is 32.8x. Read at most cap+1 from a pipe, kill/reap the producer on
+overflow, trim partial TSV rows, and join the reader on success, cancellation
+or timeout. No full TSV/OSD output file is written first. Partial recognition
+is explicitly warned; recognized prefix and any native source text remain.
+
+Crop counts and encoded bytes were measured by converting all 84 baseline
+PDFs with images, figure crops and equation crops enabled together at
+archived fab4880. All source PDFs stayed in place; temporary output was
+removed after each measurement, and only counts/limit metadata are recorded.
+R02659 is largest: 141 crops, 7,077,229 bytes. Caps: 2,048 crops (14.5x)
+and 80,000,000 bytes (11.3x). The shared document counter covers figures,
+equations and image export. Check count before rendering and byte length
+before writing; retain placeholders/source text plus limit warning/stats.
+PNG save versus byte encoding is byte-identical; 112 fixture golden hashes,
+including crop artifacts and OCR, pass with zero skips before commit.
+Source-image export reserves the individual source's bytes, not the bytes
+of unrelated images on the same page.
+
+Tests kill an overflowing producer, test exact-cap EOF, timeout and cancel,
+assert no reader/process remains, and force crop count/byte exhaustion.
+Item 2 follow-up d8470dc additionally registers rollback intent before each
+rename, covering cancellation just after success; tests inject failure both
+before and after every backup/swap. Published history is preserved rather
+than rewriting the original item 2 commit.

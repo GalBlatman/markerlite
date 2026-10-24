@@ -257,3 +257,8 @@ GATE_MAX_BOX_CANDIDATES = 256
 # Whole-document source-block bound: 5,402 (Capital IQ). Furniture
 # candidates are a subset; 60,000 exceeds that conservative bound by 11x.
 FURNITURE_MAX_CANDIDATES = 60_000
+
+# All 84 baseline PDFs converted with image/figure/equation crops enabled:
+# R02659 reaches 141 crops and 7,077,229 encoded bytes. Caps 14.5x/11.3x.
+DOCUMENT_MAX_CROPS = 2048
+DOCUMENT_MAX_CROP_BYTES = 80_000_000

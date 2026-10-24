@@ -16,8 +16,9 @@ from typing import Callable, Iterable, List, Mapping, Optional, Tuple
 
 import pymupdf
 
+from .cancel import capture_capped
 from .model import *
-from .raster_budget import device_size
+from .raster_budget import device_size, pending_limit
 
 
 def discover_tesseract(
@@ -178,24 +179,19 @@ def ocr_orientation(page: pymupdf.Page, cancel=None) -> Optional[Tuple[int, floa
         with tempfile.TemporaryDirectory() as td:
             img = pathlib.Path(td) / "page.png"
             page.get_pixmap(dpi=dpi).save(img)
-            out = pathlib.Path(td) / "osd.txt"
             args = [executable, str(img), "stdout", "--psm", "0"]
-            with open(out, "wb") as fh:
-                if cancel is not None:
-                    code = cancel.run(
-                        args,
-                        stdout=fh,
-                        stderr=subprocess.DEVNULL,
-                        timeout=OCR_TIMEOUT_SECONDS,
-                    )
-                else:
-                    code = subprocess.run(
-                        args,
-                        stdout=fh,
-                        stderr=subprocess.DEVNULL,
-                        timeout=OCR_TIMEOUT_SECONDS,
-                    ).returncode
-            text = out.read_bytes()[:4096].decode("utf-8", "replace")
+            code, data, capped = capture_capped(
+                args, max_bytes=4096, timeout=OCR_TIMEOUT_SECONDS, cancel=cancel
+            )
+            text = data.decode("utf-8", "replace")
+            if capped:
+                pending_limit(
+                    page,
+                    "ocr_osd_stdout_bytes",
+                    len(data) + 1,
+                    4096,
+                    "orientation producer killed; source orientation and text kept",
+                )
         if code != 0:
             return None
     except Exception:
@@ -427,7 +423,6 @@ def _ocr_page(
         with tempfile.TemporaryDirectory() as td:
             img = pathlib.Path(td) / "page.png"
             pix.save(img)
-            tsv_path = pathlib.Path(td) / "page.tsv"
             args = [
                 executable,
                 str(img),
@@ -438,31 +433,19 @@ def _ocr_page(
                 "preserve_interword_spaces=1",
                 "tsv",
             ]
-            with open(tsv_path, "wb") as tsv_file:
-                if cancel is not None:
-                    # Registered with the token: a cancel kills it at once.
-                    returncode = cancel.run(
-                        args,
-                        stdout=tsv_file,
-                        stderr=subprocess.DEVNULL,
-                        timeout=OCR_TIMEOUT_SECONDS,
-                    )
-                else:
-                    returncode = subprocess.run(
-                        args,
-                        stdout=tsv_file,
-                        stderr=subprocess.DEVNULL,
-                        timeout=OCR_TIMEOUT_SECONDS,
-                    ).returncode
-            # Tesseract's output is written to a file and at most
-            # OCR_MAX_TSV_BYTES of it are read, cut at a line end.
-            tsv_size = tsv_path.stat().st_size
-            with open(tsv_path, "rb") as fh:
-                data = fh.read(OCR_MAX_TSV_BYTES)
-            if tsv_size > OCR_MAX_TSV_BYTES:
+            if cancel is not None:
+                returncode, data, capped = cancel.capture(
+                    args, max_bytes=OCR_MAX_TSV_BYTES, timeout=OCR_TIMEOUT_SECONDS
+                )
+            else:
+                returncode, data, capped = capture_capped(
+                    args, max_bytes=OCR_MAX_TSV_BYTES, timeout=OCR_TIMEOUT_SECONDS
+                )
+            tsv_size = len(data) + int(capped)
+            if capped:
                 data = data[: data.rfind(b"\n") + 1]
             tsv = data.decode("utf-8", errors="replace")
-        if returncode != 0:
+        if returncode != 0 and not capped:
             return None
     except Exception as exc:  # pragma: no cover
         print(f"  ! OCR failed on page {page_idx + 1}: {exc}", file=sys.stderr)
@@ -557,7 +540,7 @@ def _ocr_page(
             "ocr_tsv_bytes",
             tsv_size,
             OCR_MAX_TSV_BYTES,
-            "recognised text cut at the cap",
+            "OCR producer killed at cap; recognized prefix and native source text kept",
         )
     return result
 
@@ -714,6 +697,13 @@ def extract_page(
             geometry_error = str(exc)
         ocr_page = None if geometry_error else _ocr_page(page, page_idx, cancel=cancel)
         if ocr_page is not None:
+            if any(
+                event["limit"] == "ocr_tsv_bytes" for event in ocr_page.limit_events
+            ):
+                native = extract_page(page, page_idx, ocr_if_empty=False, cancel=cancel)
+                ocr_page.blocks.extend(native.blocks)
+                ocr_page.suppressed.extend(native.suppressed)
+                ocr_page.source_words += native.source_words
             ocr_page.garbled = garbled
             ocr_page.readable = readable
             ocr_page.image_only = image_only

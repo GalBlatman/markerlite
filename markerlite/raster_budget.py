@@ -8,14 +8,20 @@ from contextvars import ContextVar
 
 from .cancel import check as check_cancel
 from .model import note_limit
-from .thresholds import CROP_MAX_DEVICE_SIDE, CROP_MAX_PIXELS, DOCUMENT_DECODED_BYTES
+from .thresholds import (
+    CROP_MAX_DEVICE_SIDE,
+    CROP_MAX_PIXELS,
+    DOCUMENT_DECODED_BYTES,
+    DOCUMENT_MAX_CROP_BYTES,
+    DOCUMENT_MAX_CROPS,
+)
 
 _CURRENT = ContextVar("raster_budget", default=None)
 
 
 @contextmanager
 def document_raster_budget(cancel=None):
-    state = {"decoded": 0, "limits": [], "cancel": cancel}
+    state = {"decoded": 0, "limits": [], "cancel": cancel, "crops": 0, "crop_bytes": 0}
     token = _CURRENT.set(state)
     try:
         yield state
@@ -69,6 +75,8 @@ def device_size(rect, dpi):
 
 
 def crop_pixmap(pm, page, clip, dpi):
+    if not can_crop(page):
+        return None
     try:
         width, height = device_size(clip, dpi)
     except ValueError:
@@ -123,3 +131,45 @@ def pending_limit(pm, name, observed, cap, action):
     state = _CURRENT.get()
     if state is not None:
         state["limits"].append((pm.number, name, observed, cap, action))
+
+
+def can_crop(page):
+    state = _CURRENT.get()
+    if state is not None and state["crops"] >= DOCUMENT_MAX_CROPS:
+        note_limit(
+            page,
+            "document_crop_count",
+            state["crops"] + 1,
+            DOCUMENT_MAX_CROPS,
+            "crop skipped; placeholder and source text kept",
+        )
+        return False
+    return True
+
+
+def save_crop(pix, path, page):
+    """Check total bytes before any disk write; PNG encoding is unchanged."""
+    if not can_crop(page):
+        return False
+    data = pix.tobytes("png")
+    state = _CURRENT.get()
+    if state is not None:
+        observed = state["crop_bytes"] + len(data)
+        if observed > DOCUMENT_MAX_CROP_BYTES:
+            note_limit(
+                page,
+                "document_crop_bytes",
+                observed,
+                DOCUMENT_MAX_CROP_BYTES,
+                "crop not written; placeholder and source text kept",
+            )
+            return False
+    try:
+        path.write_bytes(data)
+    except BaseException:
+        path.unlink(missing_ok=True)
+        raise
+    if state is not None:
+        state["crops"] += 1
+        state["crop_bytes"] += len(data)
+    return True
