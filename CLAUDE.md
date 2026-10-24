@@ -14,14 +14,13 @@ use. A blog post about it is planned; the README is written for that audience
 and its claims have been deliberately made honest — do not inflate them.
 
 Public repo: github.com/GalBlatman/markerlite · Apache-2.0 · current release
-v0.2.0 (`/releases/latest` is the download link the README and blog use;
-release notes are the tag's CHANGELOG.md section). Published from verified
-00514b4; release checks are in tests/REPORT-v0.2.0-release.md. The golden
-baseline is tests/golden/v0.2.0.json (both grid modes; cmr_review.pdf excluded).
-VERSION is 0.2.1, an untagged security/robustness release candidate.
-The current patch requires an archived 186/186 audit against v0.2.0.json
-after every commit; earlier manifests remain historical. See
-tests/REPORT-security.md for both scans and candidate verification.
+v0.2.1 (`/releases/latest` is the download link the README and blog use;
+release notes are the tag's CHANGELOG.md section). Tagged from verified
+c2ce099; security and release-candidate checks are in tests/REPORT-security.md.
+The golden baseline is tests/golden/v0.2.0.json (both grid modes;
+cmr_review.pdf excluded). VERSION is 0.2.1.
+The security patch was verified with an archived 186/186 audit against
+v0.2.0.json after every commit; earlier manifests remain historical.
 
 ## Layout
 
