@@ -50,6 +50,16 @@
       "value": 185,
       "id": "real:tests/real/capiq_keydev.pdf:no-grids",
       "page": null
+    },
+    "table_source_fragments": {
+      "value": 1090,
+      "id": "packet:pilot/pdf/R02659.pdf:no-grids",
+      "page": 25
+    },
+    "table_native_tokens": {
+      "value": 461,
+      "id": "packet:autonomous/run-002/pdf/R00443.pdf:no-grids",
+      "page": 14
     }
   }
 }

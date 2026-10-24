@@ -129,6 +129,58 @@ def _tokens_for_recon(blocks: List[Block], bbox) -> list:
     return [(sorted(t, key=lambda x: x[1]), y0, y1) for t, y0, y1 in rows]
 
 
+def _table_work_ok(members, page=None, tbl=None, lines=None):
+    """Bound both reconstruction input and geometric word-by-cell work."""
+    events = []
+    words = sum(
+        len(sp.text.split()) for b in members for ln in b.lines for sp in ln.spans
+    )
+    if words > TABLE_MAX_TOKENS:
+        events.append(("table_tokens", words, TABLE_MAX_TOKENS))
+    if lines is not None:
+        tokens = sum(len(row[0]) for row in lines)
+        if tokens > TABLE_MAX_TOKENS:
+            events.append(("table_tokens", tokens, TABLE_MAX_TOKENS))
+    if tbl is not None:
+        cells = 0
+        for row in tbl.rows:
+            cells += len(row.cells)
+            if cells > TABLE_MAX_CELLS:
+                events.append(("table_cells", cells, TABLE_MAX_CELLS))
+                break
+    coords = [v for b in members for ln in b.lines for sp in ln.spans for v in sp.bbox]
+    if lines is not None:
+        coords.extend(v for row, y0, y1 in lines for v in (y0, y1))
+        coords.extend(
+            v for row, _y0, _y1 in lines for _text, x0, x1 in row for v in (x0, x1)
+        )
+    if coords:
+        finite = all(math.isfinite(v) for v in coords)
+        extent = (
+            max(max(abs(v) for v in coords), max(coords) - min(coords))
+            if finite
+            else math.inf
+        )
+        if extent > TABLE_MAX_COORDINATE_SPAN:
+            events.append(
+                (
+                    "table_coordinate_span",
+                    extent if finite else "non-finite",
+                    TABLE_MAX_COORDINATE_SPAN,
+                )
+            )
+    if events and page is not None:
+        for name, observed, cap in events:
+            note_limit(
+                page,
+                name,
+                observed,
+                cap,
+                "table work skipped; original source text kept as prose",
+            )
+    return not events
+
+
 def _grid_from_members(tbl, members: List[Block]) -> List[List[str]]:
     """PyMuPDF's cell geometry filled with OUR text.
 
@@ -139,6 +191,8 @@ def _grid_from_members(tbl, members: List[Block]) -> List[List[str]]:
     (each word in the cell the ruling lines put it in) with only the text the
     converter has already accepted.
     """
+    if not _table_work_ok(members, tbl=tbl):
+        raise ValueError("table work budget exceeded")
     cells = [[c for c in row.cells] for row in tbl.rows]
     grid = [["" for _ in row] for row in cells]
 
@@ -735,6 +789,10 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
         ]
         if not members:
             continue
+        if not _table_work_ok(members, page, tbl):
+            for member in members:
+                member.table_released = True
+            continue
         if _journal_front_matter(members, page.blocks):
             abstract_top = min(
                 ln.bbox[1]
@@ -802,9 +860,11 @@ def detect_tables(pmpage: pymupdf.Page, page: Page) -> None:
         rejected = False
         if reconstruct_table_html is not None:
             lines = _tokens_for_recon(members, region)
-            ok, worst = _projection_ok(lines, page)
+            work_ok = _table_work_ok(members, page, tbl, lines)
+            ok, worst = _projection_ok(lines, page) if work_ok else (False, 0.0)
             if not ok:
                 rejected = True
+            if not ok and work_ok:
                 note_limit(
                     page,
                     "table_projection",
@@ -981,7 +1041,11 @@ def propose_tables_from_text(pages: List[Page], min_score=PROPOSAL_MIN_SCORE) ->
                 or blk.ignore_for_output
             ):
                 continue
+            if not _table_work_ok([blk], page):
+                continue
             lines = _tokens_for_recon([blk], blk.bbox)
+            if not _table_work_ok([blk], page, lines=lines):
+                continue
             ok, worst = _projection_ok(lines, page)
             if not ok:
                 note_limit(

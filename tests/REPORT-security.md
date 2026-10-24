@@ -300,3 +300,24 @@ non-decoding placement route; image export can render a bounded crop.
 All records flow through the existing resource_limits stats/warning path.
 Tests force each branch, including a fractional page side and nonfinite
 geometry, without allocating the dangerous raster.
+
+
+### Item 5: bounded table work
+
+All 84 unique baseline PDFs were measured without copying them. Additional
+native rawdict measurements rebuilt the owned reconstruction-token shape;
+whole-page counts bound individual native table candidates. Maximum native
+source fragments: 1,090 (R02659 p. 25); reconstruction tokens: 461
+(R00443 p. 14). The existing OCR TSV cap also bounds OCR input; matching-engine
+full golden verification covers all OCR candidates. Chosen token cap:
+12,000 (11.0x the larger native bound); cell cap: 8,000 versus 630 measured
+(SBTi p. 28; 12.7x); absolute coordinate/span cap: 10,000 points versus
+842.04 measured (R00023 p. 1; 11.9x). The absolute bound is independent of
+page size and supplements the existing relative projection guard.
+
+Check member cardinality/geometry before isolation or reconstruction,
+recheck the actual token array before table_recon, and independently check
+before allocating/scanning geometric cells. A candidate exceeding a limit
+keeps original source blocks as prose, with resource_limits and the shared
+warning. No table_recon.py changes. Forced-low-cap tests keep source text
+and prove the geometric scan is refused before cell allocation.

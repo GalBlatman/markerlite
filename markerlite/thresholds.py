@@ -241,3 +241,10 @@ CROP_MAX_PIXELS = 90_000_000
 # Conservative four-channel source bytes summed over all document placements:
 # 3,745,676,384 (R00639). Count repeated decodes against this cumulative cap.
 DOCUMENT_DECODED_BYTES = 40_000_000_000
+
+# v0.2.1: native whole-page upper bounds over all 84 golden PDFs:
+# 1,084 words (R02659 p25), 630 geometric cells (SBTi p28), and
+# 842.04 pt coordinate extent (R00023 p1). Caps exceed 10x each bound.
+TABLE_MAX_TOKENS = 12_000
+TABLE_MAX_CELLS = 8_000
+TABLE_MAX_COORDINATE_SPAN = 10_000.0
