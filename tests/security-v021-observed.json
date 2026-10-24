@@ -71,7 +71,7 @@
       "id": "packet:pilot/pdf/R02659.pdf:no-grids"
     },
     "document_crop_bytes": {
-      "value": 7077229,
+      "value": 7262025,
       "id": "packet:pilot/pdf/R02659.pdf:no-grids"
     },
     "manifest_bytes": {
@@ -1716,6 +1716,597 @@
       "id": "packet:pilot/pdf/S0009.pdf:no-grids",
       "markdown_match": true,
       "stats_match": true
+    }
+  ],
+  "raw_image_measurement_commit": "a1ab2f8",
+  "raw_image_document_results": [
+    {
+      "id": "fixture:tests/fixtures/all_text_wrapped.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/bibliography_symbols.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/bold_bullets.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/caption_inside_table.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/continued_table_header.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/cross_page_tables.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/digit_breaks.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/drawn_boxes.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/dropcap.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/ebsco_notice_scan.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 25245000,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/edge_content.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/figure_dedup.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 852,
+      "decoded_reservations": 780000,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/figure_source_labels.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 4816,
+      "decoded_reservations": 5990400,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/first_page_masthead.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/footnote_biglabel.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/footnote_bold_wrapped.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/footnote_repro.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/fragment_text.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/garbled_font.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/hard.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/hard_footer_first.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/images_inline.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 6266,
+      "decoded_reservations": 3674880,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/isolated_ocr_page.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 46531584,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/journal_front_matter.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/justified_scan.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 50490000,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/late_banner.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/list_lookalikes.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/manuscript.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/manuscript_numcol.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/mixed_body_sizes.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/no_table_marker.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/panel_letters.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/paper.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 10365,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/pi_minus.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/provenance_pages.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/repro.pdf:no-grids",
+      "crop_count": 5,
+      "crop_bytes": 37332,
+      "decoded_reservations": 5715200,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/repro_tight.pdf:no-grids",
+      "crop_count": 5,
+      "crop_bytes": 37292,
+      "decoded_reservations": 5715200,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/rotated_pages.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/ruled_header_band.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/scanned.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 50490000,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/scanned_with_stamp.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 75735000,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/sectioned_running_heads.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/sideways_scan.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 59840000,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/spanning_column_labels.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/split_toc_columns.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/table_gate.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/table_legend.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/table_only_footer.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/tall_cell.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/watermark.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/wrapped_record_rows.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "fixture:tests/fixtures/year_column.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 2615,
+      "decoded_reservations": 2021760,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/R02027.pdf:no-grids",
+      "crop_count": 6,
+      "crop_bytes": 44078,
+      "decoded_reservations": 8239000000,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/Ragins craft of clear writing 2012.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 2747832,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/Target-Validation-Protocol.pdf:no-grids",
+      "crop_count": 14,
+      "crop_bytes": 304335,
+      "decoded_reservations": 4390467000,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/capiq_keydev.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 19358400,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/greenwood2006.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 293728,
+      "decoded_reservations": 39780928,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/jay2013.pdf:no-grids",
+      "crop_count": 10,
+      "crop_bytes": 49958,
+      "decoded_reservations": 1855379904,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/kitchener2002.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 8331395072,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/kostova1999.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 1801310400,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/peng2009.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/suchman1995.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 1630765400,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/wry2013.pdf:no-grids",
+      "crop_count": 7,
+      "crop_bytes": 1050999,
+      "decoded_reservations": 95264160,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/york2018.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 93852368,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00030.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00032.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00077.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 126993,
+      "decoded_reservations": 26386728,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00087.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 166192,
+      "decoded_reservations": 11355828,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00112.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 166160,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00153.pdf:no-grids",
+      "crop_count": 17,
+      "crop_bytes": 257821,
+      "decoded_reservations": 14088664,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00263.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 84337,
+      "decoded_reservations": 184000,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00293.pdf:no-grids",
+      "crop_count": 11,
+      "crop_bytes": 1292112,
+      "decoded_reservations": 159922000,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00373.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 332921,
+      "decoded_reservations": 153095872,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00443.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 756621552,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00446.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 2809,
+      "decoded_reservations": 1146451840,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00639.pdf:no-grids",
+      "crop_count": 4,
+      "crop_bytes": 42123,
+      "decoded_reservations": 11886580000,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00717.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 162059,
+      "decoded_reservations": 9628936,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00860.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 19649,
+      "decoded_reservations": 8660340,
+      "limits": []
+    },
+    {
+      "id": "packet:pilot/pdf/R00014.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 226853,
+      "decoded_reservations": 23403128,
+      "limits": []
+    },
+    {
+      "id": "packet:pilot/pdf/R00023.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 33713,
+      "decoded_reservations": 0,
+      "limits": []
+    },
+    {
+      "id": "packet:pilot/pdf/R02659.pdf:no-grids",
+      "crop_count": 141,
+      "crop_bytes": 7262025,
+      "decoded_reservations": 109510908,
+      "limits": []
+    },
+    {
+      "id": "packet:pilot/pdf/R05732.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 5549,
+      "decoded_reservations": 182080,
+      "limits": []
+    },
+    {
+      "id": "packet:pilot/pdf/S0004.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 176844,
+      "decoded_reservations": 12884160,
+      "limits": []
+    },
+    {
+      "id": "packet:pilot/pdf/S0009.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 0,
+      "limits": []
     }
   ]
 }

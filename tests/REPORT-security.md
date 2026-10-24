@@ -1,8 +1,8 @@
 # Security hardening: findings and status
 
 An external static review of commit b3ed8a5 (v0.1.15) raised the findings
-below. markerlite is a local, single-user tool with no network access at
-runtime (SECURITY.md), so these are treated as robustness fixes first: a
+below. Conversion is local and offline; the GUI also has an explicit,
+user-initiated HTTPS update check. These are treated as robustness fixes: a
 pathological PDF must never stall or crash a batch, and a tripped limit
 must degrade visibly, never silently. The reviewer's raw files are not
 committed.
@@ -17,7 +17,7 @@ Markdown or stats hash may change in this part.
 | # | Finding | Status | Commit |
 | --- | --- | --- | --- |
 | 1 | `--apply-figures` / `--apply-math` trust the manifest's `stem`, so a manifest can rewrite a file outside `--outdir` | fixed | ce01672 |
-| 2 | CI holds `contents: write` in every step, leaves the token in `.git/config`, and uses movable action tags | fixed; release job to be verified at the next tag | aaf1d74 |
+| 2 | CI holds `contents: write` in every step, leaves the token in `.git/config`, and uses movable action tags | resolved; release isolation verified at v0.2.0 | aaf1d74 |
 | 3 | `build_exe.bat` expands paths unquoted and depends on the current directory | fixed | 7e6f171 |
 | 4 | File names and exception text reach the run log, GUI and console raw | fixed | c61ed22 |
 | 5a | Table projection: no check on coordinates handed to table_recon | fixed | 6ae3742 |
@@ -101,23 +101,14 @@ Verified: the read-only build and test jobs passed on every push from
 aaf1d74 on (one failure, 394f062, was a formatting slip fixed in
 239916f).
 
-**To check at the next tag** (the release job cannot run before one):
-
-1. The `build-windows-exe` run for the tag shows two jobs, `build` and
-   `release`, and `release` starts only after `build` succeeds.
-2. In the `build` job's log, the "Set up job" section lists
-   `Contents: read` under GITHUB_TOKEN permissions; in the `release`
-   job's log it lists `Contents: write`.
-3. The `release` job's step "Check the bundled version against the tag"
-   succeeds, and the release page shows `markerlite-windows.zip`.
-4. A push to main still produces no release and no `release` job run.
-4a. The release page's notes are the download instructions followed by the
-   tag's CHANGELOG.md section (added before v0.1.16: the build job writes
-   `release-notes.md` beside the zip in the artifact, and the release job,
-   still without a checkout, publishes it with `--notes-file`).
-5. If the release step fails with a permissions error, the repository's
-   Settings, Actions, Workflow permissions must allow the per-job grant
-   (the workflow asks for `contents: write` only in that job).
+**Release verification completed:** the v0.2.0 tag run
+[40020542297](https://github.com/GalBlatman/markerlite/actions/runs/40020542297)
+passed the checkout-free release job after the read-only build, checked its
+bundled version, and published the archive. The published SHA-256 matched
+GitHub's digest, and its notes came from the CHANGELOG section; see
+REPORT-v0.2.0-release.md. Main pushes do not publish. The remaining owner
+setting for private vulnerability reporting is administrative, separate
+from the eleven resolved technical scan findings.
 
 ### 3. build_exe.bat (7e6f171)
 
@@ -274,6 +265,59 @@ The second scan is verified against tests/golden/v0.2.0.json, 186 entries
 in both grid modes. No baseline is regenerated. Every numbered item is a
 separate commit; archived verification uses exactly that commit, with PDFs
 read in place. A differing hash is a blocker.
+
+### Second-scan disposition
+
+| Item | Finding / outcome | Commits |
+| --- | --- | --- |
+| 1 | Per-file CLI isolation; deterministic hashed shortening for long stems | 8863319 |
+| 2 | Back up the whole target set before swaps; rollback every target on failure | 9ac8ce4, d8470dc |
+| 3 | GUI display funnels; static AST sink test and multiline/control-character test | 80748f8 |
+| 4 | Validated OCR geometry, crop device caps, cumulative decoded-source reservation on every render/decode route | b985d2c, a1ab2f8 |
+| 5 | Absolute table coordinate, input-token and geometric/reconstructed-cell guards | bf131ba, 7ad36af |
+| 6 | Pairwise candidate caps and inner-loop cancellation checks | fab4880 |
+| 7 | Bounded producer stdout with kill/reap; crop count and encoded-byte budgets | 8d8ceac, a0dafb1; parser test c05968b |
+| 8 | Size/count/type-checked apply manifests; parse once; one Markdown scan | dde6e25 |
+| 9 | Pinned Python/pip, generated hash lock, isolated pinned OCR installer | 37186a7 |
+| Deferred | Document page / retained-memory / output / wall-clock budgets | Planned per-document worker process; no implementation in this patch |
+
+Implementation commits kept findings separate. Additional same-item follow-up
+commits were necessary for rollback intent after a successful rename, reader
+startup cleanup, renderer source reservations and the reconstruction boundary;
+published history was preserved. This deviates from exactly one commit per
+item, rather than concealing those corrections in a rewritten history.
+No table_recon.py edits, document-specific rules, threshold relaxation or
+baseline regeneration. Ordinary Markdown/stats must remain byte-identical.
+
+### Item 1: batch isolation and long output names
+
+Each conversion and output-directory creation has its own exception boundary.
+A malformed middle PDF is reported while both valid neighbours finish; the
+batch ends nonzero and lists its failures. The API discards staging on any
+exception, so failed extraction/rendering leaves no .part. A 250-character
+basename converts successfully with a deterministic SHA-256 identity suffix;
+all derived names share that stem. The 255-byte component allowance minus the
+longest suffix is a filesystem constraint, not a corpus work limit. Ordinary
+names are unchanged. Tests cover the malformed mid-batch and long-name cases.
+
+### Item 2: complete output rollback
+
+Stage all files/folders, move every existing target into one private backup
+directory, swap every staged path, then delete backups. Tests inject failure
+both before and immediately after each of six backup/swap rename positions,
+asserting the old set byte for byte, absent new targets, no staged remnants.
+Rollback failure is explicit and retains the recovery directory instead of
+deleting the only old copy. Apply-manifest rewrites share this transaction.
+
+### Item 3: safe display
+
+Every dynamic GUI text/label/title/dialog/Text insertion uses safe_display
+or the multiline display_text funnel. The latter applies safe_display to each
+line while preserving structural preview newlines. Tooltips, provenance,
+warnings, status and the log therefore escape terminal/control and Unicode
+reordering characters. An AST call-site test refuses unwrapped dynamic sinks;
+pure helper tests exercise controls without fake widgets. check_gui.py passes
+(85 methods, 56 self-calls). Filesystem paths are not rewritten for display.
 
 ### Item 4: raster budgets
 
@@ -469,3 +513,33 @@ and never invokes the Tesseract installer. Release remains tag-only with
 contents:write confined to its checkout-free publication job. The README
 pipeline recipe uses the same two hash files from the selected tag.
 Final candidate CI and clean-install evidence follow below.
+
+
+### Complete raster-export calibration
+
+A second full 84-document run covers raw image export with equation crops
+(the alternative to figure-crop links). It yields 141 crops and 7,262,025
+encoded bytes at maximum (R02659), versus 141 / 7,077,229 with figure crops.
+Use the larger byte observation: 80,000,000 is 11.0x; the crop cap 2,048 is
+14.5x. Maximum raw-mode decode/render reservations are 11,886,580,000
+(R00639), below the combined-mode 11,979,380,000 maximum. Manifest maxima
+stay 95,892 bytes and 135 entries. No limit tripped in either complete run.
+Both per-document measurements are committed as counts only in
+security-v021-observed.json. No PDF or source text was copied.
+
+
+### Verification checkpoint for the disposition report
+
+Archived exact-commit runs completed for 80748f8, 8863319, 8d8ceac, 9ac8ce4, a0dafb1, a1ab2f8, b985d2c, bf131ba, d8470dc, fab4880:
+186/186 entries match, zero OCR skips, against v0.2.0.json. Logs are under
+`tests/audits/v0.2.1/`; later commits are being audited by the same command,
+without changing the manifest. Each archive links local reference inputs and
+reads external corpus PDFs in place. Full native/OCR observation metadata
+covers 84 unique PDFs; no calibration run tripped a limit.
+
+The final pre-tag section will include the remaining exact-commit results,
+the full 24-row cancellation comparison (120 requested cancellation points),
+Windows OCR/artifact-worker checks and candidate installation/build checks.
+No tag is authorized here. The page/retained-memory/output/wall-clock work
+remains deferred to a timed per-document worker; killing it must leave only
+private staging, with publication owned by the parent after success.
