@@ -289,7 +289,7 @@ Text extraction no longer requests unused decoded image blocks at all.
 | --- | ---: | ---: | ---: |
 | Crop device long side at 200 dpi | 2,339 px | 24,000 px | 10.26x |
 | Whole-page raster pixels at 300 dpi (bounds 200-dpi crops) | 8,703,348 | 90,000,000 | 10.34x |
-| Document image bytes, four channels over all placements | 3,745,676,384 (R00639) | 40,000,000,000 | 10.68x |
+| Complete decode/render source reservations, four channels, repeats counted | 11,979,380,000 (R00639) | 128,000,000,000 | 10.68x |
 
 OCR estimates require finite positive dimensions, clamp each side to at
 least one point and round device dimensions upward. A page that cannot fit
@@ -377,3 +377,23 @@ Item 2 follow-up d8470dc additionally registers rollback intent before each
 rename, covering cancellation just after success; tests inject failure both
 before and after every backup/swap. Published history is preserved rather
 than rewriting the original item 2 commit.
+
+
+### Item 4 follow-up: cover renderer source decoding too
+
+The first raster commit covered explicit source decoding. OCR, orientation
+renders and figure/equation crops can also decode embedded sources. They now
+reserve before invoking MuPDF; an exhausted reservation skips the render
+with a limit record and retains native text/placeholders. Re-OCR trial pages
+report the original PDF page index. Forced-low-budget tests prove neither
+OCR nor crop rendering is called after refusal.
+
+All 84 PDFs were re-run with all crop modes enabled and complete reservation
+accounting. The source-reservation maximum is 11,979,380,000 bytes (R00639),
+so the final cap is 128,000,000,000 (10.68x), replacing the initial 40 GB
+calibration that counted explicit decodes only. This is cumulative work
+reservation, not a retained-memory/RSS limit. The latter remains deferred.
+Per-document crop counts and encoded byte totals match the earlier real
+crop measurement in all 84 documents. No new limit tripped during calibration.
+OCR pixel reductions and invalid geometry are recorded before rendering,
+so a later renderer/recognizer failure cannot hide a tripped limit.

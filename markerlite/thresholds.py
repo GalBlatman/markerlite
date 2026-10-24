@@ -238,9 +238,10 @@ TABLE_CONTINUATION_X_TOL = 0.02
 CROP_MAX_DEVICE_SIDE = 24_000
 # Max whole-page render at 300 dpi: 8,703,348 pixels; 200-dpi crops are smaller.
 CROP_MAX_PIXELS = 90_000_000
-# Conservative four-channel source bytes summed over all document placements:
-# 3,745,676,384 (R00639). Count repeated decodes against this cumulative cap.
-DOCUMENT_DECODED_BYTES = 40_000_000_000
+# Complete source reservations, including OCR/OSD and crop rendering:
+# 11,979,380,000 bytes (R00639), all 84 PDFs with every crop mode enabled.
+# Four channels per source; repeated attempts count again. Cap is 10.68x.
+DOCUMENT_DECODED_BYTES = 128_000_000_000
 
 # v0.2.1: native whole-page upper bounds over all 84 golden PDFs:
 # 1,084 words (R02659 p25), 630 geometric cells (SBTi p28), and

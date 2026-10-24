@@ -18,7 +18,7 @@ import pymupdf
 
 from .cancel import capture_capped
 from .model import *
-from .raster_budget import device_size, pending_limit
+from .raster_budget import device_size, pending_limit, reserve_render
 
 
 def discover_tesseract(
@@ -175,9 +175,29 @@ def ocr_orientation(page: pymupdf.Page, cancel=None) -> Optional[Tuple[int, floa
     if executable is None:
         return None
     try:
-        dpi, _pixels = ocr_dpi(page, OCR_DPI)
+        try:
+            dpi, pixels = ocr_dpi(page, OCR_DPI)
+        except ValueError:
+            pending_limit(
+                page,
+                "ocr_geometry",
+                "invalid or over budget",
+                OCR_MAX_PIXELS,
+                "orientation render skipped; native source text kept",
+            )
+            return None
+        if dpi != OCR_DPI:
+            pending_limit(
+                page,
+                "ocr_pixels",
+                pixels,
+                OCR_MAX_PIXELS,
+                f"orientation render reduced to {dpi} dpi; native text kept",
+            )
         with tempfile.TemporaryDirectory() as td:
             img = pathlib.Path(td) / "page.png"
+            if not reserve_render(page):
+                return None
             page.get_pixmap(dpi=dpi).save(img)
             args = [executable, str(img), "stdout", "--psm", "0"]
             code, data, capped = capture_capped(
@@ -418,7 +438,28 @@ def _ocr_page(
         if executable is None:
             return None
         requested = dpi
-        dpi, pixels = ocr_dpi(page, dpi)
+        try:
+            dpi, pixels = ocr_dpi(page, dpi)
+        except ValueError:
+            pending_limit(
+                page,
+                "ocr_geometry",
+                "invalid or over budget",
+                OCR_MAX_PIXELS,
+                "OCR skipped; native source text kept",
+                page_idx=page_idx,
+            )
+            return None
+        lowering_recorded = dpi != requested and pending_limit(
+            page,
+            "ocr_pixels",
+            pixels,
+            OCR_MAX_PIXELS,
+            f"page rendered for OCR at {dpi} dpi instead of {requested}; native text kept on failure",
+            page_idx=page_idx,
+        )
+        if not reserve_render(page, page_idx):
+            return None
         pix = page.get_pixmap(dpi=dpi)
         with tempfile.TemporaryDirectory() as td:
             img = pathlib.Path(td) / "page.png"
@@ -526,7 +567,7 @@ def _ocr_page(
         ocr_used=True,
         source_words=recognised,
     )
-    if dpi != requested:
+    if dpi != requested and not lowering_recorded:
         note_limit(
             result,
             "ocr_pixels",

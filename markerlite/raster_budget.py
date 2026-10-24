@@ -29,7 +29,7 @@ def document_raster_budget(cancel=None):
         _CURRENT.reset(token)
 
 
-def reserve_decode(pm, amount):
+def reserve_decode(pm, amount, page_idx=None):
     """Reserve before decoding, including repeat decodes of the same source."""
     state = _CURRENT.get()
     if state is None:
@@ -38,7 +38,7 @@ def reserve_decode(pm, amount):
     if observed > DOCUMENT_DECODED_BYTES:
         state["limits"].append(
             (
-                pm.number,
+                pm.number if page_idx is None else page_idx,
                 "document_decoded_bytes",
                 observed,
                 DOCUMENT_DECODED_BYTES,
@@ -48,6 +48,11 @@ def reserve_decode(pm, amount):
         return False
     state["decoded"] = observed
     return True
+
+
+def reserve_render(pm, page_idx=None):
+    """Rendering may decode embedded sources too; reserve before MuPDF runs."""
+    return reserve_decode(pm, image_bytes(pm), page_idx)
 
 
 def image_bytes(pm):
@@ -112,6 +117,8 @@ def crop_pixmap(pm, page, clip, dpi):
             CROP_MAX_DEVICE_SIDE,
             f"crop resolution reduced to {chosen} dpi; source text kept",
         )
+    if not reserve_render(pm, page.page_idx):
+        return None
     return pm.get_pixmap(clip=clip, dpi=chosen)
 
 
@@ -127,10 +134,14 @@ def checked(items):
         yield item
 
 
-def pending_limit(pm, name, observed, cap, action):
+def pending_limit(pm, name, observed, cap, action, page_idx=None):
     state = _CURRENT.get()
     if state is not None:
-        state["limits"].append((pm.number, name, observed, cap, action))
+        state["limits"].append(
+            (pm.number if page_idx is None else page_idx, name, observed, cap, action)
+        )
+        return True
+    return False
 
 
 def can_crop(page):

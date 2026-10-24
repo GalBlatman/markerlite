@@ -56,3 +56,54 @@ def test_reservation_counts_repeated_decode_attempts(monkeypatch):
         assert not budget.reserve_decode(pm, 1)
         assert state["decoded"] == 20
         assert len(state["limits"]) == 1
+
+
+def test_decode_budget_blocks_ocr_renderer_before_allocation(monkeypatch):
+    monkeypatch.setattr(budget, "DOCUMENT_DECODED_BYTES", 1)
+    monkeypatch.setattr(extraction, "discover_tesseract", lambda: "tesseract")
+    pm = SimpleNamespace(
+        number=3,
+        rect=SimpleNamespace(width=100, height=100),
+        get_images=lambda **kw: [(1, 0, 100, 100)],
+        get_pixmap=lambda **kw: pytest.fail("must not decode source"),
+    )
+    page = Page(page_idx=7, width=100, height=100, blocks=[])
+    with budget.document_raster_budget() as state:
+        assert extraction._ocr_page(pm, 7) is None
+        budget.flush_limits(state, [page])
+    assert page.limit_events[0]["page"] == 8
+    assert page.limit_events[0]["limit"] == "document_decoded_bytes"
+
+
+def test_decode_budget_blocks_crop_renderer_before_allocation(monkeypatch):
+    monkeypatch.setattr(budget, "DOCUMENT_DECODED_BYTES", 1)
+    pm = SimpleNamespace(
+        number=0,
+        get_images=lambda **kw: [(1, 0, 100, 100)],
+        get_pixmap=lambda **kw: pytest.fail("must not decode source"),
+    )
+    page = Page(page_idx=0, width=100, height=100, blocks=[])
+    with budget.document_raster_budget() as state:
+        assert budget.crop_pixmap(pm, page, pymupdf.Rect(0, 0, 100, 100), 200) is None
+        budget.flush_limits(state, [page])
+    assert page.limit_events[0]["limit"] == "document_decoded_bytes"
+
+
+def test_lowered_ocr_limit_is_recorded_even_when_renderer_fails(monkeypatch):
+    monkeypatch.setattr(extraction, "OCR_MAX_PIXELS", 100)
+    monkeypatch.setattr(extraction, "discover_tesseract", lambda: "tesseract")
+
+    def fail(**kwargs):
+        raise RuntimeError("renderer rejected")
+
+    pm = SimpleNamespace(
+        number=0,
+        rect=SimpleNamespace(width=100, height=100),
+        get_images=lambda **kw: [],
+        get_pixmap=fail,
+    )
+    page = Page(page_idx=0, width=100, height=100, blocks=[])
+    with budget.document_raster_budget() as state:
+        assert extraction._ocr_page(pm, 0) is None
+        budget.flush_limits(state, [page])
+    assert page.limit_events[0]["limit"] == "ocr_pixels"
