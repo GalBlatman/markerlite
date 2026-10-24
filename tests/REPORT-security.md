@@ -417,3 +417,13 @@ owned cell scans. Forced-limit tests spy on reconstruction/recovery to
 prove refusal occurs first, including finite endpoints with an overflowing
 span. Oversized candidates retain source prose and resource-limit stats.
 No table_recon.py edit and no baseline regeneration.
+
+
+### Item 7 test-boundary correction
+
+The full CI suite exposed an orientation-parser test still mocking
+subprocess.run after capture moved to bounded stdout. It unintentionally
+invoked the installed engine and compared a real answer with mock data.
+The test now intercepts capture_capped, asserts stdout mode and its cap,
+and verifies the parser independently of engine version. The complete WSL
+unit suite passes: 337 passed, three Windows-only skips. No runtime change.

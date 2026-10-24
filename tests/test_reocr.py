@@ -2,7 +2,6 @@
 (extraction._reocr_fragments), without needing Tesseract."""
 
 import pathlib
-import subprocess
 
 import pymupdf
 
@@ -15,14 +14,17 @@ PDF = ROOT / "tests" / "fixtures" / "sideways_scan.pdf"
 def test_orientation_is_parsed_from_tesseract(monkeypatch, tmp_path):
     monkeypatch.setattr(extraction, "discover_tesseract", lambda: "tesseract")
 
-    def fake_run(args, stdout, **kwargs):
-        stdout.write(
+    def fake_capture(args, **kwargs):
+        assert args[-3:] == ["stdout", "--psm", "0"]
+        assert kwargs["max_bytes"] == 4096
+        return (
+            0,
             b"Page number: 0\nOrientation in degrees: 270\nRotate: 90\n"
-            b"Orientation confidence: 12.5\nScript: Latin\n"
+            b"Orientation confidence: 12.5\nScript: Latin\n",
+            False,
         )
-        return subprocess.CompletedProcess(args, 0)
 
-    monkeypatch.setattr(extraction.subprocess, "run", fake_run)
+    monkeypatch.setattr(extraction, "capture_capped", fake_capture)
     doc = pymupdf.open(PDF)
     assert extraction.ocr_orientation(doc[0]) == (90, 12.5)
 
