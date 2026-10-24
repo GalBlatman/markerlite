@@ -17,6 +17,7 @@ from __future__ import annotations
 import os
 import pathlib
 import shutil
+import tempfile
 from typing import List, Tuple
 
 PART = ".part"
@@ -50,19 +51,47 @@ class Output:
         return self._stage(name, is_dir=True)
 
     def commit(self) -> None:
-        """Rename every staged output into place: folders first, files in
-        the order they were staged, so the Markdown that links to a folder
-        appears last."""
+        """Back up the complete old set before publishing any staged output.
+
+        A failed backup or swap restores all previous targets, including files
+        already swapped. A failed restore retains its backup for recovery.
+        """
         order = [s for s in self._staged if s[2]] + [
             s for s in self._staged if not s[2]
         ]
-        for part, final, is_dir in order:
-            if not part.exists():
-                continue  # nothing was written under this name
-            if is_dir:
-                _swap_dir(part, final)
-            else:
+        order = [s for s in order if s[0].exists()]
+        if not order:
+            self._staged.clear()
+            return
+        backup_dir = pathlib.Path(
+            tempfile.mkdtemp(prefix=".markerlite-backup-", dir=self.outdir)
+        )
+        backups = []
+        installed = []
+        try:
+            for index, (_part, final, _is_dir) in enumerate(order):
+                if final.exists() or final.is_symlink():
+                    backup = backup_dir / str(index)
+                    os.replace(final, backup)
+                    backups.append((backup, final))
+            for part, final, _is_dir in order:
                 os.replace(part, final)
+                installed.append(final)
+        except BaseException:
+            for final in reversed(installed):
+                _remove(final)
+            try:
+                for backup, final in reversed(backups):
+                    os.replace(backup, final)
+            except BaseException as exc:
+                self.discard()
+                raise RuntimeError(
+                    f"output rollback failed; previous output retained in {backup_dir}"
+                ) from exc
+            self.discard()
+            _remove(backup_dir)
+            raise
+        _remove(backup_dir)
         self._staged.clear()
 
     def discard(self) -> None:
@@ -80,27 +109,6 @@ def _remove(path: pathlib.Path) -> None:
             path.unlink()
         except OSError:
             pass
-
-
-def _swap_dir(part: pathlib.Path, final: pathlib.Path) -> None:
-    """Replace folder ``final`` with ``part``. A directory cannot be renamed
-    over an existing one on Windows, so the old folder steps aside first and
-    is deleted only once the new one is in place."""
-    if not final.exists():
-        os.replace(part, final)
-        return
-    old = final.with_name(final.name + ".old")
-    n = 0
-    while old.exists():
-        n += 1
-        old = final.with_name(f"{final.name}.old{n}")
-    os.replace(final, old)
-    try:
-        os.replace(part, final)
-    except OSError:
-        os.replace(old, final)  # put the complete old output back
-        raise
-    shutil.rmtree(old, ignore_errors=True)
 
 
 def write_text_atomic(path: pathlib.Path, text: str, encoding: str = "utf-8") -> None:

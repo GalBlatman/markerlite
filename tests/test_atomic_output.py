@@ -2,7 +2,6 @@
 previous complete output intact (markerlite/output.py)."""
 
 import pathlib
-import shutil
 
 import pytest
 
@@ -107,4 +106,57 @@ def test_folder_swap_restores_old_folder_if_rename_fails(tmp_path, monkeypatch):
     with pytest.raises(OSError):
         out.commit()
     assert (final / "a.png").read_bytes() == b"old"
-    shutil.rmtree(part)
+    assert not part.exists()
+
+
+@pytest.mark.parametrize("position", range(1, 7))
+def test_every_backup_and_swap_failure_restores_entire_set(
+    tmp_path, monkeypatch, position
+):
+    for name in ("images", "figures"):
+        (tmp_path / name).mkdir()
+        (tmp_path / name / "old.bin").write_bytes(name.encode())
+    (tmp_path / "doc.md").write_bytes(b"old markdown")
+    before = _snapshot(tmp_path)
+    out = output.Output(tmp_path)
+    for name in ("images", "figures"):
+        part = out.folder(name)
+        part.mkdir()
+        (part / "new.bin").write_bytes(b"new")
+    out.file("doc.md").write_bytes(b"new markdown")
+    real = output.os.replace
+    calls = 0
+
+    def injected(src, dst):
+        nonlocal calls
+        calls += 1
+        if calls == position:
+            raise OSError("injected swap failure")
+        return real(src, dst)
+
+    monkeypatch.setattr(output.os, "replace", injected)
+    with pytest.raises(OSError, match="injected"):
+        out.commit()
+    assert _snapshot(tmp_path) == before
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["doc.md", "figures", "images"]
+
+
+def test_rollback_removes_new_targets_without_previous_versions(tmp_path, monkeypatch):
+    (tmp_path / "old.md").write_bytes(b"old")
+    out = output.Output(tmp_path)
+    out.folder("new_images").mkdir()
+    out.file("old.md").write_bytes(b"replacement")
+    part = out.file("new.md")
+    part.write_bytes(b"new")
+    real = output.os.replace
+
+    def injected(src, dst):
+        if pathlib.Path(src) == part:
+            raise OSError("injected")
+        return real(src, dst)
+
+    monkeypatch.setattr(output.os, "replace", injected)
+    with pytest.raises(OSError):
+        out.commit()
+    assert _snapshot(tmp_path) == {"old.md": b"old"}
+    assert [p.name for p in tmp_path.iterdir()] == ["old.md"]
