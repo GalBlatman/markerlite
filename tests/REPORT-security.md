@@ -573,3 +573,22 @@ Candidate notes use the existing release-note section layout (Robustness,
 Build, Deferred). The initial v0.2.1 notes lacked subsection headings and
 failed the standing release-note test; headings now satisfy that contract.
 This is documentation only, with no golden change.
+
+
+### Item 4 final inventory correction: inline/repeated placements
+
+get_images() resource dictionaries omit inline images and list reused
+resources differently from placements. The 84-document non-decoding inventory
+found ten pages in nine documents whose placement byte estimate is higher.
+R00860 pp. 60–61 have zero resource-dictionary image bytes, but 1,508 / 1,524
+placement bytes; these are now reserved before a decoder/render is called.
+Use the larger of resource and placement byte estimates. An in-memory actual
+inline-image test proves it is charged and refused before rendering at a
+forced low cap; another test covers a reused resource's repeated placements.
+
+Reconverted all nine affected documents in both raw-image and combined-crop
+modes. Crop counts and encoded bytes are identical to the previous full run,
+no limits tripped, and the overall maximum remains R00639's 11,979,380,000
+bytes (the document is unaffected by this inventory correction). The 128 GB
+cap remains 10.68x. Metadata for every page comparison and both nine-document
+reruns is in security-v021-observed.json. Source PDFs stayed in place.

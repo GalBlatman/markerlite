@@ -56,8 +56,14 @@ def reserve_render(pm, page_idx=None):
 
 
 def image_bytes(pm):
-    # Four decoded channels conservatively cover RGB/CMYK source images.
-    return sum(item[2] * item[3] * 4 for item in pm.get_images(full=True))
+    # Resource dictionaries omit inline images and can list one reused image
+    # once. Plain placement metadata does not decode and covers both cases.
+    resources = sum(item[2] * item[3] * 4 for item in pm.get_images(full=True))
+    placements = sum(
+        item["width"] * item["height"] * max(4, item["colorspace"])
+        for item in pm.get_image_info()
+    )
+    return max(resources, placements)
 
 
 def flush_limits(state, pages):

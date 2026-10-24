@@ -65,6 +65,7 @@ def test_decode_budget_blocks_ocr_renderer_before_allocation(monkeypatch):
         number=3,
         rect=SimpleNamespace(width=100, height=100),
         get_images=lambda **kw: [(1, 0, 100, 100)],
+        get_image_info=lambda: [],
         get_pixmap=lambda **kw: pytest.fail("must not decode source"),
     )
     page = Page(page_idx=7, width=100, height=100, blocks=[])
@@ -80,6 +81,7 @@ def test_decode_budget_blocks_crop_renderer_before_allocation(monkeypatch):
     pm = SimpleNamespace(
         number=0,
         get_images=lambda **kw: [(1, 0, 100, 100)],
+        get_image_info=lambda: [],
         get_pixmap=lambda **kw: pytest.fail("must not decode source"),
     )
     page = Page(page_idx=0, width=100, height=100, blocks=[])
@@ -100,6 +102,7 @@ def test_lowered_ocr_limit_is_recorded_even_when_renderer_fails(monkeypatch):
         number=0,
         rect=SimpleNamespace(width=100, height=100),
         get_images=lambda **kw: [],
+        get_image_info=lambda: [],
         get_pixmap=fail,
     )
     page = Page(page_idx=0, width=100, height=100, blocks=[])
@@ -107,3 +110,31 @@ def test_lowered_ocr_limit_is_recorded_even_when_renderer_fails(monkeypatch):
         assert extraction._ocr_page(pm, 0) is None
         budget.flush_limits(state, [page])
     assert page.limit_events[0]["limit"] == "ocr_pixels"
+
+
+def test_inline_images_are_charged_before_render(monkeypatch):
+    doc = pymupdf.open()
+    pm = doc.new_page(width=100, height=100)
+    stream = doc.get_new_xref()
+    doc.update_object(stream, "<<>>")
+    doc.update_stream(
+        stream,
+        b"q 10 0 0 10 0 0 cm BI /W 2 /H 2 /BPC 8 /CS /G ID \x00\xff\x00\xff EI Q",
+    )
+    pm.set_contents(stream)
+    assert pm.get_images(full=True) == []
+    assert budget.image_bytes(pm) == 16
+    monkeypatch.setattr(budget, "DOCUMENT_DECODED_BYTES", 1)
+    with budget.document_raster_budget() as state:
+        assert not budget.reserve_render(pm)
+    assert state["decoded"] == 0
+    assert state["limits"][0][1] == "document_decoded_bytes"
+    doc.close()
+
+
+def test_repeated_placements_are_charged_when_resource_list_is_smaller():
+    pm = SimpleNamespace(
+        get_images=lambda **kw: [(1, 0, 10, 10)],
+        get_image_info=lambda: [dict(width=10, height=10, colorspace=3)] * 3,
+    )
+    assert budget.image_bytes(pm) == 1200

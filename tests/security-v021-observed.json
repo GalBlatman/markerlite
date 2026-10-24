@@ -123,6 +123,16 @@
       "value": 766,
       "id": "real:tests/real/capiq_keydev.pdf:no-grids",
       "page": null
+    },
+    "image_placements": {
+      "value": 36,
+      "id": "packet:autonomous/run-002/pdf/R00717.pdf:no-grids",
+      "page": 9
+    },
+    "image_resource_candidates": {
+      "value": 32,
+      "id": "packet:autonomous/run-002/pdf/R00717.pdf:no-grids",
+      "page": 9
     }
   },
   "crop_measurement_commit": "fab4880",
@@ -1088,7 +1098,7 @@
       "id": "real:tests/real/Target-Validation-Protocol.pdf:no-grids",
       "crop_count": 8,
       "crop_bytes": 410315,
-      "decoded_reservations": 4423992496,
+      "decoded_reservations": 4425339712,
       "limits": []
     },
     {
@@ -1102,7 +1112,7 @@
       "id": "real:tests/real/greenwood2006.pdf:no-grids",
       "crop_count": 1,
       "crop_bytes": 315423,
-      "decoded_reservations": 39780928,
+      "decoded_reservations": 39964928,
       "limits": []
     },
     {
@@ -1151,7 +1161,7 @@
       "id": "real:tests/real/york2018.pdf:no-grids",
       "crop_count": 4,
       "crop_bytes": 1580962,
-      "decoded_reservations": 93852368,
+      "decoded_reservations": 93935200,
       "limits": []
     },
     {
@@ -1200,21 +1210,21 @@
       "id": "packet:autonomous/run-002/pdf/R00263.pdf:no-grids",
       "crop_count": 2,
       "crop_bytes": 222355,
-      "decoded_reservations": 184000,
+      "decoded_reservations": 368000,
       "limits": []
     },
     {
       "id": "packet:autonomous/run-002/pdf/R00293.pdf:no-grids",
       "crop_count": 11,
       "crop_bytes": 817326,
-      "decoded_reservations": 159922000,
+      "decoded_reservations": 160106000,
       "limits": []
     },
     {
       "id": "packet:autonomous/run-002/pdf/R00373.pdf:no-grids",
       "crop_count": 1,
       "crop_bytes": 90596,
-      "decoded_reservations": 153095872,
+      "decoded_reservations": 153279872,
       "limits": []
     },
     {
@@ -1242,21 +1252,21 @@
       "id": "packet:autonomous/run-002/pdf/R00717.pdf:no-grids",
       "crop_count": 2,
       "crop_bytes": 145275,
-      "decoded_reservations": 9692936,
+      "decoded_reservations": 9712840,
       "limits": []
     },
     {
       "id": "packet:autonomous/run-002/pdf/R00860.pdf:no-grids",
       "crop_count": 2,
       "crop_bytes": 177510,
-      "decoded_reservations": 8660340,
+      "decoded_reservations": 8672452,
       "limits": []
     },
     {
       "id": "packet:pilot/pdf/R00014.pdf:no-grids",
       "crop_count": 2,
       "crop_bytes": 395098,
-      "decoded_reservations": 23403128,
+      "decoded_reservations": 23486208,
       "limits": []
     },
     {
@@ -2102,7 +2112,7 @@
       "id": "real:tests/real/Target-Validation-Protocol.pdf:no-grids",
       "crop_count": 14,
       "crop_bytes": 304335,
-      "decoded_reservations": 4390467000,
+      "decoded_reservations": 4391814216,
       "limits": []
     },
     {
@@ -2116,7 +2126,7 @@
       "id": "real:tests/real/greenwood2006.pdf:no-grids",
       "crop_count": 1,
       "crop_bytes": 293728,
-      "decoded_reservations": 39780928,
+      "decoded_reservations": 39964928,
       "limits": []
     },
     {
@@ -2165,7 +2175,7 @@
       "id": "real:tests/real/york2018.pdf:no-grids",
       "crop_count": 0,
       "crop_bytes": 0,
-      "decoded_reservations": 93852368,
+      "decoded_reservations": 93935200,
       "limits": []
     },
     {
@@ -2214,21 +2224,21 @@
       "id": "packet:autonomous/run-002/pdf/R00263.pdf:no-grids",
       "crop_count": 1,
       "crop_bytes": 84337,
-      "decoded_reservations": 184000,
+      "decoded_reservations": 368000,
       "limits": []
     },
     {
       "id": "packet:autonomous/run-002/pdf/R00293.pdf:no-grids",
       "crop_count": 11,
       "crop_bytes": 1292112,
-      "decoded_reservations": 159922000,
+      "decoded_reservations": 160106000,
       "limits": []
     },
     {
       "id": "packet:autonomous/run-002/pdf/R00373.pdf:no-grids",
       "crop_count": 1,
       "crop_bytes": 332921,
-      "decoded_reservations": 153095872,
+      "decoded_reservations": 153279872,
       "limits": []
     },
     {
@@ -2256,21 +2266,21 @@
       "id": "packet:autonomous/run-002/pdf/R00717.pdf:no-grids",
       "crop_count": 2,
       "crop_bytes": 162059,
-      "decoded_reservations": 9628936,
+      "decoded_reservations": 9648840,
       "limits": []
     },
     {
       "id": "packet:autonomous/run-002/pdf/R00860.pdf:no-grids",
       "crop_count": 1,
       "crop_bytes": 19649,
-      "decoded_reservations": 8660340,
+      "decoded_reservations": 8669436,
       "limits": []
     },
     {
       "id": "packet:pilot/pdf/R00014.pdf:no-grids",
       "crop_count": 2,
       "crop_bytes": 226853,
-      "decoded_reservations": 23403128,
+      "decoded_reservations": 23486208,
       "limits": []
     },
     {
@@ -2306,6 +2316,213 @@
       "crop_count": 0,
       "crop_bytes": 0,
       "decoded_reservations": 0,
+      "limits": []
+    }
+  ],
+  "image_placement_inventory": {
+    "documents": 84,
+    "maxima": {
+      "image_placements": {
+        "value": 36,
+        "id": "packet:autonomous/run-002/pdf/R00717.pdf:no-grids",
+        "page": 9
+      },
+      "image_resource_candidates": {
+        "value": 32,
+        "id": "packet:autonomous/run-002/pdf/R00717.pdf:no-grids",
+        "page": 9
+      }
+    },
+    "higher_placement_bytes": [
+      {
+        "id": "real:tests/real/Target-Validation-Protocol.pdf:no-grids",
+        "page": 44,
+        "resource_bytes": 33996804,
+        "placement_bytes": 34333608
+      },
+      {
+        "id": "real:tests/real/greenwood2006.pdf:no-grids",
+        "page": 22,
+        "resource_bytes": 92000,
+        "placement_bytes": 184000
+      },
+      {
+        "id": "real:tests/real/york2018.pdf:no-grids",
+        "page": 32,
+        "resource_bytes": 41416,
+        "placement_bytes": 82832
+      },
+      {
+        "id": "packet:autonomous/run-002/pdf/R00263.pdf:no-grids",
+        "page": 29,
+        "resource_bytes": 92000,
+        "placement_bytes": 184000
+      },
+      {
+        "id": "packet:autonomous/run-002/pdf/R00293.pdf:no-grids",
+        "page": 23,
+        "resource_bytes": 92000,
+        "placement_bytes": 184000
+      },
+      {
+        "id": "packet:autonomous/run-002/pdf/R00373.pdf:no-grids",
+        "page": 21,
+        "resource_bytes": 92000,
+        "placement_bytes": 184000
+      },
+      {
+        "id": "packet:autonomous/run-002/pdf/R00717.pdf:no-grids",
+        "page": 9,
+        "resource_bytes": 370872,
+        "placement_bytes": 375848
+      },
+      {
+        "id": "packet:autonomous/run-002/pdf/R00860.pdf:no-grids",
+        "page": 60,
+        "resource_bytes": 0,
+        "placement_bytes": 1508
+      },
+      {
+        "id": "packet:autonomous/run-002/pdf/R00860.pdf:no-grids",
+        "page": 61,
+        "resource_bytes": 0,
+        "placement_bytes": 1524
+      },
+      {
+        "id": "packet:pilot/pdf/R00014.pdf:no-grids",
+        "page": 30,
+        "resource_bytes": 41540,
+        "placement_bytes": 83080
+      }
+    ]
+  },
+  "placement_render_results": [
+    {
+      "id": "real:tests/real/Target-Validation-Protocol.pdf:no-grids",
+      "crop_count": 8,
+      "crop_bytes": 410315,
+      "decoded_reservations": 4425339712,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/greenwood2006.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 315423,
+      "decoded_reservations": 39964928,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/york2018.pdf:no-grids",
+      "crop_count": 4,
+      "crop_bytes": 1580962,
+      "decoded_reservations": 93935200,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00263.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 222355,
+      "decoded_reservations": 368000,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00293.pdf:no-grids",
+      "crop_count": 11,
+      "crop_bytes": 817326,
+      "decoded_reservations": 160106000,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00373.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 90596,
+      "decoded_reservations": 153279872,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00717.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 145275,
+      "decoded_reservations": 9712840,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00860.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 177510,
+      "decoded_reservations": 8672452,
+      "limits": []
+    },
+    {
+      "id": "packet:pilot/pdf/R00014.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 395098,
+      "decoded_reservations": 23486208,
+      "limits": []
+    }
+  ],
+  "placement_raw_results": [
+    {
+      "id": "real:tests/real/Target-Validation-Protocol.pdf:no-grids",
+      "crop_count": 14,
+      "crop_bytes": 304335,
+      "decoded_reservations": 4391814216,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/greenwood2006.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 293728,
+      "decoded_reservations": 39964928,
+      "limits": []
+    },
+    {
+      "id": "real:tests/real/york2018.pdf:no-grids",
+      "crop_count": 0,
+      "crop_bytes": 0,
+      "decoded_reservations": 93935200,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00263.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 84337,
+      "decoded_reservations": 368000,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00293.pdf:no-grids",
+      "crop_count": 11,
+      "crop_bytes": 1292112,
+      "decoded_reservations": 160106000,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00373.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 332921,
+      "decoded_reservations": 153279872,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00717.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 162059,
+      "decoded_reservations": 9648840,
+      "limits": []
+    },
+    {
+      "id": "packet:autonomous/run-002/pdf/R00860.pdf:no-grids",
+      "crop_count": 1,
+      "crop_bytes": 19649,
+      "decoded_reservations": 8669436,
+      "limits": []
+    },
+    {
+      "id": "packet:pilot/pdf/R00014.pdf:no-grids",
+      "crop_count": 2,
+      "crop_bytes": 226853,
+      "decoded_reservations": 23486208,
       "limits": []
     }
   ]

@@ -23,6 +23,9 @@ class BrokenOcrPage:
     def get_images(self, full=True):
         return []
 
+    def get_image_info(self):
+        return []
+
     class Pixmap:
         def save(self, _path):
             pass
