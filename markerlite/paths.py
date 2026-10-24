@@ -10,6 +10,7 @@ output folder. Both commands therefore resolve the target through
 
 from __future__ import annotations
 
+import hashlib
 import pathlib
 import re
 
@@ -58,3 +59,18 @@ def manifest_target(outdir: pathlib.Path, stem: object) -> pathlib.Path:
             f"the manifest's target {name!r} resolves outside the output folder {root}"
         )
     return target
+
+
+# Portable 255-byte component limit minus our longest derived suffix.
+# This is a filesystem name constraint, not a document-work resource budget.
+OUTPUT_STEM_BYTES = 255 - len("_figures.json.part")
+
+
+def output_stem(stem: str) -> str:
+    """Keep ordinary names; shorten long UTF-8 names with a stable identity suffix."""
+    raw = stem.encode("utf-8")
+    if len(raw) <= OUTPUT_STEM_BYTES:
+        return stem
+    suffix = "-" + hashlib.sha256(raw).hexdigest()[:16]
+    prefix = raw[: OUTPUT_STEM_BYTES - len(suffix)].decode("utf-8", errors="ignore")
+    return prefix + suffix

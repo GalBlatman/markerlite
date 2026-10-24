@@ -115,10 +115,11 @@ def main() -> None:
             print(f"applied {n} equation(s) to {safe_display(md)}")
         return
 
-    outdir.mkdir(parents=True, exist_ok=True)
+    failures = []
     for n, p in enumerate(args.pdfs):
         path = pathlib.Path(p)
         try:
+            outdir.mkdir(parents=True, exist_ok=True)
             out, manifest = convert(
                 path,
                 outdir,
@@ -137,5 +138,19 @@ def main() -> None:
                     f"skipped: {safe_display(pathlib.Path(rest).name)}", file=sys.stderr
                 )
             sys.exit(130)
+        except Exception as exc:
+            failures.append(path.name)
+            print(
+                f"failed: {safe_display(path.name)}: {safe_display(exc)}",
+                file=sys.stderr,
+            )
+            continue
         print(f"{safe_display(path.name)} -> {safe_display(out)}")
         print(f"   {summarize(manifest.get('stats', {}))}")
+    if failures:
+        print(
+            f"{len(failures)} file(s) failed: "
+            + ", ".join(map(safe_display, failures)),
+            file=sys.stderr,
+        )
+        sys.exit(1)

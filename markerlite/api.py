@@ -35,6 +35,7 @@ from .figures import (
 )
 from .model import *
 from .output import Output
+from .paths import output_stem
 from .processors import (
     _protect_numeric_records,
     proc_blockquote,
@@ -102,6 +103,7 @@ def _convert(
     path, out, images, do_flag_math, page_markers, do_flag_figures, cancel, grids
 ):
     outdir = out.outdir
+    stem = output_stem(path.stem)
     doc = pymupdf.open(path)
     drop_pages, drop_lines, provenance = detect_provenance(doc)
     pages = []
@@ -190,7 +192,7 @@ def _convert(
     # With --flag-figures the crops are the saved figures: --images then
     # links to them instead of saving every figure a second time.
     save_here = out if (images and not do_flag_figures) else None
-    n_figures = place_figures(doc, pages, save_here, path.stem)
+    n_figures = place_figures(doc, pages, save_here, stem)
     _promote_figure_captions(pages)
     proc_captions(pages)
     n_figures += _figures_from_captions(pages)
@@ -217,9 +219,9 @@ def _convert(
     check_cancel(cancel)
     manifest = {}
     if do_flag_math:
-        manifest = flag_math(doc, pages, out, path.stem)
+        manifest = flag_math(doc, pages, out, stem)
     if do_flag_figures:
-        manifest["figures"] = flag_figures(doc, pages, out, path.stem, link=images)[
+        manifest["figures"] = flag_figures(doc, pages, out, stem, link=images)[
             "regions"
         ]
 
@@ -238,9 +240,9 @@ def _convert(
     md = render(pages, page_markers=page_markers)
     if provenance:
         md = "\n".join(provenance) + "\n\n" + md
-    out.file(f"{path.stem}.md").write_text(md, encoding="utf-8")
+    out.file(f"{stem}.md").write_text(md, encoding="utf-8")
     manifest["stats"] = build_stats(
         pages, md, manifest, provenance, pi_spans, n_figures
     )
     doc.close()
-    return outdir / f"{path.stem}.md", manifest
+    return outdir / f"{stem}.md", manifest
