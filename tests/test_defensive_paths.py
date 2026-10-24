@@ -17,6 +17,12 @@ class BrokenDrawingPage:
 
 
 class BrokenOcrPage:
+    rect = pymupdf.Rect(0, 0, 100, 100)
+    number = 2
+
+    def get_images(self, full=True):
+        return []
+
     class Pixmap:
         def save(self, _path):
             pass
@@ -35,6 +41,7 @@ def test_ocr_process_failure_returns_none(monkeypatch, capsys):
     def fail(*_args, **_kwargs):
         raise TimeoutError("tesseract timeout")
 
-    monkeypatch.setattr("subprocess.run", fail)
+    monkeypatch.setattr("markerlite.extraction.discover_tesseract", lambda: "fake-ocr")
+    monkeypatch.setattr("markerlite.extraction.capture_capped", fail)
     assert _ocr_page(BrokenOcrPage(), 2) is None
     assert "OCR failed on page 3" in capsys.readouterr().err

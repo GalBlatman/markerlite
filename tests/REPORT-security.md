@@ -556,3 +556,14 @@ no release/tag is created by this task.
 The runtime/dependency implementation is complete. Final candidate CI,
 exact-commit hashes, cancellation matrix and clean-install results are
 being collected; the evidence section will be completed before stopping.
+
+
+### Installer-free artifact-worker test correction
+
+Separating the OCR installer exposed another test that implicitly required
+Tesseract discovery despite being a simulated process-failure test. Its fake
+page also lacked valid geometry, so on OCR-equipped machines it stopped
+before reaching the producer. Give the stub finite dimensions and an empty
+image inventory, force discovery, and raise at capture_capped. This tests
+the intended failure boundary both with and without a system OCR install;
+it changes no conversion code or expected output.
