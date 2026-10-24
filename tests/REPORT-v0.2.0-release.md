@@ -50,10 +50,10 @@ these smoke tests.
 
 The installed tag's real, unmocked update function queried the live latest
 release and returned `You're up to date`, with no release-navigation URL.
-The final published exe's Help-menu click is not certified by that function
-check: this session has no node_repl tool required by the computer-use skill.
-The owner has been asked to verify Help → Check for updates in the downloaded
-exe. No fake dialog, substituted response, or claimed menu screenshot.
+The owner independently checked Help → Check for updates in the actual
+published v0.2.0 exe and confirmed `You're up to date`. This completes the
+menu verification; it is an owner-observed result, not an automated screenshot.
+No fake dialog or substituted response was used.
 
 ## Follow-up documentation
 
