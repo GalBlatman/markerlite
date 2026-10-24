@@ -110,8 +110,9 @@ def test_folder_swap_restores_old_folder_if_rename_fails(tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize("position", range(1, 7))
+@pytest.mark.parametrize("after_rename", [False, True])
 def test_every_backup_and_swap_failure_restores_entire_set(
-    tmp_path, monkeypatch, position
+    tmp_path, monkeypatch, position, after_rename
 ):
     for name in ("images", "figures"):
         (tmp_path / name).mkdir()
@@ -131,6 +132,8 @@ def test_every_backup_and_swap_failure_restores_entire_set(
         nonlocal calls
         calls += 1
         if calls == position:
+            if after_rename:
+                real(src, dst)
             raise OSError("injected swap failure")
         return real(src, dst)
 

@@ -72,17 +72,18 @@ class Output:
             for index, (_part, final, _is_dir) in enumerate(order):
                 if final.exists() or final.is_symlink():
                     backup = backup_dir / str(index)
-                    os.replace(final, backup)
                     backups.append((backup, final))
+                    os.replace(final, backup)
             for part, final, _is_dir in order:
-                os.replace(part, final)
                 installed.append(final)
+                os.replace(part, final)
         except BaseException:
             for final in reversed(installed):
                 _remove(final)
             try:
                 for backup, final in reversed(backups):
-                    os.replace(backup, final)
+                    if backup.exists() or backup.is_symlink():
+                        os.replace(backup, final)
             except BaseException as exc:
                 self.discard()
                 raise RuntimeError(
