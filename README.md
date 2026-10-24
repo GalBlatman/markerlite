@@ -166,7 +166,8 @@ or use the command line, below.
 For v0.2.1 and later, install the hash-checked bootstrap and dependency lock
 from the same tag, then install that exact source without resolving new
 dependencies or creating an unpinned build environment. `pyproject.toml`
-keeps compatible ranges for ordinary installs.
+keeps compatible ranges for ordinary installs. Use Python 3.12.10 to match
+the CI/build environment.
 
 ```bash
 TAG=v0.2.1 # once published; use an exact verified commit before tagging
@@ -213,8 +214,9 @@ Windows light or dark app setting.
 While a batch runs, **Convert** becomes **Cancel** (Esc does the same). The
 file being converted is abandoned and leaves nothing behind, files already
 converted stay, and the rest are skipped; the run log says which. Cancel
-takes effect between pages, usually within a second; a long whole-document
-step can hold it for a few seconds (the worst measured was 6.6 s).
+takes effect at cooperative checkpoints. The v0.2.1 verification recorded
+8.61 s at worst; the isolated SBTi recheck reached 2.13 s. See the
+[measurement conditions and historical comparison](tests/REPORT-security.md).
 
 File provides Open PDFs (Ctrl+O), Open folder and recent files. Tools →
 Preferences holds output, OCR, Explorer, appearance and table-grid defaults;

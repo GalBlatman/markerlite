@@ -2525,5 +2525,20 @@
       "decoded_reservations": 23486208,
       "limits": []
     }
-  ]
+  ],
+  "exact_native_bounds": {
+    "documents": 84,
+    "maxima": {
+      "native_span_coordinate_bound": {
+        "value": 840.9640502929688,
+        "id": "packet:autonomous/run-002/pdf/R00717.pdf:no-grids",
+        "page": 1
+      },
+      "geometric_candidate_cells": {
+        "value": 539,
+        "id": "real:tests/real/Target-Validation-Protocol.pdf:no-grids",
+        "page": 17
+      }
+    }
+  }
 }

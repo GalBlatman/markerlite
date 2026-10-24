@@ -32,7 +32,7 @@ baseline; no table reconstruction algorithm or golden baseline changes.
   remain deferred to the planned timed per-document worker process.
 
 See tests/REPORT-security.md for both scans, measurements, exact-commit
-audits and the pre-tag checklist. No tag has been created for this candidate.
+audits and the pre-tag checklist.
 
 ## v0.2.0
 

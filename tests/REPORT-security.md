@@ -27,7 +27,7 @@ Markdown or stats hash may change in this part.
 | 5e | Vector clustering quadratic, run twice per page, uncapped | fixed | 164e73d |
 | 5f | Image export decodes the source without a size check | fixed, and two worse decoders found and fixed | 8e7e1fd |
 | 5g | OCR render size and TSV capture unbounded | fixed | 845702f |
-| 6 | No security policy | added; private vulnerability reporting must be switched on by the owner | 3697f2a |
+| 6 | No security policy | resolved; private reporting verified enabled | 3697f2a |
 | — | Per-page time budget | proposed below, not implemented | — |
 
 ## How a tripped limit degrades
@@ -106,9 +106,9 @@ aaf1d74 on (one failure, 394f062, was a formatting slip fixed in
 passed the checkout-free release job after the read-only build, checked its
 bundled version, and published the archive. The published SHA-256 matched
 GitHub's digest, and its notes came from the CHANGELOG section; see
-REPORT-v0.2.0-release.md. Main pushes do not publish. The remaining owner
-setting for private vulnerability reporting is administrative, separate
-from the eleven resolved technical scan findings.
+REPORT-v0.2.0-release.md. Main pushes do not publish. A read-only API check
+on 2026-10-24 also confirms private vulnerability reporting is enabled; no
+repository settings were changed by this patch.
 
 ### 3. build_exe.bat (7e6f171)
 
@@ -218,10 +218,10 @@ yields its text and records the limits.
 ### 6. Security policy (3697f2a)
 
 SECURITY.md states the threat model in five lines, the scope, and how to
-report. **Private vulnerability reporting is switched off** for the
-repository (the API reports `enabled: false`); the owner must enable it
-under Settings, Code security. Until then the policy's fallback applies:
-an issue that asks for a private channel without details.
+report. The original scan found private vulnerability reporting disabled.
+A fresh read-only GET of the repository private-vulnerability-reporting
+endpoint on 2026-10-24 returns `enabled: true`; that administrative item is
+now resolved. The policy retains its fallback for unavailable reporting.
 
 ## Per-page time budget: proposal, not implemented
 
@@ -273,10 +273,10 @@ read in place. A differing hash is a blocker.
 | 1 | Per-file CLI isolation; deterministic hashed shortening for long stems | 8863319 |
 | 2 | Back up the whole target set before swaps; rollback every target on failure | 9ac8ce4, d8470dc |
 | 3 | GUI display funnels; static AST sink test and multiline/control-character test | 80748f8 |
-| 4 | Validated OCR geometry, crop device caps, cumulative decoded-source reservation on every render/decode route | b985d2c, a1ab2f8 |
+| 4 | Validated OCR geometry, crop device caps, cumulative decoded-source reservation on every render/decode route | b985d2c, a1ab2f8, e2736c0 |
 | 5 | Absolute table coordinate, input-token and geometric/reconstructed-cell guards | bf131ba, 7ad36af |
-| 6 | Pairwise candidate caps and inner-loop cancellation checks | fab4880 |
-| 7 | Bounded producer stdout with kill/reap; crop count and encoded-byte budgets | 8d8ceac, a0dafb1; parser test c05968b |
+| 6 | Pairwise candidate caps and inner-loop cancellation checks | fab4880, 69c7934 |
+| 7 | Bounded producer stdout with kill/reap; crop count and encoded-byte budgets | 8d8ceac, a0dafb1; parser/producer tests c05968b, fe76cfa |
 | 8 | Size/count/type-checked apply manifests; parse once; one Markdown scan | dde6e25 |
 | 9 | Pinned Python/pip, generated hash lock, isolated pinned OCR installer | 37186a7 |
 | Deferred | Document page / retained-memory / output / wall-clock budgets | Planned per-document worker process; no implementation in this patch |
@@ -553,9 +553,8 @@ records the patch and leaves document-wide worker budgets deferred. The
 against committed archives/build artifacts before requesting the owner tag;
 no release/tag is created by this task.
 
-The runtime/dependency implementation is complete. Final candidate CI,
-exact-commit hashes, cancellation matrix and clean-install results are
-being collected; the evidence section will be completed before stopping.
+The runtime/dependency implementation is complete. Candidate CI, clean
+installation, exact-commit hashes and timing results are recorded below.
 
 
 ### Installer-free artifact-worker test correction
@@ -604,3 +603,196 @@ placements of one reused resource as well as many resources. Cap 400 is
 under a forced cap proves neither decoding nor the pair loop is entered.
 Normal placements and source text are retained on the capped route with
 resource-limit stats. The measured corpus never reaches this cap.
+
+
+### Completed candidate checks (runtime commit 69c7934)
+
+- WSL: 358 unit passes, three platform skips, one existing homogeneous-font
+  clustering warning; measured-module branch coverage 83% (5,183 statements,
+  2,296 branches). All readable fixture regressions match.
+- Ruff check/format and check_gui.py pass: 85 methods, 56 self-calls.
+- [Ubuntu CI 40083391955](https://github.com/GalBlatman/markerlite/actions/runs/40083391955)
+  is green: 358 passes / three skips, fixture regression and golden checks.
+- [Windows CI 40083391959](https://github.com/GalBlatman/markerlite/actions/runs/40083391959)
+  is green. Separate pinned-Tesseract OCR worker: 359 passes / two skips,
+  off-PATH discovery, OCR regression. Fresh artifact worker: 357 passes /
+  four skips, no Tesseract installation, successful PyInstaller build.
+- Each CI golden-fixture check compares 96 entries and explicitly skips 16
+  because its engine differs from recorded Tesseract 5.5.0. This does not
+  replace the required matching-engine, zero-skip, full 186-entry WSL audit.
+- Frozen window title is exactly `markerlite 0.2.1`; all seven embedded icon
+  payloads match; diagnostics and TkinterDnD/theme checks pass. Eighteen
+  synthetic GUI screenshots were captured. Representative light/dark
+  Preferences, Options, Help, OCR and update-dialog views were inspected;
+  no fake-widget layout tests were added. Update screenshot is a test view,
+  not evidence of a published v0.2.1 release.
+- The downloaded Windows archive has no markerlite-diag.txt and contains
+  VERSION 0.2.1. Its SHA-256 matches the build log:
+  `8368ec46808296aba0e22609b565623a128507918ec604c4483b977817b4bf13`.
+  This is the runtime-commit CI artifact; later documentation/tag builds
+  have their own digest. No Release was published.
+- Local Windows launch of that frozen exe with --diag exits zero. First
+  line: `markerlite 0.2.1`; frozen Python 3.12.10; TkinterDnD available;
+  installed Tesseract 5.5.3.20260724 found in Program Files.
+- A fresh WSL virtual environment installs the bootstrap and complete lock
+  with --require-hashes --only-binary=:all:, then installs archived 69c7934
+  with --no-deps --no-build-isolation. pip check passes and the installed
+  console command reports `markerlite 0.2.1`. All 30 installed owned source/data
+  files and vendored table_recon.py match archived 69c7934 byte for byte.
+  hard.pdf converts successfully
+  with default prose and explicit grids; both modes retain 1,021 content
+  words. Local test Python is 3.14.4; CI/build Python is pinned 3.12.10.
+- Golden manifest SHA-256 is unchanged:
+  `43f0df73ea5d8d41069c9613a355fc54fc706a838ebf2ba5ff4d8047b610cfac`.
+  table_recon.py is unchanged, SHA-256
+  `04d398465ac6b55976086ea4a1fdabb0d883b6790a449c35c15c7ceb57232af1`.
+- The tag-only version/zip publication checks await the owner's tag. VERSION
+  and generated candidate release notes both select 0.2.1; no tag is created.
+
+Final exact-commit audit and cancellation evidence follow below. The final
+documentation-only evidence commit is also audited and checked on main
+before the task stops.
+
+
+A final native-geometry cross-check normalizes rotations and measures the
+whole-page span-coordinate union on all 84 PDFs: maximum 840.964 points
+(R00717 p. 1), inside the original conservative 842.04-point page/word bound.
+Running both actual find_tables strategies with the area/overlap filters
+finds at most 539 geometric candidate cells (SBTi p. 17), below the original
+unfiltered 630-cell calibration. The chosen 10,000-point and 8,000-cell caps
+therefore remain above 10x. No constants or conversion code changed for this
+cross-check; only counts are recorded in security-v021-observed.json.
+
+
+### Final limit ledger
+
+The detailed sections above name the source/page evidence. Conservative
+whole-page bounds are labelled here rather than described as actual crop or
+candidate counts. Every chosen cap is at least ten times its measured bound.
+
+| Work | Observed maximum / conservative bound | Cap | Minimum margin |
+| --- | ---: | ---: | ---: |
+| OCR raster pixels | 8,703,348 whole-page bound | 90,000,000 | 10.34x |
+| Crop device side | 2,339 px whole-page bound at 200 dpi | 24,000 | 10.26x |
+| Crop raster pixels | 8,703,348 whole-page bound at 300 dpi | 90,000,000 | 10.34x |
+| Cumulative source decode reservations | 11,979,380,000 bytes | 128,000,000,000 | 10.68x |
+| Absolute table coordinates/span | 842.04 pt conservative page/word bound; native spans 840.964 | 10,000 | 11.88x |
+| Table input tokens | 311 actual candidate; 1,090 whole-page fragment bound | 12,000 | 11.0x |
+| Geometric/returned table cells | 630 unfiltered geometric bound; 552 returned | 8,000 | 12.7x |
+| Internal reconstruction matrix bound | 29,055 actual; 51,207 whole-native-page bound | 1,000,000 | 19.5x |
+| Image resources/placements | 32 / 36 | 400 each | 11.1x |
+| Diagram boxes | 24 | 256 | 10.7x |
+| Furniture evidence | 766 actual; 5,402 source-block bound | 60,000 | 11.1x |
+| OCR TSV stdout | 42,506 bytes | 1,000,000 | 23.5x |
+| Orientation stdout | 125 bytes | 4,096 | 32.8x |
+| Crops/document | 141 | 2,048 | 14.5x |
+| Encoded crop bytes/document | 7,262,025 | 80,000,000 | 11.0x |
+| Apply-manifest bytes | 95,892 | 1,000,000 | 10.4x |
+| Apply-manifest entries | 135 | 2,048 | 15.2x |
+
+The portable filename component allowance is a filesystem constraint, not a
+corpus work limit. The pre-existing OCR timeout is unchanged. Document-wide
+page count, retained memory, total output and wall-clock budgets remain
+explicitly deferred; the cumulative source reservation is not an RSS limit.
+
+
+### Cancellation: v0.1.17 protocol, measured without an acceptance target
+
+Twelve reference PDFs, grids enabled, OCR available and hidden; cancel at
+10/30/50/70/90% of each newly measured conversion duration. Confidential
+inputs remain excluded. The complete 24-row sweep uses archived 37186a7.
+After the final inventory guards, archived 69c7934 rechecks the historically
+slow references plus the affected Greenwood/York references (ten rows).
+These sweeps ran while independent archived audits were active; they are
+as-is wall-clock observations, not an isolated CPU benchmark. No samples
+were dropped or a threshold adjusted to improve these numbers.
+
+Full-sweep maximum: 4.59 s. Final-guard recheck maximum: 8.61 s
+(SBTi, OCR available, 90% point), versus the historical 6.63 s maximum.
+After every competing audit/timing process exited, the final 69c7934 SBTi
+recheck reached 2.13 s. Both the parallel spike and isolated result
+are retained. Cooperative cancellation still waits for uninterruptible
+library calls; the planned worker process remains deferred.
+
+| Document | OCR | v0.1.17 conversion / worst | 37186a7 conversion / worst | Final 69c7934 recheck worst |
+| --- | --- | --- | --- | --- |
+| capiq_keydev.pdf | yes | 57.5 / 0.39 s | 57.9 / 0.41 s | not re-run |
+| greenwood2006.pdf | yes | 10.4 / 0.27 s | 9.9 / 0.24 s | 0.13 s |
+| jay2013.pdf | yes | 20.7 / 0.23 s | 11.6 / 0.73 s | not re-run |
+| kitchener2002.pdf | yes | 116.1 / 3.48 s | 121.7 / 0.03 s | 0.03 s |
+| kostova1999.pdf | yes | 63.7 / 0.04 s | 81.7 / 0.03 s | not re-run |
+| peng2009.pdf | yes | 6.5 / 0.28 s | 10.7 / 0.42 s | not re-run |
+| R02027.pdf | yes | 35.2 / 0.22 s | 24.4 / 3.30 s | 2.21 s |
+| Ragins craft of clear writing 2012.pdf | yes | 2.6 / 0.19 s | 4.1 / 0.10 s | not re-run |
+| suchman1995.pdf | yes | 110.9 / 0.34 s | 624.7 / 0.05 s | not re-run |
+| Target-Validation-Protocol.pdf | yes | 57.3 / 6.63 s | 27.4 / 4.59 s | 8.61 s |
+| wry2013.pdf | yes | 8.9 / 0.16 s | 9.8 / 0.14 s | not re-run |
+| york2018.pdf | yes | 10.0 / 0.28 s | 11.4 / 0.36 s | 0.37 s |
+| capiq_keydev.pdf | hidden | 44.1 / 0.28 s | 53.4 / 0.34 s | not re-run |
+| greenwood2006.pdf | hidden | 7.8 / 0.23 s | 7.4 / 0.28 s | 0.28 s |
+| jay2013.pdf | hidden | 15.2 / 0.53 s | 9.6 / 0.46 s | not re-run |
+| kitchener2002.pdf | hidden | 22.5 / 2.21 s | 7.3 / 2.08 s | 2.41 s |
+| kostova1999.pdf | hidden | 6.2 / 0.51 s | 1.7 / 0.36 s | not re-run |
+| peng2009.pdf | hidden | 4.9 / 0.22 s | 5.6 / 0.10 s | not re-run |
+| R02027.pdf | hidden | 29.1 / 3.72 s | 20.2 / 1.82 s | 1.94 s |
+| Ragins craft of clear writing 2012.pdf | hidden | 2.4 / 0.06 s | 4.8 / 0.10 s | not re-run |
+| suchman1995.pdf | hidden | 6.2 / 0.09 s | 3.0 / 1.53 s | not re-run |
+| Target-Validation-Protocol.pdf | hidden | 45.1 / 1.73 s | 30.0 / 2.98 s | 3.96 s |
+| wry2013.pdf | hidden | 6.4 / 0.12 s | 7.9 / 0.13 s | not re-run |
+| york2018.pdf | hidden | 7.5 / 0.41 s | 9.6 / 0.65 s | 0.23 s |
+
+Isolated SBTi, same archived final code and five fractions per OCR mode:
+
+| OCR | Conversion | Worst cancel |
+| --- | ---: | ---: |
+| yes | 20.98 s | 1.49 s |
+| hidden | 20.11 s | 2.13 s |
+
+Full sweep: 120 scheduled points, 117
+raised Cancelled, 3 finished before the timer fired.
+Final-guard recheck: 50 scheduled points, 44
+raised Cancelled, 6 finished before the timer fired.
+Isolated check: 10 scheduled points, 10
+raised Cancelled, 0 finished before the timer fired.
+Every completed case asserts no .part remains and no tracked Tesseract
+child remains. Raw durations, all fractions and completion flags are in
+security-v021-cancel.json; no document text is stored. The changing baseline
+durations mean a percentage can land in a different stage from v0.1.17, so
+this comparison does not attribute every latency difference to this patch.
+
+### Final archived implementation audit
+
+All twenty preceding commits pass 186/186, zero OCR skips, against the
+unchanged v0.2.0 manifest. PDFs were read in place from the recorded source
+roots. Markdown and complete canonical stats hashes match in both grid modes;
+ordinary words, tables and suppression decisions are unchanged. The logs are
+in tests/audits/v0.2.1 and their hashes are in security-v021-verification.json.
+
+| Commit | Compared | OCR skips |
+| --- | ---: | ---: |
+| 8863319 | 186/186 | 0 |
+| 9ac8ce4 | 186/186 | 0 |
+| 80748f8 | 186/186 | 0 |
+| b985d2c | 186/186 | 0 |
+| bf131ba | 186/186 | 0 |
+| fab4880 | 186/186 | 0 |
+| d8470dc | 186/186 | 0 |
+| 8d8ceac | 186/186 | 0 |
+| a0dafb1 | 186/186 | 0 |
+| a1ab2f8 | 186/186 | 0 |
+| 7ad36af | 186/186 | 0 |
+| c05968b | 186/186 | 0 |
+| dde6e25 | 186/186 | 0 |
+| 37186a7 | 186/186 | 0 |
+| a7f7901 | 186/186 | 0 |
+| 2799f08 | 186/186 | 0 |
+| fe76cfa | 186/186 | 0 |
+| bf68d94 | 186/186 | 0 |
+| e2736c0 | 186/186 | 0 |
+| 69c7934 | 186/186 | 0 |
+
+The final evidence-only commit contains documentation, these measurements
+and audit logs; it changes no production code. Its own archived audit and
+main CI are run after commit and confirmed in the task completion message.
+No tag or Release is created. All owned verification processes must exit
+before the task stops. Tagging/publication is reserved for the owner.

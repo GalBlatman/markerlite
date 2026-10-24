@@ -1,0 +1,1744 @@
+{
+  "date": "2026-10-24",
+  "grids": true,
+  "fractions": [
+    0.1,
+    0.3,
+    0.5,
+    0.7,
+    0.9
+  ],
+  "historical": [
+    {
+      "conversion_seconds": 57.5,
+      "worst_seconds": 0.39,
+      "document": "capiq_keydev.pdf",
+      "ocr_available": true
+    },
+    {
+      "conversion_seconds": 10.4,
+      "worst_seconds": 0.27,
+      "document": "greenwood2006.pdf",
+      "ocr_available": true
+    },
+    {
+      "conversion_seconds": 20.7,
+      "worst_seconds": 0.23,
+      "document": "jay2013.pdf",
+      "ocr_available": true
+    },
+    {
+      "conversion_seconds": 116.1,
+      "worst_seconds": 3.48,
+      "document": "kitchener2002.pdf",
+      "ocr_available": true
+    },
+    {
+      "conversion_seconds": 63.7,
+      "worst_seconds": 0.04,
+      "document": "kostova1999.pdf",
+      "ocr_available": true
+    },
+    {
+      "conversion_seconds": 6.5,
+      "worst_seconds": 0.28,
+      "document": "peng2009.pdf",
+      "ocr_available": true
+    },
+    {
+      "conversion_seconds": 35.2,
+      "worst_seconds": 0.22,
+      "document": "R02027.pdf",
+      "ocr_available": true
+    },
+    {
+      "conversion_seconds": 2.6,
+      "worst_seconds": 0.19,
+      "document": "Ragins craft of clear writing 2012.pdf",
+      "ocr_available": true
+    },
+    {
+      "conversion_seconds": 110.9,
+      "worst_seconds": 0.34,
+      "document": "suchman1995.pdf",
+      "ocr_available": true
+    },
+    {
+      "conversion_seconds": 57.3,
+      "worst_seconds": 6.63,
+      "document": "Target-Validation-Protocol.pdf",
+      "ocr_available": true
+    },
+    {
+      "conversion_seconds": 8.9,
+      "worst_seconds": 0.16,
+      "document": "wry2013.pdf",
+      "ocr_available": true
+    },
+    {
+      "conversion_seconds": 10.0,
+      "worst_seconds": 0.28,
+      "document": "york2018.pdf",
+      "ocr_available": true
+    },
+    {
+      "conversion_seconds": 44.1,
+      "worst_seconds": 0.28,
+      "document": "capiq_keydev.pdf",
+      "ocr_available": false
+    },
+    {
+      "conversion_seconds": 7.8,
+      "worst_seconds": 0.23,
+      "document": "greenwood2006.pdf",
+      "ocr_available": false
+    },
+    {
+      "conversion_seconds": 15.2,
+      "worst_seconds": 0.53,
+      "document": "jay2013.pdf",
+      "ocr_available": false
+    },
+    {
+      "conversion_seconds": 22.5,
+      "worst_seconds": 2.21,
+      "document": "kitchener2002.pdf",
+      "ocr_available": false
+    },
+    {
+      "conversion_seconds": 6.2,
+      "worst_seconds": 0.51,
+      "document": "kostova1999.pdf",
+      "ocr_available": false
+    },
+    {
+      "conversion_seconds": 4.9,
+      "worst_seconds": 0.22,
+      "document": "peng2009.pdf",
+      "ocr_available": false
+    },
+    {
+      "conversion_seconds": 29.1,
+      "worst_seconds": 3.72,
+      "document": "R02027.pdf",
+      "ocr_available": false
+    },
+    {
+      "conversion_seconds": 2.4,
+      "worst_seconds": 0.06,
+      "document": "Ragins craft of clear writing 2012.pdf",
+      "ocr_available": false
+    },
+    {
+      "conversion_seconds": 6.2,
+      "worst_seconds": 0.09,
+      "document": "suchman1995.pdf",
+      "ocr_available": false
+    },
+    {
+      "conversion_seconds": 45.1,
+      "worst_seconds": 1.73,
+      "document": "Target-Validation-Protocol.pdf",
+      "ocr_available": false
+    },
+    {
+      "conversion_seconds": 6.4,
+      "worst_seconds": 0.12,
+      "document": "wry2013.pdf",
+      "ocr_available": false
+    },
+    {
+      "conversion_seconds": 7.5,
+      "worst_seconds": 0.41,
+      "document": "york2018.pdf",
+      "ocr_available": false
+    }
+  ],
+  "full": {
+    "commit": "37186a7",
+    "grids": true,
+    "checkpoints": [
+      0.1,
+      0.3,
+      0.5,
+      0.7,
+      0.9
+    ],
+    "records": [
+      {
+        "document": "R02027.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 24.352814166006283,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.027058941006544046,
+            "conversion_seconds": 2.4627607830043416,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.01627233999897726,
+            "conversion_seconds": 7.322834154008888,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.13559020899992902,
+            "conversion_seconds": 12.317609723002533,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 3.303287142989575,
+            "conversion_seconds": 20.3639239059994,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 2.2338662139954977,
+            "conversion_seconds": 24.178663295999286,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 3.303287142989575
+      },
+      {
+        "document": "Ragins craft of clear writing 2012.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 4.122288925995235,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.020901138996123336,
+            "conversion_seconds": 0.44170984100492205,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.10107842499564867,
+            "conversion_seconds": 1.347799931987538,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.09538794700347353,
+            "conversion_seconds": 2.1712383379926905,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.06194312599836849,
+            "conversion_seconds": 2.953465619997587,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.07693785899027716,
+            "conversion_seconds": 3.7977474959916435,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.10107842499564867
+      },
+      {
+        "document": "Target-Validation-Protocol.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 27.428012695992948,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.061433789000147954,
+            "conversion_seconds": 2.8633026590105146,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.029909408011008054,
+            "conversion_seconds": 8.264758928999072,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.056870835993322544,
+            "conversion_seconds": 13.7763869670016,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 4.594588307998492,
+            "conversion_seconds": 23.805201859999215,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 3.7066446489916416,
+            "conversion_seconds": 28.4084609010024,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 4.594588307998492
+      },
+      {
+        "document": "capiq_keydev.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 57.91057735400682,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.06780148200050462,
+            "conversion_seconds": 5.86932428900036,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.36497278900060337,
+            "conversion_seconds": 17.77114118699683,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.28211890399688855,
+            "conversion_seconds": 29.242983632997493,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.19475660899479408,
+            "conversion_seconds": 40.73770335299196,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.4120276739995461,
+            "conversion_seconds": 52.53926732100081,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.4120276739995461
+      },
+      {
+        "document": "greenwood2006.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 9.944396713006427,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.03243153900257312,
+            "conversion_seconds": 1.0327244649961358,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.13944057900516782,
+            "conversion_seconds": 3.1574710109998705,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.1231282079970697,
+            "conversion_seconds": 5.100909198008594,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.1506005879928125,
+            "conversion_seconds": 7.123397702991497,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.24336417099402752,
+            "conversion_seconds": 9.20088695299637,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.24336417099402752
+      },
+      {
+        "document": "jay2013.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 11.610865684007877,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.044695715012494475,
+            "conversion_seconds": 1.2114927340007853,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.12017649500921834,
+            "conversion_seconds": 3.6088771450013155,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.3012668199953623,
+            "conversion_seconds": 6.114722537997295,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.4038451439992059,
+            "conversion_seconds": 8.536886282992782,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.728131691008457,
+            "conversion_seconds": 11.190180290010176,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.728131691008457
+      },
+      {
+        "document": "kitchener2002.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 121.72105049301172,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.0023861840018071234,
+            "conversion_seconds": 12.227271847994416,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.014574100001482293,
+            "conversion_seconds": 36.531288101992686,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.015988097991794348,
+            "conversion_seconds": 60.8786956769909,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.02756077800586354,
+            "conversion_seconds": 85.23553929499758,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.01741589800803922,
+            "conversion_seconds": 109.56683105199772,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.02756077800586354
+      },
+      {
+        "document": "kostova1999.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 81.66513001298881,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.016937510008574463,
+            "conversion_seconds": 8.186715411007754,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.012264142002095468,
+            "conversion_seconds": 24.512296746004722,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.023611632001120597,
+            "conversion_seconds": 40.85766506601067,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.02576621199841611,
+            "conversion_seconds": 57.193544585999916,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.019247701988206245,
+            "conversion_seconds": 73.51994476899563,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.02576621199841611
+      },
+      {
+        "document": "peng2009.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 10.668445607007015,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.0645211119990563,
+            "conversion_seconds": 1.1390421260002768,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.4236293100111652,
+            "conversion_seconds": 3.6358755539986305,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.324422682999284,
+            "conversion_seconds": 5.668082189993584,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.23519150298670866,
+            "conversion_seconds": 7.715398066997295,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": false,
+            "latency_seconds": null,
+            "conversion_seconds": 9.263332110989722,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.4236293100111652
+      },
+      {
+        "document": "suchman1995.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 624.741946588998,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.04051086200342979,
+            "conversion_seconds": 62.51627383400046,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.03845050600648392,
+            "conversion_seconds": 187.4632616309973,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.04928289899544325,
+            "conversion_seconds": 312.4236803149979,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": false,
+            "latency_seconds": null,
+            "conversion_seconds": 284.8501010829932,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": false,
+            "latency_seconds": null,
+            "conversion_seconds": 157.71265679900534,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.04928289899544325
+      },
+      {
+        "document": "wry2013.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 9.82947242699447,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.1401028039981611,
+            "conversion_seconds": 1.1299493979895487,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.03713494299154263,
+            "conversion_seconds": 2.991393001997494,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.13064659100200515,
+            "conversion_seconds": 5.0536192139989,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.08746489600162022,
+            "conversion_seconds": 6.977281904008123,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.10803080898767803,
+            "conversion_seconds": 8.960098491996177,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.1401028039981611
+      },
+      {
+        "document": "york2018.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 11.405860518003465,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.0319634649931686,
+            "conversion_seconds": 1.1782433629996376,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.15849793900270015,
+            "conversion_seconds": 3.598665861005429,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.13778481500048656,
+            "conversion_seconds": 5.846254978998331,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.13742979199741967,
+            "conversion_seconds": 8.12703420399339,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.35614525599521585,
+            "conversion_seconds": 10.69387326099968,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.35614525599521585
+      },
+      {
+        "document": "R02027.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 20.165766838006675,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.009486719005508348,
+            "conversion_seconds": 2.0337880950100953,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.07325210500857793,
+            "conversion_seconds": 6.128548738008249,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.14495342399459332,
+            "conversion_seconds": 10.237495102992398,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 1.764192988994182,
+            "conversion_seconds": 15.913399027995183,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 1.8197506800061092,
+            "conversion_seconds": 19.997784079008852,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 1.8197506800061092
+      },
+      {
+        "document": "Ragins craft of clear writing 2012.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 4.778182174006361,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.03205296599480789,
+            "conversion_seconds": 0.5175705110013951,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.10254821699345484,
+            "conversion_seconds": 1.5415854739985662,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.1046834219887387,
+            "conversion_seconds": 2.499477275996469,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.023201969001092948,
+            "conversion_seconds": 3.373591829003999,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.014887651996104978,
+            "conversion_seconds": 4.323147269999026,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.1046834219887387
+      },
+      {
+        "document": "Target-Validation-Protocol.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 30.003753044002224,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.14665846498974133,
+            "conversion_seconds": 3.1566673859924776,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.16781167199951597,
+            "conversion_seconds": 9.174546786001883,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.13363001200195868,
+            "conversion_seconds": 15.15447359799873,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 2.976221148011973,
+            "conversion_seconds": 24.005443904999993,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 1.747391126002185,
+            "conversion_seconds": 28.75716964500316,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 2.976221148011973
+      },
+      {
+        "document": "capiq_keydev.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 53.41887192100694,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.06523430300876498,
+            "conversion_seconds": 5.417600075001246,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.3246431950101396,
+            "conversion_seconds": 16.362452325003687,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.29269103599654045,
+            "conversion_seconds": 27.01564108399907,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.28592024100362323,
+            "conversion_seconds": 37.69025285400858,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.33815557601337787,
+            "conversion_seconds": 48.42203227800201,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.33815557601337787
+      },
+      {
+        "document": "greenwood2006.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 7.443380332013476,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.019376725002075545,
+            "conversion_seconds": 0.7697196250082925,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.13385566300712526,
+            "conversion_seconds": 2.3774293400056195,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.20358596100413706,
+            "conversion_seconds": 3.9460344569961308,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.2809696820040699,
+            "conversion_seconds": 5.497950124001363,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.04956822500389535,
+            "conversion_seconds": 6.760593381011859,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.2809696820040699
+      },
+      {
+        "document": "jay2013.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 9.606502434995491,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.03351701999781653,
+            "conversion_seconds": 1.0083239980012877,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.18289467299473472,
+            "conversion_seconds": 3.0703591639903607,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.07650224798999261,
+            "conversion_seconds": 4.885247189988149,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.3266420290019596,
+            "conversion_seconds": 7.065465082006995,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.45579957800509874,
+            "conversion_seconds": 9.117298350000056,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.45579957800509874
+      },
+      {
+        "document": "kitchener2002.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 7.3322423420031555,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.014148223010124639,
+            "conversion_seconds": 0.7535441060026642,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 1.9358192270010477,
+            "conversion_seconds": 4.141970168988337,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.49765035400923807,
+            "conversion_seconds": 4.189878447999945,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 2.0779550679872045,
+            "conversion_seconds": 7.23834916499618,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.8431797249941155,
+            "conversion_seconds": 7.462620975988102,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 2.0779550679872045
+      },
+      {
+        "document": "kostova1999.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 1.7219909809937235,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.05288175099121872,
+            "conversion_seconds": 0.23062665799807291,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.009669243998359889,
+            "conversion_seconds": 0.5323052119929343,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.36045201499655377,
+            "conversion_seconds": 1.2353207129926886,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.12131882800895255,
+            "conversion_seconds": 1.3340819120057859,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.1321376859996235,
+            "conversion_seconds": 1.6881289750017459,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.36045201499655377
+      },
+      {
+        "document": "peng2009.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 5.639062273010495,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.012559301001601852,
+            "conversion_seconds": 0.5827571349946084,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.030300373007776216,
+            "conversion_seconds": 1.727601662001689,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.021785086995805614,
+            "conversion_seconds": 2.846871204004856,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.03354816199862398,
+            "conversion_seconds": 3.9867572739894968,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.0960787869989872,
+            "conversion_seconds": 5.176646121995873,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.0960787869989872
+      },
+      {
+        "document": "suchman1995.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 2.9705067630129633,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.0020045369892613962,
+            "conversion_seconds": 0.3046559679933125,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 1.5288275359926047,
+            "conversion_seconds": 2.4524471789918607,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.9761933319969103,
+            "conversion_seconds": 2.4753850559936836,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.4271115259907674,
+            "conversion_seconds": 2.5192537999973865,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.12317373800033238,
+            "conversion_seconds": 2.805731938991812,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 1.5288275359926047
+      },
+      {
+        "document": "wry2013.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 7.937709479010664,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.014313794003101066,
+            "conversion_seconds": 0.8137090270029148,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.04728051900747232,
+            "conversion_seconds": 2.436008286997094,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.07893467399117071,
+            "conversion_seconds": 4.057626337991678,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.1344629189989064,
+            "conversion_seconds": 5.717911563988309,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.10195478500099853,
+            "conversion_seconds": 7.261920296994504,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.1344629189989064
+      },
+      {
+        "document": "york2018.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 9.60696088799159,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.039097607994335704,
+            "conversion_seconds": 1.008821502997307,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.07257114100502804,
+            "conversion_seconds": 2.960116663001827,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.646958438999718,
+            "conversion_seconds": 5.455912096003885,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.08427761599887162,
+            "conversion_seconds": 6.815041007997934,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.20539208700938616,
+            "conversion_seconds": 8.933537867997074,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.646958438999718
+      }
+    ]
+  },
+  "final_guards": {
+    "commit": "69c7934",
+    "grids": true,
+    "checkpoints": [
+      0.1,
+      0.3,
+      0.5,
+      0.7,
+      0.9
+    ],
+    "records": [
+      {
+        "document": "R02027.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 53.57862752399524,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.020740281004691496,
+            "conversion_seconds": 5.469376401000773,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.034240623004734516,
+            "conversion_seconds": 16.11547350199544,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.04831616999581456,
+            "conversion_seconds": 26.839266416005557,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 2.2061072639917256,
+            "conversion_seconds": 39.739388640999096,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": false,
+            "latency_seconds": null,
+            "conversion_seconds": 48.04292194699519,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 2.2061072639917256
+      },
+      {
+        "document": "Target-Validation-Protocol.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 53.63134977700247,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.22587996000947896,
+            "conversion_seconds": 5.609650070007774,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.7262861750059528,
+            "conversion_seconds": 16.827069513994502,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.5742174850020092,
+            "conversion_seconds": 27.400151215988444,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 7.5987900420004735,
+            "conversion_seconds": 45.159661828001845,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 8.6054808350018,
+            "conversion_seconds": 56.89886002699495,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 8.6054808350018
+      },
+      {
+        "document": "greenwood2006.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 22.50842086499324,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.082389882998541,
+            "conversion_seconds": 2.3364042669854825,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.09190331399440765,
+            "conversion_seconds": 6.86131515300076,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.12532799699692987,
+            "conversion_seconds": 11.429517473006854,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": false,
+            "latency_seconds": null,
+            "conversion_seconds": 14.454216402009479,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": false,
+            "latency_seconds": null,
+            "conversion_seconds": 16.63218871699064,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.12532799699692987
+      },
+      {
+        "document": "kitchener2002.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 637.179296354996,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.03221176100487355,
+            "conversion_seconds": 63.75405449800019,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.017920621001394466,
+            "conversion_seconds": 191.17992749800032,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": false,
+            "latency_seconds": null,
+            "conversion_seconds": 213.64522474799014,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": false,
+            "latency_seconds": null,
+            "conversion_seconds": 150.8632900770026,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": false,
+            "latency_seconds": null,
+            "conversion_seconds": 99.06985954400443,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.03221176100487355
+      },
+      {
+        "document": "york2018.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 11.476497570009087,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.028528358991025016,
+            "conversion_seconds": 1.1818147619924275,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.33716482199088205,
+            "conversion_seconds": 3.786070474990993,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.1367305859894259,
+            "conversion_seconds": 5.880514573989785,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.04228079700260423,
+            "conversion_seconds": 8.142510353995021,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.3675632459926419,
+            "conversion_seconds": 10.702928733997396,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.3675632459926419
+      },
+      {
+        "document": "R02027.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 21.36928538000211,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.05590654599654954,
+            "conversion_seconds": 2.202966083990759,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.08493291700142436,
+            "conversion_seconds": 6.501150436990429,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.12067543499870226,
+            "conversion_seconds": 10.810882446996402,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 1.2497876800043741,
+            "conversion_seconds": 16.237267161995987,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 1.9360581130022183,
+            "conversion_seconds": 21.17662238799676,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 1.9360581130022183
+      },
+      {
+        "document": "Target-Validation-Protocol.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 30.741462154997862,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.028607308995560743,
+            "conversion_seconds": 3.109729054995114,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.2855254500027513,
+            "conversion_seconds": 9.514630110003054,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.1905138709989842,
+            "conversion_seconds": 15.567270533007104,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 3.9560271709924564,
+            "conversion_seconds": 25.486763605993474,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 1.8599872149934527,
+            "conversion_seconds": 29.560597878997214,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 3.9560271709924564
+      },
+      {
+        "document": "greenwood2006.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 7.479751310005668,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.01797177801199723,
+            "conversion_seconds": 0.7718395100091584,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.28102580101403873,
+            "conversion_seconds": 2.543112027007737,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.20787864799785893,
+            "conversion_seconds": 3.9533622750022914,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.01974454100127332,
+            "conversion_seconds": 5.2617039129982,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.07207807198574301,
+            "conversion_seconds": 6.809446848987136,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.28102580101403873
+      },
+      {
+        "document": "kitchener2002.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 7.866563005998614,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.007444264992955141,
+            "conversion_seconds": 0.7997443959902739,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 2.409305711000343,
+            "conversion_seconds": 4.795948689003126,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.8244032610091381,
+            "conversion_seconds": 4.772747362003429,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 2.3821992269949988,
+            "conversion_seconds": 7.918665912991855,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.871205478993943,
+            "conversion_seconds": 7.96580798899231,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 2.409305711000343
+      },
+      {
+        "document": "york2018.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 10.803037769001094,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.034959026001160964,
+            "conversion_seconds": 1.1212885700078914,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.23189312100294046,
+            "conversion_seconds": 3.4831270440045046,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.09954624800593592,
+            "conversion_seconds": 5.507430031007971,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 0.12477617900003679,
+            "conversion_seconds": 7.692631578989676,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 0.19438959000399336,
+            "conversion_seconds": 9.9702887070016,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 0.23189312100294046
+      }
+    ]
+  },
+  "isolated": {
+    "commit": "69c7934",
+    "grids": true,
+    "checkpoints": [
+      0.1,
+      0.3,
+      0.5,
+      0.7,
+      0.9
+    ],
+    "records": [
+      {
+        "document": "Target-Validation-Protocol.pdf",
+        "ocr_available": true,
+        "baseline_seconds": 20.97710226799245,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.055859243002487347,
+            "conversion_seconds": 2.1603348679927876,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.07800041299196891,
+            "conversion_seconds": 6.377561926987255,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.03747655400366057,
+            "conversion_seconds": 10.536127437007963,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 1.4915871859993786,
+            "conversion_seconds": 16.189605560997734,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 1.1760369640105637,
+            "conversion_seconds": 20.080358147009974,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 1.4915871859993786
+      },
+      {
+        "document": "Target-Validation-Protocol.pdf",
+        "ocr_available": false,
+        "baseline_seconds": 20.109683806003886,
+        "samples": [
+          {
+            "fraction": 0.1,
+            "cancelled": true,
+            "latency_seconds": 0.024204656001529656,
+            "conversion_seconds": 2.0435872620000737,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.3,
+            "cancelled": true,
+            "latency_seconds": 0.07670263700128999,
+            "conversion_seconds": 6.11682717599615,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.5,
+            "cancelled": true,
+            "latency_seconds": 0.12523214500106405,
+            "conversion_seconds": 10.187410305006779,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.7,
+            "cancelled": true,
+            "latency_seconds": 2.1266251009947155,
+            "conversion_seconds": 16.211649225006113,
+            "parts_left": 0
+          },
+          {
+            "fraction": 0.9,
+            "cancelled": true,
+            "latency_seconds": 2.0049200730136363,
+            "conversion_seconds": 20.114037581006414,
+            "parts_left": 0
+          }
+        ],
+        "worst_seconds": 2.1266251009947155
+      }
+    ]
+  }
+}

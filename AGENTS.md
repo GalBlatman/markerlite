@@ -201,7 +201,10 @@ third_party/marker/LICENSE   Marker's license text (kept OUT of root so GitHub
 - Cancel (v0.1.17): Convert becomes Cancel, Esc too; markerlite/cancel.py
   token checked between pages, Tesseract killed, Cancelled is a
   BaseException so `except Exception` never swallows it. Worst measured
-  latency 6.63 s; the worker-process design waits in tests/PLAN-cleanup.md.
+  latency in that release was 6.63 s. The v0.2.1 verification recorded
+  8.61 s at worst; isolated SBTi recheck 2.13 s. Conditions and all
+  samples are in tests/REPORT-security.md. The worker-process design waits
+  in tests/PLAN-cleanup.md.
 - Output is atomic (markerlite/output.py): `.part` files and folders,
   renamed into place only on success. Never write an output file directly.
 - Single instance (markerlite/instance.py): per-user mutex, AF_PIPE hand-off
@@ -532,8 +535,10 @@ parentheses fails if the fix is undone):
   set after success, so terminating a child cannot interrupt publication.
 
 - CI skips 16 OCR golden entries because runner Tesseract versions differ
-  from the recorded 5.5.0. Options for future work: pin Tesseract in CI, or
-  maintain per-version OCR baselines. Neither is implemented. Matching-engine
+  from the recorded 5.5.0. Windows OCR CI now pins 5.5.3.20260724 on its
+  separate test worker. Remaining options: pin the matching 5.5.0 engine, or
+  maintain per-version OCR baselines. Neither matching-engine option is
+  implemented. Matching-engine
   WSL verification covers all OCR entries without skips.
 
 - Dehyphenation needs a bundled word list; document evidence and character
