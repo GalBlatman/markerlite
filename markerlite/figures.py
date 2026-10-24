@@ -13,7 +13,13 @@ from .classification import body_font_size
 from .extraction import _bbox_of, oversized_images
 from .model import *
 from .output import target, write_text_atomic
-from .raster_budget import crop_pixmap, image_bytes, reserve_decode
+from .raster_budget import (
+    checked,
+    crop_pixmap,
+    image_bytes,
+    pending_limit,
+    reserve_decode,
+)
 from .render import block_text
 from .tables import _overlap_frac
 
@@ -282,21 +288,31 @@ def _image_infos(pm: pymupdf.Page) -> list:
     an image over FIGURE_IMAGE_MAX_PIXELS the placements come from the plain
     call, which does not decode, and each one's xref from the image whose
     placement box it matches."""
+    items = pm.get_images(full=True)
+    if len(items) > IMAGE_PLACEMENT_MAX_CANDIDATES:
+        pending_limit(
+            pm,
+            "image_placement_candidates",
+            len(items),
+            IMAGE_PLACEMENT_MAX_CANDIDATES,
+            "pairwise source matching skipped; placements, placeholders and text kept",
+        )
+        return [{**info, "xref": 0} for info in pm.get_image_info()]
     if not oversized_images(pm) and reserve_decode(pm, image_bytes(pm)):
         return pm.get_image_info(xrefs=True)
     boxes = []
-    for item in pm.get_images(full=True):
+    for item in checked(items):
         try:
             boxes.append((item[0], pymupdf.Rect(pm.get_image_bbox(item))))
         except Exception:
             continue
     infos = []
-    for info in pm.get_image_info():
+    for info in checked(pm.get_image_info()):
         box = pymupdf.Rect(info["bbox"])
         match = next(
             (
                 x
-                for x, b in boxes
+                for x, b in checked(boxes)
                 if abs(b.x0 - box.x0) < 0.5 and abs(b.y0 - box.y0) < 0.5
             ),
             0,

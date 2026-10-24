@@ -60,6 +60,11 @@
       "value": 461,
       "id": "packet:autonomous/run-002/pdf/R00443.pdf:no-grids",
       "page": 14
+    },
+    "gate_box_candidates": {
+      "value": 24,
+      "id": "fixture:tests/fixtures/hard.pdf:no-grids",
+      "page": 2
     }
   }
 }

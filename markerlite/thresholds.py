@@ -248,3 +248,12 @@ DOCUMENT_DECODED_BYTES = 40_000_000_000
 TABLE_MAX_TOKENS = 12_000
 TABLE_MAX_CELLS = 8_000
 TABLE_MAX_COORDINATE_SPAN = 10_000.0
+
+# v0.2.1 candidate upper bounds measured on all 84 baseline PDFs.
+# 32 source images per page; at most 326 drawings per page. Diagram boxes
+# maximum 24 stroked boxes (hard p2), capped at 256 (10.7x).
+IMAGE_PLACEMENT_MAX_CANDIDATES = 400
+GATE_MAX_BOX_CANDIDATES = 256
+# Whole-document source-block bound: 5,402 (Capital IQ). Furniture
+# candidates are a subset; 60,000 exceeds that conservative bound by 11x.
+FURNITURE_MAX_CANDIDATES = 60_000

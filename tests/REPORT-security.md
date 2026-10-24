@@ -321,3 +321,27 @@ before allocating/scanning geometric cells. A candidate exceeding a limit
 keeps original source blocks as prose, with resource_limits and the shared
 warning. No table_recon.py changes. Forced-low-cap tests keep source text
 and prove the geometric scan is refused before cell allocation.
+
+
+### Item 6: pairwise candidates and cancellation
+
+Image placement: 32 source-image candidates per page observed (R00717 p. 9),
+cap 400 (12.5x). Diagram gate: 24 stroked rectangle candidates observed
+(hard.pdf p. 2), cap 256 (10.7x). Cross-page furniture: the measured
+whole-document source-block upper bound is 5,402 (Capital IQ), cap 60,000
+(11.1x); this conservatively bounds filtered candidates, rather than
+claiming 5,402 actual running-head candidates. Check the actual evidence
+list too, before pairwise matching. Counts are in security-v021-observed.json.
+
+Oversized-image placement skips pairwise xref matching above its cap and
+keeps non-decoded placements/placeholders/source text. Diagram evaluation
+rejects to prose when capped and records its limit. Furniture analysis
+keeps every original block when capped. The inner loops check the active
+conversion cancellation token, including word-by-cell scanning. A Cancelled
+exception remains outside Exception handlers. Focused tests prove each
+cap avoids its pair loop and an active iterator notices cancellation.
+The legacy projection fixture now expects the earlier absolute-span guard;
+CI at bf131ba failed only that outdated named-guard assertion, not output
+conservation. It is corrected here without changing any golden baseline.
+Cancellation timing results against the v0.1.17 table follow in the final
+verification section after the archived reference runs complete.

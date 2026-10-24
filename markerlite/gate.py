@@ -40,6 +40,7 @@ from html import unescape
 from typing import List
 
 from .model import *
+from .raster_budget import checked
 
 GATE_HRULES_MIN = 2
 GATE_RULE_SPAN = 0.5  # a horizontal rule must span half the region's width
@@ -201,9 +202,13 @@ def evaluate(
         and b[3] <= y1 + pad
         and b[2] - b[0] < GATE_BOX_MAX_WIDTH * w
     ]
-    touching = sum(
-        1 for i, a in enumerate(boxes) for b in boxes[i + 1 :] if _boxes_touch(a, b)
-    )
+    over_budget = len(boxes) > GATE_MAX_BOX_CANDIDATES
+    touching = 0
+    if not over_budget:
+        for i, a in enumerate(checked(boxes)):
+            for b in checked(boxes[i + 1 :]):
+                if _boxes_touch(a, b):
+                    touching += 1
     measures = {
         "hrules": hr_levels,
         "vrules": len(vr),
@@ -220,6 +225,8 @@ def evaluate(
         "vrules_joined": len(mv),
     }
     failed = []
+    if over_budget:
+        failed.append("box_candidates")
     if not (hr_levels >= GATE_HRULES_MIN or vr or cols >= 2):
         failed.append("evidence")
     if len(rows) < GATE_MIN_ROWS or ncols < GATE_MIN_COLS:
@@ -273,6 +280,16 @@ def rows_x_of(tokens_for_recon) -> List[List[float]]:
 
 
 def record(page: "Page", path: str, region, result: dict) -> None:
+    if "box_candidates" in result["failed"]:
+        from .model import note_limit
+
+        note_limit(
+            page,
+            "diagram_box_candidates",
+            result["measures"]["boxes"],
+            GATE_MAX_BOX_CANDIDATES,
+            "diagram pair analysis skipped; table kept as source prose",
+        )
     page.gate_events.append(
         {
             "page": page.page_idx + 1,

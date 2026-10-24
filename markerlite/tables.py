@@ -16,6 +16,7 @@ import pymupdf
 from . import gate
 from .extraction import _bbox_of
 from .model import *
+from .raster_budget import checkpoint
 from .render import _TableParser
 from .table_columns import recover_spanning_columns
 from .table_headers import recover_ruled_header
@@ -198,6 +199,7 @@ def _grid_from_members(tbl, members: List[Block]) -> List[List[str]]:
 
     def place(word: str, cx: float, cy: float) -> None:
         for ri, row in enumerate(cells):
+            checkpoint()
             for ci, c in enumerate(row):
                 if c and c[0] <= cx <= c[2] and c[1] <= cy <= c[3]:
                     grid[ri][ci] = (grid[ri][ci] + " " + word).strip()

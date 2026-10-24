@@ -6,6 +6,7 @@ import math
 from contextlib import contextmanager
 from contextvars import ContextVar
 
+from .cancel import check as check_cancel
 from .model import note_limit
 from .thresholds import CROP_MAX_DEVICE_SIDE, CROP_MAX_PIXELS, DOCUMENT_DECODED_BYTES
 
@@ -13,8 +14,8 @@ _CURRENT = ContextVar("raster_budget", default=None)
 
 
 @contextmanager
-def document_raster_budget():
-    state = {"decoded": 0, "limits": []}
+def document_raster_budget(cancel=None):
+    state = {"decoded": 0, "limits": [], "cancel": cancel}
     token = _CURRENT.set(state)
     try:
         yield state
@@ -104,3 +105,21 @@ def crop_pixmap(pm, page, clip, dpi):
             f"crop resolution reduced to {chosen} dpi; source text kept",
         )
     return pm.get_pixmap(clip=clip, dpi=chosen)
+
+
+def checkpoint():
+    state = _CURRENT.get()
+    if state is not None:
+        check_cancel(state["cancel"])
+
+
+def checked(items):
+    for item in items:
+        checkpoint()
+        yield item
+
+
+def pending_limit(pm, name, observed, cap, action):
+    state = _CURRENT.get()
+    if state is not None:
+        state["limits"].append((pm.number, name, observed, cap, action))

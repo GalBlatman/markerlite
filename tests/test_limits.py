@@ -50,9 +50,11 @@ def test_projection_fixture_degrades_to_prose_with_a_warning(made):
     pdf = fixtures.projection(made)
     md, info = convert(pdf, made)
     text = md.read_text(encoding="utf-8")
-    [record] = _limits(info, "table_projection")
-    assert record["page"] == 1 and record["action"] == "proposal kept as prose"
-    assert "resource limit reached (table_projection p1)" in summarize(info["stats"])
+    [record] = _limits(info, "table_coordinate_span")
+    assert record["page"] == 1 and "source text kept as prose" in record["action"]
+    assert "resource limit reached (table_coordinate_span p1)" in summarize(
+        info["stats"]
+    )
     assert "|" not in text  # no grid built from the absurd coordinates
     for word in ("Group", "Alpha", "Beta", "3.7", "1.2X", "Delta", "1.1"):
         assert word in text

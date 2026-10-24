@@ -81,7 +81,7 @@ def convert(
     """
     out = Output(outdir)
     try:
-        with document_raster_budget() as budget:
+        with document_raster_budget(cancel) as budget:
             md_path, manifest = _convert(
                 path,
                 out,

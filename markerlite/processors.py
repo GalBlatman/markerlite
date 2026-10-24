@@ -14,6 +14,7 @@ from sklearn.cluster import KMeans
 from .classification import _symbol_is_notation, footnote_label, note_text_size
 from .extraction import _bbox_of
 from .model import *
+from .raster_budget import checked
 from .tables import _overlap_frac
 
 
@@ -147,7 +148,7 @@ def _positional_repeat(page, block, norm, corpus):
         and text
         and fuzz.ratio(norm, text) > 90
         and _same_place(page, block.bbox, size, other, other_bbox, other_size)
-        for other, other_band, other_y, text, other_bbox, other_size in corpus
+        for other, other_band, other_y, text, other_bbox, other_size in checked(corpus)
     )
 
 
@@ -253,10 +254,31 @@ def proc_line_numbers(
                 _suppress_block(page, blk, "proc_line_numbers")
 
 
+def _furniture_budget_ok(pages, candidates=None):
+    count = (
+        sum(len(page.blocks) for page in pages)
+        if candidates is None
+        else len(candidates)
+    )
+    if count <= FURNITURE_MAX_CANDIDATES:
+        return True
+    if pages:
+        note_limit(
+            pages[0],
+            "furniture_candidates",
+            count,
+            FURNITURE_MAX_CANDIDATES,
+            "cross-page furniture analysis skipped; source text kept",
+        )
+    return False
+
+
 def proc_ignore_common(pages: List[Page]) -> None:
     """Repeated boundary blocks require matching edge position and context."""
+    if not _furniture_budget_ok(pages):
+        return
     candidates = []
-    for page in pages:
+    for page in checked(pages):
         blocks = [
             b
             for b in page.blocks
@@ -269,12 +291,14 @@ def proc_ignore_common(pages: List[Page]) -> None:
         _evidence(p, b.bbox, _clean_text(b.text), _line_size(b.lines))
         for p, b in candidates
     ]
-    for page, block in candidates:
+    if not _furniture_budget_ok(pages, corpus):
+        return
+    for page, block in checked(candidates):
         norm = _clean_text(block.text)
         size = _line_size(block.lines)
         matches = {
             p.page_idx
-            for p, band, y, text, other_bbox, other_size in corpus
+            for p, band, y, text, other_bbox, other_size in checked(corpus)
             if band == _furniture_band(page, block.bbox)
             and abs(y - block.y_start / page.height) <= FURNITURE_HEIGHT_TOL
             and norm
@@ -339,6 +363,8 @@ def proc_marginalia(
     Headings are protected unless they repeat, and page 1 is treated as content
     unless the same text reappears later in the document.
     """
+    if not _furniture_budget_ok(pages):
+        return
     candidates: List[tuple] = []  # (page_idx, block, normalized_text)
 
     for page in pages:
@@ -465,7 +491,9 @@ def proc_marginalia(
             entry = _evidence(page, first.bbox, norm, _line_size([first]))
             corpus.append((page, "header", *entry[2:]))
             merged.append((page, blk, probe, norm))
-    for idx, blk, norm in candidates:
+    if not _furniture_budget_ok(pages, corpus):
+        return
+    for idx, blk, norm in checked(candidates):
         page = lookup[idx]
         if id(blk) in promoted:
             continue
